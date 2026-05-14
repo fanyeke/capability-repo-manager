@@ -2,14 +2,14 @@
 resolver = "2"
 members = [
     "crates/domain",
-    # "crates/repo-scanner",
-    # "crates/git-service",
-    # "crates/claude-parser",
-    # "crates/pack-engine",
-    # "crates/migration-engine",
-    # "crates/doctor-engine",
-    # "crates/storage",
-    # "crates/tauri-bridge",
+    "crates/repo-scanner",
+    "crates/git-service",
+    "crates/claude-parser",
+    "crates/pack-engine",
+    "crates/migration-engine",
+    "crates/doctor-engine",
+    "crates/storage",
+    "crates/tauri-bridge",
 ]
 
 [workspace.package]
@@ -18,8 +18,15 @@ edition = "2021"
 license = "MIT"
 
 [workspace.dependencies]
+domain = { path = "crates/domain" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 uuid = { version = "1", features = ["v4", "serde"] }
 chrono = { version = "0.4", features = ["serde"] }
 thiserror = "1"
+walkdir = "2"
+tempfile = "3"
+git2 = "0.19"
+log = "0.4"
+sha2 = "0.10"
+rusqlite = { version = "0.31", features = ["bundled"] }

@@ -20,11 +20,11 @@
 **Purpose**: Scaffold the Rust workspace, Tauri shell, Svelte frontend, and shared tooling.
 
 - [x] T001 Create Rust workspace with Cargo.toml at repository root, listing all 9 crates (domain, repo-scanner, git-service, claude-parser, pack-engine, migration-engine, doctor-engine, storage, tauri-bridge)
-- [ ] T002 [P] Initialize Tauri 2 app shell with Svelte + TypeScript + Vite frontend in frontend/
+- [x] T002 [P] Initialize Tauri 2 app shell with Svelte + TypeScript + Vite frontend in frontend/
 - [ ] T003 [P] Configure Rust tooling: rustfmt.toml (edition 2021, max_width 120), clippy.toml at repository root
-- [ ] T004 [P] Configure frontend tooling: .prettierrc, eslint.config.js, tsconfig.json in frontend/
+- [x] T004 [P] Configure frontend tooling: .prettierrc, eslint.config.js, tsconfig.json in frontend/
 - [ ] T005 [P] Create tests/fixtures/ directory with README.md documenting test fixture conventions
-- [ ] T006 [P] Create .github/workflows/ci.yml with lint → typecheck → unit-test → integration-test → e2e-test pipeline
+- [x] T006 [P] Create .github/workflows/ci.yml with lint → typecheck → unit-test → integration-test → e2e-test pipeline
 - [x] T007 [P] Add .gitignore entries for target/, node_modules/, dist/, .env, *.db
 
 ---
@@ -40,8 +40,8 @@
 - [x] T008 [P] Write unit tests for Repository entity (serialization, validation, state transitions) in crates/domain/tests/repository_tests.rs
 - [x] T009 [P] Write unit tests for CapabilityResource entity (XOR constraint, uniqueness rules) in crates/domain/tests/capability_tests.rs
 - [x] T010 [P] Write unit tests for CapabilityPack entity (manifest validation, version format) in crates/domain/tests/pack_tests.rs
-- [ ] T011 [P] Write integration tests for SQLite repository CRUD operations in crates/storage/tests/repo_store_tests.rs
-- [ ] T012 [P] Write integration tests for SQLite resource store round-trip in crates/storage/tests/resource_store_tests.rs
+- [x] T011 [P] Write integration tests for SQLite repository CRUD operations in crates/storage/tests/repo_store_tests.rs
+- [x] T012 [P] Write integration tests for SQLite resource store round-trip in crates/storage/tests/resource_store_tests.rs
 
 ### Implementation for Foundational Layer
 
@@ -52,13 +52,13 @@
 - [x] T017 [P] Define DoctorReport, DoctorIssue domain types with scoring logic (max(0, 100 - 20*c - 5*w - i)) in crates/domain/src/doctor.rs
 - [x] T018 [P] Define common error types (AppError enum with variants for Scan, Parse, Migration, Storage, Git) in crates/domain/src/error.rs
 - [x] T019 Create domain crate lib.rs re-exporting all public types in crates/domain/src/lib.rs
-- [ ] T020 Create SQLite database initialization with schema (CREATE TABLE repositories, capability_resources, packs, migration_runs, doctor_reports) and migration framework in crates/storage/src/lib.rs
-- [ ] T021 [P] Implement RepositoryStore (insert, get_by_id, get_by_path, list, delete) in crates/storage/src/repo_store.rs
-- [ ] T022 [P] Implement ResourceStore (insert_batch, get_by_repo, get_by_pack, update) in crates/storage/src/resource_store.rs
-- [ ] T023 Create test fixture: repo-basic (single skill + .claude/settings.json) in tests/fixtures/repo-basic/
-- [ ] T024 [P] Create test fixture: repo-full (all resource types) in tests/fixtures/repo-full/
-- [ ] T025 [P] Create test fixture: repo-broken (malformed JSON, missing files) in tests/fixtures/repo-broken/
-- [ ] T026 [P] Create test fixture: repo-conflict (overlapping resource names) in tests/fixtures/repo-conflict/
+- [x] T020 Create SQLite database initialization with schema (CREATE TABLE repositories, capability_resources, packs, migration_runs, doctor_reports) and migration framework in crates/storage/src/lib.rs
+- [x] T021 [P] Implement RepositoryStore (insert, get_by_id, get_by_path, list, delete) in crates/storage/src/repo_store.rs
+- [x] T022 [P] Implement ResourceStore (insert_batch, get_by_repo, get_by_pack, update) in crates/storage/src/resource_store.rs
+- [x] T023 Create test fixture: repo-basic (single skill + .claude/settings.json) in tests/fixtures/repo-basic/
+- [x] T024 [P] Create test fixture: repo-full (all resource types) in tests/fixtures/repo-full/
+- [x] T025 [P] Create test fixture: repo-broken (malformed JSON, missing files) in tests/fixtures/repo-broken/
+- [x] T026 [P] Create test fixture: repo-conflict (overlapping resource names) in tests/fixtures/repo-conflict/
 
 **Checkpoint**: Domain types complete + storage layer ready + test fixtures available. All user stories can now begin.
 
@@ -74,20 +74,20 @@
 
 > Write these FIRST, ensure they FAIL before implementation.
 
-- [ ] T027 [P] [US1] Write unit tests for repo scanner (discovery with depth limit, ignore rules, permission denied handling, dedup) in crates/repo-scanner/tests/scanner_tests.rs
-- [ ] T028 [P] [US1] Write unit tests for Git metadata extraction (branch, commit, dirty state) in crates/git-service/tests/git_cli_tests.rs
-- [ ] T029 [P] [US1] Write integration test for scan → persist → list → refresh flow in tests/integration/scan_flow.rs
+- [x] T027 [P] [US1] Write unit tests for repo scanner (discovery with depth limit, ignore rules, permission denied handling, dedup) in crates/repo-scanner/tests/scanner_tests.rs
+- [x] T028 [P] [US1] Write unit tests for Git metadata extraction (branch, commit, dirty state) in crates/git-service/tests/git_cli_tests.rs
+- [x] T029 [P] [US1] Write integration test for scan → persist → list → refresh flow in tests/integration/scan_flow.rs
 - [ ] T030 [P] [US1] Write frontend unit tests for RepoList component (filtering, search, sorting) in frontend/src/tests/unit/RepoList.test.ts
 - [ ] T031 [P] [US1] Write frontend unit tests for repoStore (state transitions, refresh behavior) in frontend/src/tests/unit/repoStore.test.ts
 
 ### Implementation for User Story 1
 
-- [ ] T032 [P] [US1] Implement Git repository scanner (walkdir-based BFS, configurable depth with default 5, ignore rules with defaults for node_modules/.venv/vendor/.cache/build) in crates/repo-scanner/src/scanner.rs
-- [ ] T033 [P] [US1] Implement Git metadata extractor (branch name, HEAD commit SHA, dirty state detection via status porcelain, remote URL) in crates/git-service/src/git_cli.rs
-- [ ] T034 [US1] Implement RepoCatalog service (orchestrates scanner + git-service + storage, handles incremental refresh, permission errors) in crates/repo-scanner/src/lib.rs
+- [x] T032 [P] [US1] Implement Git repository scanner (walkdir-based BFS, configurable depth with default 5, ignore rules with defaults for node_modules/.venv/vendor/.cache/build) in crates/repo-scanner/src/scanner.rs
+- [x] T033 [P] [US1] Implement Git metadata extractor (branch name, HEAD commit SHA, dirty state detection via status porcelain, remote URL) in crates/git-service/src/git_cli.rs
+- [x] T034 [US1] Implement RepoCatalog service (orchestrates scanner + git-service + storage, handles incremental refresh, permission errors) in crates/repo-scanner/src/lib.rs
 - [ ] T035 [US1] Implement tauri-bridge repo commands (scan_repositories, list_repositories, refresh_repository, get_repository_detail, remove_repository) in crates/tauri-bridge/src/commands/repo_commands.rs
 - [ ] T036 [US1] Implement Tauri app state management (AppState struct holding Storage, settings) in crates/tauri-bridge/src/state.rs
-- [ ] T037 [P] [US1] Define frontend TypeScript types (RepositorySummary, RepoDetail, RepoFilter, ScanResult) in frontend/src/lib/types.ts
+- [x] T037 [P] [US1] Define frontend TypeScript types (RepositorySummary, RepoDetail, RepoFilter, ScanResult) in frontend/src/lib/types.ts
 - [ ] T038 [US1] Implement repoStore (Svelte writable stores for repo list, selected repo, filter state, refresh logic via Tauri invoke) in frontend/src/lib/stores/repoStore.ts
 - [ ] T039 [P] [US1] Implement RepoCard component (displays name, path, branch tag, dirty indicator, capability counts) in frontend/src/lib/components/RepoCard.svelte
 - [ ] T040 [P] [US1] Implement RepoList component (search bar, filter chips, sort controls, RepoCard grid) in frontend/src/lib/components/RepoList.svelte
@@ -110,20 +110,20 @@
 
 > Write these FIRST, ensure they FAIL before implementation.
 
-- [ ] T045 [P] [US2] Write golden file test for skill parser (fixture skill dir → expected CapabilityResource) in crates/claude-parser/tests/skill_parser_tests.rs
-- [ ] T046 [P] [US2] Write golden file test for MCP config parser (fixture mcp.json → expected resources) in crates/claude-parser/tests/mcp_parser_tests.rs
-- [ ] T047 [P] [US2] Write golden file test for hook config parser (fixture settings.json hooks → expected resources) in crates/claude-parser/tests/hook_parser_tests.rs
-- [ ] T048 [P] [US2] Write test for malformed config handling (broken JSON → parse error resource with error_message populated) in crates/claude-parser/tests/error_handling_tests.rs
-- [ ] T049 [P] [US2] Write frontend unit tests for CapabilityList component (grouping, scope badges, error indicators) in frontend/src/tests/unit/CapabilityList.test.ts
-- [ ] T050 [P] [US2] Write integration test for full inventory (scan repo-full → parse all types → verify grouped output) in tests/integration/capability_flow.rs
+- [x] T045 [P] [US2] Write golden file test for skill parser (fixture skill dir → expected CapabilityResource) in crates/claude-parser/tests/skill_parser_tests.rs
+- [x] T046 [P] [US2] Write golden file test for MCP config parser (fixture mcp.json → expected resources) in crates/claude-parser/tests/mcp_parser_tests.rs
+- [x] T047 [P] [US2] Write golden file test for hook config parser (fixture settings.json hooks → expected resources) in crates/claude-parser/tests/hook_parser_tests.rs
+- [x] T048 [P] [US2] Write test for malformed config handling (broken JSON → parse error resource with error_message populated) in crates/claude-parser/tests/error_handling_tests.rs
+- [x] T049 [P] [US2] Write frontend unit tests for CapabilityList component (grouping, scope badges, error indicators) in frontend/src/tests/unit/CapabilityList.test.ts
+- [x] T050 [P] [US2] Write integration test for full inventory (scan repo-full → parse all types → verify grouped output) in tests/integration/capability_flow.rs
 
 ### Implementation for User Story 2
 
-- [ ] T051 [P] [US2] Implement skill directory parser (detect skills/<name>/SKILL.md, extract name + summary) in crates/claude-parser/src/skill_parser.rs
-- [ ] T052 [P] [US2] Implement MCP config parser (parse .claude/mcp.json array, extract serverName/command/env) in crates/claude-parser/src/mcp_parser.rs
-- [ ] T053 [P] [US2] Implement hook config parser (parse settings.json hooks key, extract hook type + command references) in crates/claude-parser/src/hook_parser.rs
-- [ ] T054 [P] [US2] Implement rule + agent parsers (detect .claude/rules/*.md, .claude/agents/*.md) in crates/claude-parser/src/rule_parser.rs and crates/claude-parser/src/agent_parser.rs
-- [ ] T055 [US2] Implement capability inventory orchestrator (coordinates all parsers, builds full inventory, detects scope from file locations) in crates/claude-parser/src/lib.rs
+- [x] T051 [P] [US2] Implement skill directory parser (detect skills/<name>/SKILL.md, extract name + summary) in crates/claude-parser/src/skill_parser.rs
+- [x] T052 [P] [US2] Implement MCP config parser (parse .claude/mcp.json array, extract serverName/command/env) in crates/claude-parser/src/mcp_parser.rs
+- [x] T053 [P] [US2] Implement hook config parser (parse settings.json hooks key, extract hook type + command references) in crates/claude-parser/src/hook_parser.rs
+- [x] T054 [P] [US2] Implement rule + agent parsers (detect .claude/rules/*.md, .claude/agents/*.md) in crates/claude-parser/src/rule_parser.rs and crates/claude-parser/src/agent_parser.rs
+- [x] T055 [US2] Implement capability inventory orchestrator (coordinates all parsers, builds full inventory, detects scope from file locations) in crates/claude-parser/src/lib.rs
 - [ ] T056 [US2] Implement tauri-bridge capability commands (get_capability_inventory, get_resource_detail) in crates/tauri-bridge/src/commands/capability_commands.rs
 - [ ] T057 [P] [US2] Implement capabilityStore (grouped resource stores, resource detail fetching) in frontend/src/lib/stores/capabilityStore.ts
 - [ ] T058 [P] [US2] Implement CapabilityList component (left sidebar: type groups with counts, click to filter) in frontend/src/lib/components/CapabilityList.svelte
@@ -145,19 +145,19 @@
 
 > Write these FIRST, ensure they FAIL before implementation.
 
-- [ ] T062 [P] [US3] Write unit tests for manifest builder (resource selection → valid manifest JSON) in crates/pack-engine/tests/manifest_tests.rs
-- [ ] T063 [P] [US3] Write unit tests for pack validator (schema validation, missing file detection, hash verification) in crates/pack-engine/tests/validator_tests.rs
-- [ ] T064 [P] [US3] Write unit tests for pack library (CRUD operations, duplicate name+version rejection) in crates/pack-engine/tests/library_tests.rs
-- [ ] T065 [P] [US3] Write integration test for full export flow (repo → select resources → export pack → validate → library list) in tests/integration/pack_flow.rs
+- [x] T062 [P] [US3] Write unit tests for manifest builder (resource selection → valid manifest JSON) in crates/pack-engine/tests/manifest_tests.rs
+- [x] T063 [P] [US3] Write unit tests for pack validator (schema validation, missing file detection, hash verification) in crates/pack-engine/tests/validator_tests.rs
+- [x] T064 [P] [US3] Write unit tests for pack library (CRUD operations, duplicate name+version rejection) in crates/pack-engine/tests/library_tests.rs
+- [x] T065 [P] [US3] Write integration test for full export flow (repo → select resources → export pack → validate → library list) in tests/integration/pack_flow.rs
 - [ ] T066 [P] [US3] Write frontend unit tests for PackExport page (resource selection, metadata form validation) in frontend/src/tests/unit/PackExport.test.ts
 
 ### Implementation for User Story 3
 
-- [ ] T067 [P] [US3] Implement manifest builder (construct pack.manifest.json per JSON Schema with schemaVersion, name, version, resources array, env, validation) in crates/pack-engine/src/manifest.rs
-- [ ] T068 [P] [US3] Implement pack packer (copy selected resources into pack directory structure: resources/skills/, mcp/, settings/, create manifest) in crates/pack-engine/src/packer.rs
-- [ ] T069 [US3] Implement pack validator (schema conformance, file existence, SHA256 hash integrity, env placeholder detection) in crates/pack-engine/src/validator.rs
-- [ ] T070 [US3] Implement pack library (PackStore: insert/get/list/delete via storage layer, manage pack directory on disk) in crates/pack-engine/src/library.rs
-- [ ] T071 [US3] Implement pack-engine orchestrator (coordinates manifest → packer → validator → library, handles empty selection + missing file warnings) in crates/pack-engine/src/lib.rs
+- [x] T067 [P] [US3] Implement manifest builder (construct pack.manifest.json per JSON Schema with schemaVersion, name, version, resources array, env, validation) in crates/pack-engine/src/manifest.rs
+- [x] T068 [P] [US3] Implement pack packer (copy selected resources into pack directory structure: resources/skills/, mcp/, settings/, create manifest) in crates/pack-engine/src/packer.rs
+- [x] T069 [US3] Implement pack validator (schema conformance, file existence, SHA256 hash integrity, env placeholder detection) in crates/pack-engine/src/validator.rs
+- [x] T070 [US3] Implement pack library (PackStore: insert/get/list/delete via storage layer, manage pack directory on disk) in crates/pack-engine/src/library.rs
+- [x] T071 [US3] Implement pack-engine orchestrator (coordinates manifest → packer → validator → library, handles empty selection + missing file warnings) in crates/pack-engine/src/lib.rs
 - [ ] T072 [US3] Implement tauri-bridge pack commands (export_capability_pack, list_packs, get_pack_detail, delete_pack, validate_pack) in crates/tauri-bridge/src/commands/pack_commands.rs
 - [ ] T073 [US3] Implement packStore (pack list, selected pack, export action) in frontend/src/lib/stores/packStore.ts
 - [ ] T074 [P] [US3] Implement PackExport page (resource type filter, resource checkboxes, name/version/description form, preview panel, export button) in frontend/src/lib/pages/PackExport.svelte
@@ -178,20 +178,20 @@
 
 > Write these FIRST, ensure they FAIL before implementation.
 
-- [ ] T077 [P] [US4] Write unit tests for migration planner (pack + target → plan with correct add/overwrite/conflict classification) in crates/migration-engine/tests/planner_tests.rs
-- [ ] T078 [P] [US4] Write unit tests for conflict detection (same name same path, same name diff path, diff name same path scenarios) in crates/migration-engine/tests/conflict_tests.rs
-- [ ] T079 [P] [US4] Write unit tests for migration executor (apply plan with strategies → verify file writes, verify report generation) in crates/migration-engine/tests/executor_tests.rs
-- [ ] T080 [P] [US4] Write unit tests for snapshot rollback (snapshot before → apply migration → rollback → verify original state restored) in crates/migration-engine/tests/rollback_tests.rs
-- [ ] T081 [P] [US4] Write integration test for full migration flow (pack → dry-run → resolve conflicts → execute → report → rollback) in tests/integration/migration_flow.rs
+- [x] T077 [P] [US4] Write unit tests for migration planner (pack + target → plan with correct add/overwrite/conflict classification) in crates/migration-engine/tests/planner_tests.rs
+- [x] T078 [P] [US4] Write unit tests for conflict detection (same name same path, same name diff path, diff name same path scenarios) in crates/migration-engine/tests/conflict_tests.rs
+- [x] T079 [P] [US4] Write unit tests for migration executor (apply plan with strategies → verify file writes, verify report generation) in crates/migration-engine/tests/executor_tests.rs
+- [x] T080 [P] [US4] Write unit tests for snapshot rollback (snapshot before → apply migration → rollback → verify original state restored) in crates/migration-engine/tests/rollback_tests.rs
+- [x] T081 [P] [US4] Write integration test for full migration flow (pack → dry-run → resolve conflicts → execute → report → rollback) in tests/integration/migration_flow.rs
 - [ ] T082 [P] [US4] Write frontend unit tests for MigrationPlan component (plan items display, conflict badge, strategy selector) in frontend/src/tests/unit/MigrationPlan.test.ts
 
 ### Implementation for User Story 4
 
-- [ ] T083 [US4] Implement migration planner (compare pack resources vs target repo, classify each as add/overwrite/skip, detect name+path conflicts, check dependencies) in crates/migration-engine/src/planner.rs
-- [ ] T084 [US4] Implement conflict resolver (apply user strategies: skip/overwrite/rename/merge, generate resolved plan) in crates/migration-engine/src/conflict.rs
-- [ ] T085 [US4] Implement migration executor (create snapshot via copy, write files per resolved plan, handle write errors atomically, record MigrationRun) in crates/migration-engine/src/executor.rs
-- [ ] T086 [US4] Implement snapshot manager (create pre-migration directory snapshot via copy_tree, verify snapshot integrity, restore on rollback) in crates/migration-engine/src/rollback.rs
-- [ ] T087 [US4] Implement migration-engine orchestrator (plan → user-strategies → execute → report pipeline, circular reference check) in crates/migration-engine/src/lib.rs
+- [x] T083 [US4] Implement migration planner (compare pack resources vs target repo, classify each as add/overwrite/skip, detect name+path conflicts, check dependencies) in crates/migration-engine/src/planner.rs
+- [x] T084 [US4] Implement conflict resolver (apply user strategies: skip/overwrite/rename/merge, generate resolved plan) in crates/migration-engine/src/conflict.rs
+- [x] T085 [US4] Implement migration executor (create snapshot via copy, write files per resolved plan, handle write errors atomically, record MigrationRun) in crates/migration-engine/src/executor.rs
+- [x] T086 [US4] Implement snapshot manager (create pre-migration directory snapshot via copy_tree, verify snapshot integrity, restore on rollback) in crates/migration-engine/src/rollback.rs
+- [x] T087 [US4] Implement migration-engine orchestrator (plan → user-strategies → execute → report pipeline, circular reference check) in crates/migration-engine/src/lib.rs
 - [ ] T088 [US4] Implement tauri-bridge migration commands (build_migration_plan, apply_migration_plan, rollback_migration, get_migration_history) in crates/tauri-bridge/src/commands/migration_commands.rs
 - [ ] T089 [US4] Implement migrationStore (plan state, conflict strategies, execution result) in frontend/src/lib/stores/migrationStore.ts
 - [ ] T090 [P] [US4] Implement MigrationPlan component (dry-run results table: resource name, type, planned action, conflict indicator, strategy dropdown) in frontend/src/lib/components/MigrationPlan.svelte
@@ -213,21 +213,21 @@
 
 > Write these FIRST, ensure they FAIL before implementation.
 
-- [ ] T094 [P] [US5] Write unit tests for skill structure check (missing dir/files → warning, complete → no issue) in crates/doctor-engine/tests/checks_tests.rs
-- [ ] T095 [P] [US5] Write unit tests for hook target check (script exists → no issue, missing → critical) in crates/doctor-engine/tests/checks_tests.rs
-- [ ] T096 [P] [US5] Write unit tests for env placeholder check (unresolved ${VAR} → warning, all resolved → no issue) in crates/doctor-engine/tests/checks_tests.rs
-- [ ] T097 [P] [US5] Write unit tests for scoring formula (2 critical + 3 warning + 5 info → 100-40-15-5=40) in crates/doctor-engine/tests/scoring_tests.rs
-- [ ] T098 [P] [US5] Write integration test for full doctor flow (repo-broken → run doctor → verify all issue types + score) in tests/integration/doctor_flow.rs
+- [x] T094 [P] [US5] Write unit tests for skill structure check (missing dir/files → warning, complete → no issue) in crates/doctor-engine/tests/checks_tests.rs
+- [x] T095 [P] [US5] Write unit tests for hook target check (script exists → no issue, missing → critical) in crates/doctor-engine/tests/checks_tests.rs
+- [x] T096 [P] [US5] Write unit tests for env placeholder check (unresolved ${VAR} → warning, all resolved → no issue) in crates/doctor-engine/tests/checks_tests.rs
+- [x] T097 [P] [US5] Write unit tests for scoring formula (2 critical + 3 warning + 5 info → 100-40-15-5=40) in crates/doctor-engine/tests/scoring_tests.rs
+- [x] T098 [P] [US5] Write integration test for full doctor flow (repo-broken → run doctor → verify all issue types + score) in tests/integration/doctor_flow.rs
 - [ ] T099 [P] [US5] Write frontend unit tests for DoctorReport component (score display, issue grouping, severity badges) in frontend/src/tests/unit/DoctorReport.test.ts
 
 ### Implementation for User Story 5
 
-- [ ] T100 [P] [US5] Implement skill structure checker (verify skills/<name>/ exists, contains SKILL.md or skill.md, report missing) in crates/doctor-engine/src/checks.rs
-- [ ] T101 [P] [US5] Implement hook target checker (extract command/script references from hooks, verify file existence on disk) in crates/doctor-engine/src/checks.rs
-- [ ] T102 [P] [US5] Implement env placeholder checker (scan settings/mcp for ${VAR} patterns, check against known env) in crates/doctor-engine/src/checks.rs
-- [ ] T103 [P] [US5] Implement MCP config integrity checker (validate JSON structure, check serverName presence) in crates/doctor-engine/src/checks.rs
-- [ ] T104 [US5] Implement health scorer (weighted deduction: score = max(0, 100 - 20*critical - 5*warning - info)) in crates/doctor-engine/src/scoring.rs
-- [ ] T105 [US5] Implement doctor-engine orchestrator (run all checks, aggregate issues, compute score, save DoctorReport to storage) in crates/doctor-engine/src/lib.rs
+- [x] T100 [P] [US5] Implement skill structure checker (verify skills/<name>/ exists, contains SKILL.md or skill.md, report missing) in crates/doctor-engine/src/checks.rs
+- [x] T101 [P] [US5] Implement hook target checker (extract command/script references from hooks, verify file existence on disk) in crates/doctor-engine/src/checks.rs
+- [x] T102 [P] [US5] Implement env placeholder checker (scan settings/mcp for ${VAR} patterns, check against known env) in crates/doctor-engine/src/checks.rs
+- [x] T103 [P] [US5] Implement MCP config integrity checker (validate JSON structure, check serverName presence) in crates/doctor-engine/src/checks.rs
+- [x] T104 [US5] Implement health scorer (weighted deduction: score = max(0, 100 - 20*critical - 5*warning - info)) in crates/doctor-engine/src/scoring.rs
+- [x] T105 [US5] Implement doctor-engine orchestrator (run all checks, aggregate issues, compute score, save DoctorReport to storage) in crates/doctor-engine/src/lib.rs
 - [ ] T106 [US5] Implement tauri-bridge doctor commands (run_doctor) in crates/tauri-bridge/src/commands/doctor_commands.rs
 - [ ] T107 [US5] Implement doctorStore (report state, run-trigger, auto-run after migration hook) in frontend/src/lib/stores/doctorStore.ts
 - [ ] T108 [P] [US5] Implement DoctorReport component (score circle with color, issue list grouped by severity, per-issue recommendation + jump-to-resource link) in frontend/src/lib/components/DoctorReport.svelte
@@ -248,12 +248,12 @@
 
 > Write these FIRST, ensure they FAIL before implementation.
 
-- [ ] T111 [P] [US6] Write unit tests for drift comparison (two resource sets → missing/extra/modified/same output) in crates/doctor-engine/tests/drift_tests.rs
+- [x] T111 [P] [US6] Write unit tests for drift comparison (two resource sets → missing/extra/modified/same output) in crates/doctor-engine/tests/drift_tests.rs
 - [ ] T112 [P] [US6] Write frontend unit tests for CompareView component (diff table rendering, category filters) in frontend/src/tests/unit/CompareView.test.ts
 
 ### Implementation for User Story 6
 
-- [ ] T113 [P] [US6] Implement drift comparator (compare two CapabilityResource sets by type+name, compute content hash diff for modified detection) in crates/doctor-engine/src/drift.rs
+- [x] T113 [P] [US6] Implement drift comparator (compare two CapabilityResource sets by type+name, compute content hash diff for modified detection) in crates/doctor-engine/src/drift.rs
 - [ ] T114 [US6] Implement tauri-bridge compare commands (compare_repo_with_pack, compare_repos) in crates/tauri-bridge/src/commands/doctor_commands.rs
 - [ ] T115 [US6] Implement compareStore (comparison source/target selection, result state) in frontend/src/lib/stores/compareStore.ts
 - [ ] T116 [P] [US6] Implement CompareView component (side-by-side diff, category tabs: Missing/Extra/Modified/Same, resource detail on click) in frontend/src/lib/components/CompareView.svelte

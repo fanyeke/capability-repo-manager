@@ -1,0 +1,16 @@
+[package]
+name = "repo-scanner"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+domain = { path = "../domain" }
+git-service = { path = "../git-service" }
+walkdir.workspace = true
+uuid.workspace = true
+chrono.workspace = true
+log.workspace = true
+
+[dev-dependencies]
+tempfile = "3"
+git2 = "0.19"
