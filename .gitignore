@@ -1,0 +1,33 @@
+# Rust
+target/
+debug/
+release/
+*.rs.bk
+*.rlib
+*.prof*
+
+# Node / Frontend
+node_modules/
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env & Secrets
+.env
+.env.*
+
+# Logs
+*.log
+
+# Database
+*.db
+*.db-journal

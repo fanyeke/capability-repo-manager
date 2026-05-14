@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://capability-manager.local/pack-manifest.schema.json",
+  "title": "Capability Pack Manifest",
+  "description": "Schema for pack.manifest.json in a Capability Pack",
+  "type": "object",
+  "required": ["schemaVersion", "name", "version", "resources"],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "description": "Manifest schema version for forward compatibility",
+      "enum": ["1.0"]
+    },
+    "name": {
+      "type": "string",
+      "description": "Pack display name",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "version": {
+      "type": "string",
+      "description": "Semantic version of the pack",
+      "pattern": "^\\d+\\.\\d+\\.\\d+(-[a-zA-Z0-9.]+)?$"
+    },
+    "description": {
+      "type": "string",
+      "description": "Human-readable description of the pack",
+      "maxLength": 1024
+    },
+    "packType": {
+      "type": "string",
+      "description": "Pack category",
+      "enum": ["project", "blueprint", "baseline"]
+    },
+    "source": {
+      "type": "object",
+      "description": "Origin information",
+      "properties": {
+        "repo": {
+          "type": "string",
+          "description": "Path or identifier of source repository"
+        },
+        "commit": {
+          "type": "string",
+          "description": "Git commit SHA at time of export"
+        }
+      }
+    },
+    "resources": {
+      "type": "array",
+      "description": "Capability resources in this pack",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["type", "name", "source"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["skill", "mcp", "hook", "rule", "agent", "command", "plugin", "settings", "contextDoc"]
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source": {
+            "type": "string",
+            "description": "Relative path to resource within the pack directory"
+          },
+          "hash": {
+            "type": "string",
+            "description": "SHA256 hash of resource content for integrity verification"
+          },
+          "dependencies": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["type", "name"],
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": ["file", "command", "env", "mcp", "skill", "hook", "plugin"]
+                },
+                "name": {
+                  "type": "string"
+                },
+                "required": {
+                  "type": "boolean",
+                  "default": true
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "env": {
+      "type": "array",
+      "description": "Environment variable placeholders",
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[A-Z_][A-Z0-9_]*$"
+          },
+          "required": {
+            "type": "boolean",
+            "default": false
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "description": "Validation rules for this pack",
+      "properties": {
+        "rules": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "skill-structure-valid",
+              "hook-target-exists",
+              "mcp-config-parseable",
+              "rule-format-valid",
+              "env-placeholders-resolved"
+            ]
+          }
+        }
+      }
+    }
+  }
+}
