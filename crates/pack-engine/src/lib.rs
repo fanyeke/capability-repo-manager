@@ -12,6 +12,44 @@ use crate::manifest::{EnvPlaceholder, Manifest, ManifestInput, ManifestResource}
 use crate::packer::{detect_env_placeholders, PackResourceInput};
 use crate::validator::validate_pack;
 
+/// Minimum required disk space for pack and migration operations (50 MB).
+pub const MIN_DISK_SPACE: u64 = 50 * 1024 * 1024;
+
+/// Check that the filesystem containing `path` has at least `min_bytes` available.
+///
+/// Uses the system `df` command on Linux to query available space. If the check
+/// cannot be performed (e.g., platform not supported), it returns Ok(()) since
+/// the operation can proceed with a best-effort basis.
+pub fn check_disk_space(path: &Path, min_bytes: u64) -> Result<(), String> {
+    match std::process::Command::new("df")
+        .arg("-k")
+        .arg(path)
+        .output()
+    {
+        Ok(output) if output.status.success() => {
+            let stdout = String::from_utf8_lossy(&output.stdout);
+            let last_line = stdout.lines().last().unwrap_or("");
+            let fields: Vec<&str> = last_line.split_whitespace().collect();
+            if fields.len() >= 4 {
+                if let Ok(avail_kb) = fields[3].parse::<u64>() {
+                    let avail_bytes = avail_kb * 1024;
+                    if avail_bytes < min_bytes {
+                        let mb = min_bytes / (1024 * 1024);
+                        return Err(format!(
+                            "Insufficient disk space: {} MB required but only {} MB available on {}",
+                            mb,
+                            avail_bytes / (1024 * 1024),
+                            path.display()
+                        ));
+                    }
+                }
+            }
+            Ok(())
+        }
+        _ => Ok(()), // Can't check; proceed optimistically
+    }
+}
+
 /// High-level input for exporting a capability pack from a repository.
 #[derive(Debug, Clone)]
 pub struct ExportRequest {
@@ -47,6 +85,11 @@ pub fn export_pack(
     library: &mut PackStore,
 ) -> Result<ExportResult, String> {
     let mut warnings: Vec<String> = Vec::new();
+
+    // Step 0: Check available disk space
+    if let Err(e) = check_disk_space(&request.output_base_dir, MIN_DISK_SPACE) {
+        return Err(e);
+    }
 
     // Step 1: Validate selection
     if request.selected_resources.is_empty() {

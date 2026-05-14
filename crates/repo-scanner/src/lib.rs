@@ -55,4 +55,32 @@ impl RepoCatalog {
 
         Ok(ScanResult { repos, errors })
     }
+
+    /// Refresh Git metadata for all previously indexed repositories.
+    ///
+    /// This is used at startup to bring stale metadata up to date without
+    /// re-scanning the filesystem for new repos. Returns the list of
+    /// refreshed repos and any non-fatal errors.
+    pub fn refresh_all(repos: &mut [domain::Repository]) -> Vec<ScanError> {
+        let mut errors = Vec::new();
+
+        for repo in repos.iter_mut() {
+            repo.last_indexed_at = chrono::Utc::now().to_rfc3339();
+
+            match git_service::git_cli::extract_metadata(repo) {
+                Ok(()) => {
+                    log::debug!("Refreshed metadata for repo: {}", repo.name);
+                }
+                Err(e) => {
+                    log::warn!("Failed to refresh metadata for {}: {}", repo.name, e);
+                    errors.push(ScanError {
+                        repo_path: repo.path.clone(),
+                        message: format!("Git metadata refresh failed: {}", e),
+                    });
+                }
+            }
+        }
+
+        errors
+    }
 }

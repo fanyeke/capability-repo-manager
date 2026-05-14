@@ -5,5 +5,16 @@ edition.workspace = true
 
 [dependencies]
 domain.workspace = true
+repo-scanner = { path = "../repo-scanner" }
+git-service = { path = "../git-service" }
+claude-parser = { path = "../claude-parser" }
+pack-engine = { path = "../pack-engine" }
+migration-engine = { path = "../migration-engine" }
+doctor-engine = { path = "../doctor-engine" }
+storage = { path = "../storage" }
 serde.workspace = true
 serde_json.workspace = true
+uuid.workspace = true
+chrono.workspace = true
+tauri = { version = "2", features = [] }
+log.workspace = true
