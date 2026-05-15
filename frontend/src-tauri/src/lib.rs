@@ -50,6 +50,9 @@ pub fn run() {
             tauri_bridge::commands::doctor_commands::get_latest_doctor_report,
             tauri_bridge::commands::doctor_commands::compare_repo_with_pack,
             tauri_bridge::commands::doctor_commands::compare_repos,
+            tauri_bridge::commands::settings_commands::export_debug_bundle,
+            tauri_bridge::commands::settings_commands::get_log_level,
+            tauri_bridge::commands::settings_commands::set_log_level,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

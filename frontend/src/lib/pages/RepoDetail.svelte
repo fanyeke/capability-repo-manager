@@ -11,9 +11,11 @@
   let selectedResourceId = $state<string | null>(null);
   let detail = $derived($selectedRepoDetail);
 
-  if (detail?.repo.id) {
-    loadCapabilityInventory(detail.repo.id);
-  }
+  $effect(() => {
+    if (detail?.repo.id) {
+      loadCapabilityInventory(detail.repo.id);
+    }
+  });
 </script>
 
 <div class="repo-detail-page">

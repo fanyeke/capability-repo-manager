@@ -52,9 +52,9 @@
 
 **Independent Test**: Apply a migration then rollback; grep for operation_id shows plan → snapshot → execute → rollback lifecycle
 
-- [ ] T011 [P] [US2] Create OperationContext at build_migration_plan entry in `crates/tauri-bridge/src/commands/migration_commands.rs` — pass through plan, apply, rollback
-- [ ] T012 [P] [US2] Add event logging to migration plan/apply/rollback: migration_plan_started/finished (INFO), migration_apply_started (INFO), migration_snapshot_created (INFO, snapshot_dir), migration_copy_started/failed (DEBUG/ERROR), migration_apply_finished (INFO, status+counts), rollback_started/finished (INFO), rollback_restored/removed (DEBUG) in `crates/tauri-bridge/src/commands/migration_commands.rs`
-- [ ] T013 [US2] Record OperationEvent after each migration phase (plan/apply/rollback) in `crates/tauri-bridge/src/commands/migration_commands.rs`
+- [X] T011 [P] [US2] Create OperationContext at build_migration_plan entry in `crates/tauri-bridge/src/commands/migration_commands.rs` — pass through plan, apply, rollback
+- [X] T012 [P] [US2] Add event logging to migration plan/apply/rollback: migration_plan_started/finished (INFO), migration_apply_started (INFO), migration_snapshot_created (INFO, snapshot_dir), migration_copy_started/failed (DEBUG/ERROR), migration_apply_finished (INFO, status+counts), rollback_started/finished (INFO), rollback_restored/removed (DEBUG) in `crates/tauri-bridge/src/commands/migration_commands.rs`
+- [X] T013 [US2] Record OperationEvent after each migration phase (plan/apply/rollback) in `crates/tauri-bridge/src/commands/migration_commands.rs`
 
 **Checkpoint**: US2 done — migration operations are fully traceable
 

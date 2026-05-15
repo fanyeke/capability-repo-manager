@@ -4,8 +4,9 @@ use tauri::State;
 
 use crate::state::{AppSettings, AppState};
 use claude_parser;
-use domain::{CapabilityResource, DoctorReport, Repository};
+use domain::{CapabilityResource, DoctorReport, OperationContext, Repository};
 use repo_scanner::{RepoCatalog, ScanError, ScannerConfig};
+use storage::event_store::NewOperationEvent;
 use storage::{repo_store::RepositoryStore, resource_store::ResourceStore};
 
 use super::{doctor_commands, settings_commands};
@@ -82,15 +83,49 @@ pub fn scan_repositories(
     paths: Vec<String>,
     state: State<AppState>,
 ) -> Result<ScanResultOutput, String> {
+    let ctx = OperationContext::new("scan_repositories");
+    let _span = tracing::info_span!(
+        "scan_repositories",
+        operation_id = %ctx.operation_id,
+    )
+    .entered();
+
     let settings = state.settings.lock().map_err(|e| e.to_string())?;
 
     let config = ScannerConfig {
-        root_paths: paths,
+        root_paths: paths.clone(),
         max_depth: settings.scan_depth as usize,
         ignore_dirs: settings.ignore_patterns.clone(),
     };
 
+    tracing::info!(
+        operation_id = %ctx.operation_id,
+        roots = ?paths,
+        max_depth = config.max_depth,
+        "scan_started"
+    );
+
     let scan_result = RepoCatalog::scan(config).map_err(|e| format!("Scan failed: {}", e))?;
+
+    // Log each discovered repo
+    for repo in &scan_result.repos {
+        tracing::debug!(
+            operation_id = %ctx.operation_id,
+            path = %repo.path,
+            canonical_path = %repo.canonical_path,
+            "repo_discovered"
+        );
+    }
+
+    // Log git metadata failures
+    for err in &scan_result.errors {
+        tracing::warn!(
+            operation_id = %ctx.operation_id,
+            repo_path = %err.repo_path,
+            error = %err.message,
+            "git_metadata_failed"
+        );
+    }
 
     let db = state.db.lock().map_err(|e| e.to_string())?;
     let repo_store = RepositoryStore::new(&db);
@@ -115,6 +150,13 @@ pub fn scan_repositories(
                     repos_updated += 1;
                 }
 
+                tracing::info!(
+                    operation_id = %ctx.operation_id,
+                    repo_id = %stored.id,
+                    repo_path = %repo.path,
+                    "capability_parse_started"
+                );
+
                 // Phase 3: Capability parsing
                 match claude_parser::parse_repo(&repo.path) {
                     Ok(inventory) => {
@@ -133,6 +175,17 @@ pub fn scan_repositories(
                             });
                         }
                         repos_parsed += 1;
+
+                        tracing::info!(
+                            operation_id = %ctx.operation_id,
+                            repo_id = %stored.id,
+                            skills = inventory.skills.len(),
+                            mcp = inventory.mcp.len(),
+                            hooks = inventory.hooks.len(),
+                            rules = inventory.rules.len(),
+                            agents = inventory.agents.len(),
+                            "capability_parse_finished"
+                        );
                     }
                     Err(e) => {
                         let err_msg = e.to_string();
@@ -143,6 +196,13 @@ pub fn scan_repositories(
                             });
                         }
                         repos_parse_failed += 1;
+
+                        tracing::warn!(
+                            operation_id = %ctx.operation_id,
+                            repo_id = %stored.id,
+                            error = %err_msg,
+                            "parse_failed"
+                        );
                     }
                 }
             }
@@ -160,8 +220,50 @@ pub fn scan_repositories(
 
     let errors: Vec<ScanErrorOutput> = all_errors.into_iter().map(ScanErrorOutput::from).collect();
 
+    let repos_found = scan_result.repos.len() as u32;
+
+    tracing::info!(
+        operation_id = %ctx.operation_id,
+        repos_found = repos_found,
+        repos_added = repos_added,
+        repos_updated = repos_updated,
+        repos_parsed = repos_parsed,
+        repos_parse_failed = repos_parse_failed,
+        "scan_finished"
+    );
+
+    // T010: Record OperationEvent to DB
+    let status = if repos_parse_failed > 0 {
+        "partial_failure"
+    } else {
+        "success"
+    };
+    let summary = format!(
+        "Scanned {} directories, found {} repos ({} added, {} updated, {} parsed, {} failed)",
+        paths.len(),
+        repos_found,
+        repos_added,
+        repos_updated,
+        repos_parsed,
+        repos_parse_failed,
+    );
+
+    let event_store = db.event_store();
+    if let Err(e) = event_store.insert_event(NewOperationEvent {
+        operation_id: ctx.operation_id,
+        operation_type: "scan_repositories".to_string(),
+        status: status.to_string(),
+        repo_id: None,
+        pack_id: None,
+        migration_run_id: None,
+        summary: Some(summary),
+        detail_json: None,
+    }) {
+        tracing::warn!(error = %e, "failed_to_record_operation_event");
+    }
+
     Ok(ScanResultOutput {
-        repos_found: scan_result.repos.len() as u32,
+        repos_found,
         repos_added,
         repos_updated,
         repos_parsed,

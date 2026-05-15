@@ -66,6 +66,18 @@ pub fn export_capability_pack(
     metadata: PackMetadata,
     state: State<AppState>,
 ) -> Result<PackSummary, String> {
+    let ctx = domain::OperationContext::new("export_pack");
+    let _span = tracing::info_span!("export_pack", operation_id = %ctx.operation_id).entered();
+
+    tracing::info!(
+        operation_id = %ctx.operation_id,
+        repo_id = %repo_id,
+        pack_name = %metadata.name,
+        version = %metadata.version,
+        selected = %selection.resource_ids.len(),
+        "pack_export_started"
+    );
+
     let db = state.db.lock().map_err(|e| e.to_string())?;
     let settings = state.settings.lock().map_err(|e| e.to_string())?;
 
@@ -133,6 +145,13 @@ pub fn export_capability_pack(
             .insert_batch(&pack_resources)
             .map_err(|e| format!("Failed to store pack resources: {}", e))?;
     }
+
+    tracing::info!(
+        operation_id = %ctx.operation_id,
+        pack_id = %result.pack.id,
+        resources = %result.manifest.resources.len(),
+        "pack_export_finished"
+    );
 
     Ok(PackSummary {
         id: result.pack.id,
@@ -225,6 +244,15 @@ pub fn delete_pack(
     pack_id: String,
     state: State<AppState>,
 ) -> Result<(), String> {
+    let ctx = domain::OperationContext::new("delete_pack");
+    let _span = tracing::info_span!("delete_pack", operation_id = %ctx.operation_id).entered();
+
+    tracing::info!(
+        operation_id = %ctx.operation_id,
+        pack_id = %pack_id,
+        "pack_delete_started"
+    );
+
     let db = state.db.lock().map_err(|e| e.to_string())?;
 
     let pack_store = PackStore::new(&db);
@@ -255,6 +283,12 @@ pub fn delete_pack(
         .delete_pack(&pack_id)
         .map_err(|e| format!("Database error: {}", e))?
         .ok_or_else(|| format!("Pack not found: {}", pack_id))?;
+
+    tracing::info!(
+        operation_id = %ctx.operation_id,
+        pack_id = %pack_id,
+        "pack_delete_finished"
+    );
 
     Ok(())
 }

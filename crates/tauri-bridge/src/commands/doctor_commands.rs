@@ -27,6 +27,15 @@ pub fn run_doctor(
     repo_id: String,
     state: State<AppState>,
 ) -> Result<DoctorReport, String> {
+    let ctx = domain::OperationContext::new("run_doctor");
+    let _span = tracing::info_span!("run_doctor", operation_id = %ctx.operation_id).entered();
+
+    tracing::info!(
+        operation_id = %ctx.operation_id,
+        repo_id = %repo_id,
+        "doctor_started"
+    );
+
     let db = state.db.lock().map_err(|e| e.to_string())?;
 
     let repo_store = RepositoryStore::new(&db);
@@ -65,6 +74,20 @@ pub fn run_doctor(
         "INSERT INTO doctor_reports (id, repo_id, score, issues_json, created_at) VALUES (?1, ?2, ?3, ?4, ?5)",
         rusqlite::params![report.id, report.repo_id, report.score, issues_json, report.created_at],
     ).map_err(|e| format!("Database error: {}", e))?;
+
+    let critical_count = report.issues.iter().filter(|i| i.severity == "critical").count();
+    let warning_count = report.issues.iter().filter(|i| i.severity == "warning").count();
+    let info_count = report.issues.iter().filter(|i| i.severity == "info").count();
+
+    tracing::info!(
+        operation_id = %ctx.operation_id,
+        repo_id = %repo_id,
+        score = %report.score,
+        critical = %critical_count,
+        warning = %warning_count,
+        info = %info_count,
+        "doctor_finished"
+    );
 
     Ok(report)
 }
