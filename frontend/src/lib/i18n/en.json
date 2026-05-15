@@ -33,7 +33,14 @@
     "pack_storage": "Pack Storage Directory",
     "pack_storage_placeholder": "~/.capability-repo-manager/packs",
     "pack_storage_hint": "Where exported capability packs are stored",
-    "save": "Save Settings"
+    "save": "Save Settings",
+    "export_debug_bundle": "Export Debug Bundle",
+    "exporting_bundle": "Exporting...",
+    "log_level": "Log Level",
+    "log_level_hint": "Verbosity of log output (restart required for file output)",
+    "open_log_dir": "Open Log Directory",
+    "redact_paths": "Redact Paths",
+    "redact_paths_hint": "Replace home directory paths with ~ in exports"
   },
   "repo": {
     "detail_title": "Repository Details",

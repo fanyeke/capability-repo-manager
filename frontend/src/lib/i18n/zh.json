@@ -33,7 +33,14 @@
     "pack_storage": "包存储目录",
     "pack_storage_placeholder": "~/.capability-repo-manager/packs",
     "pack_storage_hint": "导出能力包的存储位置",
-    "save": "保存设置"
+    "save": "保存设置",
+    "export_debug_bundle": "导出调试包",
+    "exporting_bundle": "正在导出...",
+    "log_level": "日志级别",
+    "log_level_hint": "日志输出的详细程度（文件输出需要重启应用）",
+    "open_log_dir": "打开日志目录",
+    "redact_paths": "路径脱敏",
+    "redact_paths_hint": "在导出中将主目录路径替换为 ~"
   },
   "repo": {
     "detail_title": "仓库详情",

@@ -66,8 +66,8 @@
 
 **Independent Test**: Click "Export Debug Bundle" → choose path → .zip created with logs, settings, summaries
 
-- [ ] T014 [P] [US3] Implement `export_debug_bundle` command in `crates/tauri-bridge/src/commands/settings_commands.rs` — collect logs (last 7 days), redacted settings, recent operation events, recent doctor reports; assemble as .zip using zip crate
-- [ ] T015 [P] [US3] Add `Export Debug Bundle` button to `frontend/src/lib/pages/Settings.svelte` — calls export_debug_bundle, shows save dialog
+- [X] T014 [P] [US3] Implement `export_debug_bundle` command in `crates/tauri-bridge/src/commands/settings_commands.rs` — collect logs (last 7 days), redacted settings, recent operation events, recent doctor reports; assemble as .zip using zip crate
+- [X] T015 [P] [US3] Add `Export Debug Bundle` button to `frontend/src/lib/pages/Settings.svelte` — calls export_debug_bundle, shows save dialog
 - [ ] T016 [US3] Add app_start event logging in `crates/tauri-bridge/src/lib.rs` — log version, platform, settings_path, db_path, log_dir
 
 **Checkpoint**: US3 done — debug bundle is exportable
@@ -84,9 +84,9 @@
 - [ ] T018 [P] [US4] Create `frontend/src/lib/stores/eventStore.ts` — loadEvents, events writable, loading/error state
 - [ ] T019 [P] [US4] Create `frontend/src/lib/pages/Activity.svelte` — reverse-chronological list of operations, status badges, summary text
 - [ ] T020 [US4] Add `/activity` route in `frontend/src/App.svelte` — link from nav with label "Activity"
-- [ ] T021 [US4] Add log level selector (INFO/DEBUG/TRACE) in `frontend/src/lib/pages/Settings.svelte` — calls update_settings with new log_level
-- [ ] T022 [US4] Wire log level changes to dynamic subscriber update in `crates/tauri-bridge/src/state.rs` — reload tracing filter when log_level changes
-- [ ] T023 [US4] Add "Open Log Directory" button to Settings in `frontend/src/lib/pages/Settings.svelte` — opens file manager via Tauri shell open API
+- [X] T021 [US4] Add log level selector (INFO/DEBUG/TRACE) in `frontend/src/lib/pages/Settings.svelte` — calls update_settings with new log_level
+- [X] T022 [US4] Wire log level changes to dynamic subscriber update in `crates/tauri-bridge/src/state.rs` — reload tracing filter when log_level changes
+- [X] T023 [US4] Add "Open Log Directory" button to Settings in `frontend/src/lib/pages/Settings.svelte` — opens file manager via Tauri shell open API
 
 **Checkpoint**: US4 done — activity history visible and log level configurable
 
