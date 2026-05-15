@@ -21,16 +21,17 @@ pub fn create_snapshot(
     let mut snapshot_items = Vec::new();
 
     for item in items {
-        let target_path = item.target_path.as_deref().unwrap_or("");
-        if target_path.is_empty() {
+        let target_path_str = item.target_path.as_deref().unwrap_or("");
+        if target_path_str.is_empty() {
             continue;
         }
 
-        let full_path = target_dir.join(target_path);
+        // Safety: resolve path, reject traversal
+        let full_path = crate::resolve_safe_path(target_dir, target_path_str)?;
         let existed_before = full_path.exists();
 
         if existed_before {
-            let backup_name = format!("{}-{}", Uuid::new_v4(), target_path.replace('/', "_"));
+            let backup_name = format!("{}-{}", Uuid::new_v4(), target_path_str.replace('/', "_"));
             let backup_path = snapshot_dir.join(&backup_name);
 
             if let Some(parent) = backup_path.parent() {
@@ -50,13 +51,13 @@ pub fn create_snapshot(
             }
 
             snapshot_items.push(SnapshotItem {
-                target_path: target_path.to_string(),
+                target_path: target_path_str.to_string(),
                 existed_before: true,
                 backup_path: backup_path.to_string_lossy().to_string(),
             });
         } else {
             snapshot_items.push(SnapshotItem {
-                target_path: target_path.to_string(),
+                target_path: target_path_str.to_string(),
                 existed_before: false,
                 backup_path: String::new(),
             });
@@ -96,7 +97,7 @@ pub fn execute_plan(
                 let dst_path = item.target_path.as_deref().unwrap_or(src_path);
 
                 let full_src = pack_dir.join(src_path);
-                let full_dst = target_dir.join(dst_path);
+                let full_dst = crate::resolve_safe_path(target_dir, dst_path)?;
 
                 copy_resource(&full_src, &full_dst)
             }

@@ -8,7 +8,7 @@ use domain::{CapabilityResource, DoctorReport, Repository};
 use repo_scanner::{RepoCatalog, ScanError, ScannerConfig};
 use storage::{repo_store::RepositoryStore, resource_store::ResourceStore};
 
-use super::settings_commands;
+use super::{doctor_commands, settings_commands};
 
 #[derive(serde::Serialize)]
 pub struct RepositorySummary {
@@ -208,6 +208,11 @@ pub fn list_repositories(
             *capability_counts.entry(r.r#type.clone()).or_insert(0) += 1;
         }
 
+        let doctor_score = doctor_commands::query_latest_report(&repo.id, &db)
+            .ok()
+            .flatten()
+            .map(|r| r.score);
+
         summaries.push(RepositorySummary {
             id: repo.id,
             name: repo.name,
@@ -217,7 +222,7 @@ pub fn list_repositories(
             capability_counts,
             capability_index_status: repo.capability_index_status,
             last_capability_error: repo.last_capability_error,
-            doctor_score: None,
+            doctor_score,
             last_indexed_at: repo.last_indexed_at,
         });
     }
@@ -288,10 +293,12 @@ pub fn refresh_repository(
                 settings: parsed.settings,
             };
 
+            let doctor_latest = doctor_commands::query_latest_report(&repo_id, &db).ok().flatten();
+
             Ok(RepoDetail {
                 repo,
                 capabilities: inventory,
-                doctor_latest: None,
+                doctor_latest,
             })
         }
         Err(e) => {
@@ -311,11 +318,12 @@ pub fn refresh_repository(
                 .get_by_repo(&repo_id)
                 .unwrap_or_default();
             let inventory = group_resources(existing_resources);
+            let doctor_latest = doctor_commands::query_latest_report(&repo_id, &db).ok().flatten();
 
             Ok(RepoDetail {
                 repo: updated_repo,
                 capabilities: inventory,
-                doctor_latest: None,
+                doctor_latest,
             })
         }
     }
@@ -372,11 +380,12 @@ pub fn get_repository_detail(
         .unwrap_or_default();
 
     let inventory = group_resources(resources);
+    let doctor_latest = doctor_commands::query_latest_report(&repo_id, &db).ok().flatten();
 
     Ok(RepoDetail {
         repo,
         capabilities: inventory,
-        doctor_latest: None,
+        doctor_latest,
     })
 }
 

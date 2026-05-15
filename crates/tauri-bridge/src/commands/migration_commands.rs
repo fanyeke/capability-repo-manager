@@ -120,6 +120,15 @@ pub fn apply_migration_plan(
     let mut plan: domain::MigrationPlan =
         serde_json::from_str(&run.plan_json).map_err(|e| format!("Plan deserialization error: {}", e))?;
 
+    // Apply user conflict strategies FIRST, then validate all items
+    for strategy in &strategies {
+        for item in &mut plan.items {
+            if item.resource_id == strategy.resource_id {
+                item.action = strategy.action.clone();
+            }
+        }
+    }
+
     // Verify all conflicts resolved — check no item has action outside the enum
     for item in &plan.items {
         if domain::ConflictAction::from_str(&item.action).is_none() && item.action != "add" {
@@ -127,15 +136,6 @@ pub fn apply_migration_plan(
                 "Unresolved conflict for resource '{}': action '{}' is not valid. Resolve all conflicts before applying.",
                 item.resource_id, item.action
             ));
-        }
-    }
-
-    // Apply user conflict strategies
-    for strategy in &strategies {
-        for item in &mut plan.items {
-            if item.resource_id == strategy.resource_id {
-                item.action = strategy.action.clone();
-            }
         }
     }
 

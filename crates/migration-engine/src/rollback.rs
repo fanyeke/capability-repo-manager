@@ -34,7 +34,7 @@ pub fn restore_from_scoped_snapshot(snapshot_dir: &Path, target_dir: &Path) -> R
         .map_err(|e| domain::AppError::Migration(format!("Failed to parse manifest: {}", e)))?;
 
     for item in &items {
-        let target_path = target_dir.join(&item.target_path);
+        let target_path = crate::resolve_safe_path(target_dir, &item.target_path)?;
 
         if item.existed_before {
             // Restore from backup

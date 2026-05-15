@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use tauri::State;
 
 use crate::state::AppState;
-use domain::{CapabilityResource, DoctorReport};
+use domain::{CapabilityResource, DoctorIssue, DoctorReport};
 use storage::{repo_store::RepositoryStore, resource_store::ResourceStore};
 
 #[derive(serde::Serialize)]
@@ -111,6 +111,44 @@ pub fn compare_repos(
     Ok(compute_diff(&resources_a, &resources_b))
 }
 
+/// Query the latest doctor report for a repository, returning `None` if none exists.
+pub fn query_latest_report(
+    repo_id: &str,
+    db: &storage::Database,
+) -> Result<Option<DoctorReport>, String> {
+    let mut stmt = db.conn().prepare(
+        "SELECT id, repo_id, score, issues_json, created_at
+         FROM doctor_reports WHERE repo_id = ?1 ORDER BY created_at DESC LIMIT 1"
+    ).map_err(|e| format!("Database error: {}", e))?;
+
+    let mut rows = stmt.query_map(rusqlite::params![repo_id], |row| {
+        let issues_json: String = row.get(3)?;
+        let issues: Vec<DoctorIssue> = serde_json::from_str(&issues_json).unwrap_or_default();
+        Ok(DoctorReport {
+            id: row.get(0)?,
+            repo_id: row.get(1)?,
+            score: row.get(2)?,
+            issues,
+            created_at: row.get(4)?,
+        })
+    }).map_err(|e| format!("Database error: {}", e))?;
+
+    match rows.next() {
+        Some(Ok(report)) => Ok(Some(report)),
+        Some(Err(e)) => Err(format!("Database error: {}", e)),
+        None => Ok(None),
+    }
+}
+
+#[tauri::command]
+pub fn get_latest_doctor_report(
+    repo_id: String,
+    state: State<AppState>,
+) -> Result<Option<DoctorReport>, String> {
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    query_latest_report(&repo_id, &db)
+}
+
 fn extract_hooks(repo_path: &std::path::Path) -> Vec<doctor_engine::checks::HookConfig> {
     let settings_path = repo_path.join(".claude").join("settings.json");
     if !settings_path.exists() {
@@ -132,14 +170,21 @@ fn extract_hooks(repo_path: &std::path::Path) -> Vec<doctor_engine::checks::Hook
         for (hook_type, hook_defs) in hooks_obj {
             if let Some(arr) = hook_defs.as_array() {
                 for entry in arr {
-                    let command = entry
-                        .get("command")
-                        .and_then(|c| c.as_str())
-                        .unwrap_or("")
-                        .to_string();
                     hooks.push(doctor_engine::checks::HookConfig {
                         hook_type: hook_type.clone(),
-                        command,
+                        name: entry
+                            .get("name")
+                            .and_then(|n| n.as_str())
+                            .unwrap_or("")
+                            .to_string(),
+                        command: entry
+                            .get("command")
+                            .and_then(|c| c.as_str())
+                            .map(|s| s.to_string()),
+                        script_path: entry
+                            .get("script_path")
+                            .and_then(|s| s.as_str())
+                            .map(|s| s.to_string()),
                     });
                 }
             }

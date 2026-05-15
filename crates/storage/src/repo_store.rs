@@ -164,8 +164,8 @@ impl<'a> RepositoryStore<'a> {
         Ok(())
     }
 
-    /// Delete a repository and all associated resources, doctor reports, and
-    /// migration runs in a single transaction.
+    /// Delete a repository and all associated resources and doctor reports
+    /// in a single transaction. Migration history is preserved (target marked deleted).
     pub fn delete_cascade(&self, id: &str) -> Result<()> {
         let conn = self.db.conn();
         conn.execute_batch("BEGIN")?;
@@ -179,13 +179,6 @@ impl<'a> RepositoryStore<'a> {
         }
         if let Err(e) = conn.execute(
             "DELETE FROM doctor_reports WHERE repo_id = ?1",
-            params![id],
-        ) {
-            let _ = conn.execute_batch("ROLLBACK");
-            return Err(e);
-        }
-        if let Err(e) = conn.execute(
-            "DELETE FROM migration_runs WHERE target_repo_id = ?1",
             params![id],
         ) {
             let _ = conn.execute_batch("ROLLBACK");

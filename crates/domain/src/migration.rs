@@ -74,6 +74,7 @@ pub struct MigrationConflict {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct ResourceDependency {
+    #[serde(rename = "type")]
     pub dep_type: String,
     pub name: String,
     pub required: bool,

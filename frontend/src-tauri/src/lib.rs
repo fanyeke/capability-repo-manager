@@ -47,6 +47,7 @@ pub fn run() {
             tauri_bridge::commands::migration_commands::rollback_migration,
             tauri_bridge::commands::migration_commands::get_migration_history,
             tauri_bridge::commands::doctor_commands::run_doctor,
+            tauri_bridge::commands::doctor_commands::get_latest_doctor_report,
             tauri_bridge::commands::doctor_commands::compare_repo_with_pack,
             tauri_bridge::commands::doctor_commands::compare_repos,
         ])

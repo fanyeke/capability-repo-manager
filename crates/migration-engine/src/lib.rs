@@ -7,6 +7,23 @@ use std::path::Path;
 
 use domain::{CapabilityResource, MigrationPlan, MigrationReport};
 
+/// Resolve `target_dir.join(path)` and verify the result stays within `target_dir`.
+/// Returns an error if the path tries to escape via `..` or symlinks.
+pub fn resolve_safe_path(target_dir: &Path, sub_path: &str) -> Result<std::path::PathBuf, domain::AppError> {
+    let target_canonical = target_dir.canonicalize().map_err(|e| {
+        domain::AppError::Migration(format!("Cannot resolve target directory: {}", e))
+    })?;
+    let joined = target_dir.join(sub_path);
+    let joined_canonical = joined.canonicalize().unwrap_or_else(|_| joined.clone());
+    if !joined_canonical.starts_with(&target_canonical) {
+        return Err(domain::AppError::Migration(format!(
+            "Path traversal detected: '{}' resolves outside target directory",
+            sub_path
+        )));
+    }
+    Ok(joined)
+}
+
 /// Minimum required disk space for migration operations (50 MB).
 const MIN_DISK_SPACE: u64 = 50 * 1024 * 1024;
 
