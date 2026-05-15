@@ -47,6 +47,7 @@
       <button class="nav-btn" onclick={() => currentPage.set("packapply")}>{$_('nav.apply')}</button>
       <button class="nav-btn" onclick={() => currentPage.set("doctor")}>{$_('nav.doctor')}</button>
       <button class="nav-btn" onclick={() => currentPage.set("compare")}>{$_('nav.compare')}</button>
+      <button class="nav-btn" onclick={() => currentPage.set("activity")}>{$_('nav.activity')}</button>
     </nav>
   </header>
 

@@ -53,6 +53,7 @@ pub fn run() {
             tauri_bridge::commands::settings_commands::export_debug_bundle,
             tauri_bridge::commands::settings_commands::get_log_level,
             tauri_bridge::commands::settings_commands::set_log_level,
+            tauri_bridge::commands::repo_commands::list_operation_events,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

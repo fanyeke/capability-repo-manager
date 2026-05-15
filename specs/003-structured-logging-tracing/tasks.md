@@ -80,10 +80,10 @@
 
 **Independent Test**: After scanning, open Activity page → see scan operation listed with status and summary
 
-- [ ] T017 [P] [US4] Add `list_operation_events` Tauri command in `crates/tauri-bridge/src/commands/repo_commands.rs` or dedicated commands file — query event_store.list_events with optional type filter
-- [ ] T018 [P] [US4] Create `frontend/src/lib/stores/eventStore.ts` — loadEvents, events writable, loading/error state
-- [ ] T019 [P] [US4] Create `frontend/src/lib/pages/Activity.svelte` — reverse-chronological list of operations, status badges, summary text
-- [ ] T020 [US4] Add `/activity` route in `frontend/src/App.svelte` — link from nav with label "Activity"
+- [X] T017 [P] [US4] Add `list_operation_events` Tauri command in `crates/tauri-bridge/src/commands/repo_commands.rs` or dedicated commands file — query event_store.list_events with optional type filter
+- [X] T018 [P] [US4] Create `frontend/src/lib/stores/eventStore.ts` — loadEvents, events writable, loading/error state
+- [X] T019 [P] [US4] Create `frontend/src/lib/pages/Activity.svelte` — reverse-chronological list of operations, status badges, summary text
+- [X] T020 [US4] Add `/activity` route in `frontend/src/App.svelte` — link from nav with label "Activity"
 - [ ] T021 [US4] Add log level selector (INFO/DEBUG/TRACE) in `frontend/src/lib/pages/Settings.svelte` — calls update_settings with new log_level
 - [ ] T022 [US4] Wire log level changes to dynamic subscriber update in `crates/tauri-bridge/src/state.rs` — reload tracing filter when log_level changes
 - [ ] T023 [US4] Add "Open Log Directory" button to Settings in `frontend/src/lib/pages/Settings.svelte` — opens file manager via Tauri shell open API

@@ -11,7 +11,8 @@
     "apply": "应用包",
     "doctor": "诊断",
     "compare": "比较",
-    "back": "返回仪表盘"
+    "back": "返回仪表盘",
+    "activity": "活动记录"
   },
   "dashboard": {
     "title": "能力仓库管理器",
