@@ -6,7 +6,7 @@ use crate::state::{AppSettings, AppState};
 use claude_parser;
 use domain::{CapabilityResource, DoctorReport, OperationContext, Repository};
 use repo_scanner::{RepoCatalog, ScanError, ScannerConfig};
-use storage::event_store::NewOperationEvent;
+use storage::event_store::{NewOperationEvent, OperationEvent};
 use storage::{repo_store::RepositoryStore, resource_store::ResourceStore};
 
 use super::{doctor_commands, settings_commands};
@@ -534,6 +534,20 @@ pub fn update_settings(
     let mut settings = state.settings.lock().map_err(|e| e.to_string())?;
     *settings = new_settings;
     Ok(())
+}
+
+#[tauri::command]
+pub fn list_operation_events(
+    limit: Option<i64>,
+    offset: Option<i64>,
+    operation_type: Option<String>,
+    state: State<AppState>,
+) -> Result<Vec<OperationEvent>, String> {
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    let event_store = db.event_store();
+    event_store
+        .list_events(limit.unwrap_or(50), offset.unwrap_or(0), operation_type.as_deref())
+        .map_err(|e| format!("Failed to list operation events: {}", e))
 }
 
 fn collect_resources(repo_id: &str, inv: &claude_parser::CapabilityInventory) -> Vec<CapabilityResource> {

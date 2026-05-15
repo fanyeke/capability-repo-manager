@@ -11,7 +11,8 @@
     "apply": "Apply Pack",
     "doctor": "Doctor",
     "compare": "Compare",
-    "back": "Back to Dashboard"
+    "back": "Back to Dashboard",
+    "activity": "Activity"
   },
   "dashboard": {
     "title": "Capability Repo Manager",

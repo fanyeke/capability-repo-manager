@@ -14,6 +14,7 @@
   let PackApply: any = $state(null);
   let Doctor: any = $state(null);
   let Compare: any = $state(null);
+  let Activity: any = $state(null);
 
   let bootError: { title: string; message: string; detail: string } | null = $state(null);
 
@@ -57,6 +58,8 @@
       Doctor = (await import("$lib/pages/Doctor.svelte")).default;
     } else if (name === "compare" && !Compare) {
       Compare = (await import("$lib/pages/Compare.svelte")).default;
+    } else if (name === "activity" && !Activity) {
+      Activity = (await import("$lib/pages/Activity.svelte")).default;
     }
   }
 
@@ -99,6 +102,12 @@
   {:else if $currentPage === "compare"}
     {#if Compare}
       <Compare />
+    {:else}
+      <div class="page-loading">Loading...</div>
+    {/if}
+  {:else if $currentPage === "activity"}
+    {#if Activity}
+      <Activity />
     {:else}
       <div class="page-loading">Loading...</div>
     {/if}
