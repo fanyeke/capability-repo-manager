@@ -164,6 +164,44 @@ impl<'a> RepositoryStore<'a> {
         Ok(())
     }
 
+    /// Delete a repository and all associated resources, doctor reports, and
+    /// migration runs in a single transaction.
+    pub fn delete_cascade(&self, id: &str) -> Result<()> {
+        let conn = self.db.conn();
+        conn.execute_batch("BEGIN")?;
+
+        if let Err(e) = conn.execute(
+            "DELETE FROM capability_resources WHERE repo_id = ?1",
+            params![id],
+        ) {
+            let _ = conn.execute_batch("ROLLBACK");
+            return Err(e);
+        }
+        if let Err(e) = conn.execute(
+            "DELETE FROM doctor_reports WHERE repo_id = ?1",
+            params![id],
+        ) {
+            let _ = conn.execute_batch("ROLLBACK");
+            return Err(e);
+        }
+        if let Err(e) = conn.execute(
+            "DELETE FROM migration_runs WHERE target_repo_id = ?1",
+            params![id],
+        ) {
+            let _ = conn.execute_batch("ROLLBACK");
+            return Err(e);
+        }
+        if let Err(e) = conn.execute(
+            "DELETE FROM repositories WHERE id = ?1",
+            params![id],
+        ) {
+            let _ = conn.execute_batch("ROLLBACK");
+            return Err(e);
+        }
+        conn.execute_batch("COMMIT")?;
+        Ok(())
+    }
+
     /// Update the capability index status for a repository.
     ///
     /// Sets `capability_index_status`, optionally records an error message,

@@ -1,5 +1,5 @@
 use crate::Database;
-use domain::{MigrationRun, MigrationSnapshot};
+use domain::MigrationRun;
 use rusqlite::{params, Result};
 
 pub struct MigrationStore<'a> {

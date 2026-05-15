@@ -153,9 +153,9 @@
 
 **Independent Test**: Remove a repo with capabilities + doctor reports; verify all orphan data is gone
 
-- [ ] T041 [US7] Implement `delete_cascade(id)` in `crates/storage/src/repo_store.rs`: transactional delete of repo + capability_resources + doctor_reports
-- [ ] T042 [US7] Modify `remove_repository` in `crates/tauri-bridge/src/commands/repo_commands.rs`: use `delete_cascade()` instead of plain `delete()`
-- [ ] T043 [P] [US7] Write test in `crates/storage/tests/repo_store_tests.rs` for cascade delete
+- [X] T041 [US7] Implement `delete_cascade(id)` in `crates/storage/src/repo_store.rs`: transactional delete of repo + capability_resources + doctor_reports
+- [X] T042 [US7] Modify `remove_repository` in `crates/tauri-bridge/src/commands/repo_commands.rs`: use `delete_cascade()` instead of plain `delete()`
+- [X] T043 [P] [US7] Write test in `crates/storage/tests/repo_store_tests.rs` for cascade delete
 
 **Checkpoint**: US7 done — repo removal no longer leaves orphans
 

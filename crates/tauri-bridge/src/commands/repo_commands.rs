@@ -392,7 +392,7 @@ pub fn remove_repository(
         .ok_or_else(|| format!("Repository not found: {}", repo_id))?;
 
     repo_store
-        .delete(&repo_id)
+        .delete_cascade(&repo_id)
         .map_err(|e| format!("Failed to remove repository: {}", e))?;
 
     Ok(())

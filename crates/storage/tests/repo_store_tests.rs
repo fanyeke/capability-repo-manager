@@ -280,3 +280,95 @@ fn test_update_index_status_nonexistent_repo() {
     let result = store.update_index_status("does-not-exist", "fresh", None);
     assert!(result.is_ok(), "update_index_status on nonexistent repo should not error");
 }
+
+#[test]
+fn test_delete_cascade_removes_associated_resources() {
+    let db = setup_db();
+    let store = RepositoryStore::new(&db);
+
+    // Insert repo
+    store.insert(&make_repo("cascade-1", "cascade-test", "/tmp/cascade-test")).unwrap();
+
+    // Insert resources for this repo
+    let resource_store = storage::resource_store::ResourceStore::new(&db);
+    let resources = vec![
+        domain::CapabilityResource {
+            id: "cr1".to_string(),
+            repo_id: Some("cascade-1".to_string()),
+            pack_id: None,
+            r#type: "skill".to_string(),
+            name: "cascade-skill".to_string(),
+            source_path: None,
+            scope: "project".to_string(),
+            tracked_by_git: false,
+            content_hash: None,
+            metadata_json: None,
+            error_message: None,
+        },
+    ];
+    resource_store.insert_batch(&resources).unwrap();
+
+    // Verify resources exist
+    let before = resource_store.get_by_repo("cascade-1").unwrap();
+    assert_eq!(before.len(), 1);
+
+    // Cascade delete
+    store.delete_cascade("cascade-1").unwrap();
+
+    // Repo deleted
+    let repo = store.get_by_id("cascade-1").unwrap();
+    assert!(repo.is_none());
+
+    // Resources deleted
+    let after = resource_store.get_by_repo("cascade-1").unwrap();
+    assert_eq!(after.len(), 0);
+}
+
+#[test]
+fn test_delete_cascade_does_not_affect_other_repos() {
+    let db = setup_db();
+    let store = RepositoryStore::new(&db);
+
+    store.insert(&make_repo("r-keep", "keep", "/tmp/keep")).unwrap();
+    store.insert(&make_repo("r-del", "delete", "/tmp/delete")).unwrap();
+
+    let resource_store = storage::resource_store::ResourceStore::new(&db);
+    resource_store.insert_batch(&vec![
+        domain::CapabilityResource {
+            id: "cr-keep".to_string(),
+            repo_id: Some("r-keep".to_string()),
+            pack_id: None,
+            r#type: "skill".to_string(),
+            name: "keep-skill".to_string(),
+            source_path: None,
+            scope: "project".to_string(),
+            tracked_by_git: false,
+            content_hash: None,
+            metadata_json: None,
+            error_message: None,
+        },
+        domain::CapabilityResource {
+            id: "cr-del".to_string(),
+            repo_id: Some("r-del".to_string()),
+            pack_id: None,
+            r#type: "skill".to_string(),
+            name: "del-skill".to_string(),
+            source_path: None,
+            scope: "project".to_string(),
+            tracked_by_git: false,
+            content_hash: None,
+            metadata_json: None,
+            error_message: None,
+        },
+    ]).unwrap();
+
+    store.delete_cascade("r-del").unwrap();
+
+    // Deleted repo gone
+    assert!(store.get_by_id("r-del").unwrap().is_none());
+    assert_eq!(resource_store.get_by_repo("r-del").unwrap().len(), 0);
+
+    // Other repo untouched
+    assert!(store.get_by_id("r-keep").unwrap().is_some());
+    assert_eq!(resource_store.get_by_repo("r-keep").unwrap().len(), 1);
+}

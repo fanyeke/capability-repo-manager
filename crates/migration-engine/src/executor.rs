@@ -1,5 +1,5 @@
 use domain::{
-    CapabilityResource, MigrationPlan, MigrationReport, MigrationReportItem,
+    CapabilityResource, MigrationPlan, MigrationPlanItem, MigrationReport, MigrationReportItem,
     MigrationReportSummary, SnapshotItem,
 };
 use std::fs;

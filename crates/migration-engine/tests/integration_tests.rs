@@ -1,4 +1,4 @@
-use domain::{CapabilityResource, MigrationPlanItem};
+use domain::MigrationPlanItem;
 use migration_engine::{create_scoped_snapshot, restore_scoped};
 use std::fs;
 use std::path::PathBuf;
@@ -7,6 +7,7 @@ use tempfile::TempDir;
 fn setup_pack_dir(dir: &TempDir) -> PathBuf {
     let pack = dir.path().join("pack");
     fs::create_dir_all(pack.join("skills/my-skill")).unwrap();
+    fs::create_dir_all(pack.join(".claude")).unwrap();
     fs::write(pack.join("skills/my-skill/SKILL.md"), "# My Skill").unwrap();
     fs::write(pack.join(".claude/settings.json"), r#"{"hooks":{}}"#).unwrap();
     pack
@@ -15,8 +16,10 @@ fn setup_pack_dir(dir: &TempDir) -> PathBuf {
 fn setup_target_dir(dir: &TempDir) -> PathBuf {
     let target = dir.path().join("target-repo");
     fs::create_dir_all(target.join("skills/existing")).unwrap();
+    fs::create_dir_all(target.join(".claude")).unwrap();
     fs::write(target.join("skills/existing/SKILL.md"), "# Existing").unwrap();
     fs::write(target.join("README.md"), "Original content").unwrap();
+    fs::write(target.join(".claude/settings.json"), r#"{"original":true}"#).unwrap();
     target
 }
 
@@ -61,35 +64,6 @@ fn full_plan_snapshot_execute_rollback_cycle() {
     assert!(new_skill_item.backup_path.is_empty());
 
     // Step 3: Execute — copy files from pack to target
-    let pack_resources: Vec<CapabilityResource> = vec![
-        CapabilityResource {
-            id: "r1".to_string(),
-            repo_id: None,
-            pack_id: Some("pack-1".to_string()),
-            r#type: "skill".to_string(),
-            name: "my-skill".to_string(),
-            source_path: Some("skills/my-skill/".to_string()),
-            scope: "project".to_string(),
-            tracked_by_git: false,
-            content_hash: None,
-            metadata_json: None,
-            error_message: None,
-        },
-        CapabilityResource {
-            id: "r2".to_string(),
-            repo_id: None,
-            pack_id: Some("pack-1".to_string()),
-            r#type: "settings".to_string(),
-            name: "claude-settings".to_string(),
-            source_path: Some(".claude/settings.json".to_string()),
-            scope: "project".to_string(),
-            tracked_by_git: false,
-            content_hash: None,
-            metadata_json: None,
-            error_message: None,
-        },
-    ];
-
     // Copy files to simulate execution
     fs::create_dir_all(target_dir.join("skills/my-skill")).unwrap();
     fs::copy(
