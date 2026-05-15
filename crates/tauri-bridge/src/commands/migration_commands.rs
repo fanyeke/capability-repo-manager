@@ -230,7 +230,7 @@ pub fn rollback_migration(
     let target_repo = repo_store
         .get_by_id(&target_repo_id)
         .map_err(|e| format!("Database error: {}", e))?
-        .ok_or_else(|| format!("Target repository not found"))?;
+        .ok_or_else(|| "Target repository not found".to_string())?;
 
     let target_dir = PathBuf::from(&target_repo.path);
     migration_engine::rollback_migration(&snapshot, &target_dir)
