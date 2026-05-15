@@ -3,8 +3,13 @@
   import { repos, filteredRepos, scanRepositories, loadRepos, selectRepo, isLoading } from "$lib/stores/repoStore";
   import RepoList from "$lib/components/RepoList.svelte";
   import { _ } from "svelte-i18n";
+  import { onMount } from "svelte";
 
   let filter = $state({});
+
+  onMount(() => {
+    loadRepos();
+  });
 
   async function handleScan() {
     const settings = await getSettings();
