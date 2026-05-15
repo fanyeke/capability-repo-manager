@@ -8,6 +8,8 @@ use domain::{CapabilityResource, DoctorReport, Repository};
 use repo_scanner::{RepoCatalog, ScanError, ScannerConfig};
 use storage::{repo_store::RepositoryStore, resource_store::ResourceStore};
 
+use super::settings_commands;
+
 #[derive(serde::Serialize)]
 pub struct RepositorySummary {
     pub id: String,
@@ -400,6 +402,12 @@ pub fn remove_repository(
 
 #[tauri::command]
 pub fn get_settings(state: State<AppState>) -> Result<AppSettings, String> {
+    // Try loading from file first, fall back to in-memory defaults
+    if let Some(file_settings) = settings_commands::load_from_file() {
+        let mut settings = state.settings.lock().map_err(|e| e.to_string())?;
+        *settings = file_settings.clone();
+        return Ok(file_settings);
+    }
     let settings = state.settings.lock().map_err(|e| e.to_string())?;
     Ok(settings.clone())
 }
@@ -409,6 +417,9 @@ pub fn update_settings(
     new_settings: AppSettings,
     state: State<AppState>,
 ) -> Result<(), String> {
+    // Persist to file
+    settings_commands::save_to_file(&new_settings)?;
+    // Update in-memory state
     let mut settings = state.settings.lock().map_err(|e| e.to_string())?;
     *settings = new_settings;
     Ok(())

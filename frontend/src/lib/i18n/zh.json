@@ -1,0 +1,74 @@
+{
+  "app": {
+    "title": "能力仓库管理器",
+    "loading": "加载中...",
+    "error": "发生错误"
+  },
+  "nav": {
+    "dashboard": "仪表盘",
+    "settings": "设置",
+    "export": "导出包",
+    "apply": "应用包",
+    "doctor": "诊断",
+    "compare": "比较",
+    "back": "返回仪表盘"
+  },
+  "dashboard": {
+    "title": "能力仓库管理器",
+    "loading": "正在加载仓库列表...",
+    "no_repos": "未发现仓库",
+    "scan": "扫描仓库",
+    "scanning": "正在扫描..."
+  },
+  "settings": {
+    "title": "设置",
+    "loading": "正在加载设置...",
+    "scan_roots": "扫描根目录",
+    "scan_roots_hint": "逗号分隔的要扫描 Git 仓库的目录列表",
+    "scan_roots_placeholder": "/home/user/projects, /home/user/work",
+    "scan_depth": "扫描深度",
+    "scan_depth_hint": "扫描仓库时的最大遍历深度",
+    "ignore_patterns": "忽略模式",
+    "ignore_patterns_hint": "扫描时要跳过的目录名称（逗号分隔）",
+    "pack_storage": "包存储目录",
+    "pack_storage_placeholder": "~/.capability-repo-manager/packs",
+    "pack_storage_hint": "导出能力包的存储位置",
+    "save": "保存设置"
+  },
+  "repo": {
+    "detail_title": "仓库详情",
+    "capabilities": "能力列表",
+    "resources": "资源",
+    "branch": "分支",
+    "dirty_state": "状态",
+    "last_indexed": "上次索引",
+    "no_capabilities": "未找到能力"
+  },
+  "pack": {
+    "export_title": "导出包",
+    "apply_title": "应用包",
+    "no_packs": "未找到包",
+    "delete": "删除",
+    "validate": "验证"
+  },
+  "doctor": {
+    "title": "诊断",
+    "run": "运行诊断",
+    "score": "评分",
+    "issues": "问题列表",
+    "no_issues": "未发现问题",
+    "critical": "严重",
+    "warning": "警告",
+    "info": "信息"
+  },
+  "common": {
+    "save": "保存",
+    "cancel": "取消",
+    "delete": "删除",
+    "close": "关闭",
+    "confirm": "确认",
+    "search": "搜索",
+    "filter": "筛选",
+    "sort": "排序"
+  }
+}

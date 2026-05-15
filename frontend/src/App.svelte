@@ -8,10 +8,12 @@
   import Doctor from "$lib/pages/Doctor.svelte";
   import Compare from "$lib/pages/Compare.svelte";
   import { currentPage } from "$lib/stores/uiStore";
+  import { setupI18n } from "$lib/i18n";
   import { onMount } from "svelte";
+  import { _ } from "svelte-i18n";
 
   onMount(async () => {
-    // Check if there are any repos already indexed
+    setupI18n();
     try {
       const { invoke } = await import("@tauri-apps/api/core");
       const repos = await invoke<any[]>("list_repositories", { filter: {} });
@@ -19,7 +21,6 @@
         currentPage.set("guidedsetup");
       }
     } catch {
-      // First launch, show guided setup
       currentPage.set("guidedsetup");
     }
   });

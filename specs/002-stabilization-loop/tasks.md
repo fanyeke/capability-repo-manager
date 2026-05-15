@@ -165,13 +165,13 @@
 
 **Goal**: Settings survive restart; UI supports Chinese language
 
-- [ ] T044 [P] Write settings to `~/.capability-repo-manager/settings.json` on `update_settings` call in `crates/tauri-bridge/src/commands/settings_commands.rs`
-- [ ] T045 [P] Load settings from `~/.capability-repo-manager/settings.json` on `get_settings` call, falling back to defaults if file missing in `crates/tauri-bridge/src/commands/settings_commands.rs`
-- [ ] T046 [P] Register `settings_commands` module in `crates/tauri-bridge/src/commands/mod.rs` and wire up in `frontend/src-tauri/src/lib.rs`
-- [ ] T047 [P] Add `svelte-i18n` dependency to `frontend/package.json`
-- [ ] T048 [P] Create `frontend/src/lib/i18n/en.json` and `frontend/src/lib/i18n/zh.json` with core UI strings
-- [ ] T049 [P] Create `frontend/src/lib/i18n/index.ts` to initialize svelte-i18n with locale detection (navigator.language + fallback)
-- [ ] T050 [P] Wrap user-facing strings in App.svelte and key pages/components with `$t('key')` calls
+- [X] T044 [P] Write settings to `~/.capability-repo-manager/settings.json` on `update_settings` call in `crates/tauri-bridge/src/commands/settings_commands.rs`
+- [X] T045 [P] Load settings from `~/.capability-repo-manager/settings.json` on `get_settings` call, falling back to defaults if file missing in `crates/tauri-bridge/src/commands/settings_commands.rs`
+- [X] T046 [P] Register `settings_commands` module in `crates/tauri-bridge/src/commands/mod.rs` and wire up in `frontend/src-tauri/src/lib.rs`
+- [X] T047 [P] Add `svelte-i18n` dependency to `frontend/package.json`
+- [X] T048 [P] Create `frontend/src/lib/i18n/en.json` and `frontend/src/lib/i18n/zh.json` with core UI strings
+- [X] T049 [P] Create `frontend/src/lib/i18n/index.ts` to initialize svelte-i18n with locale detection (navigator.language + fallback)
+- [X] T050 [P] Wrap user-facing strings in App.svelte and key pages/components with `$t('key')` calls
 
 ---
 

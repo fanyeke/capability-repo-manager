@@ -1,0 +1,74 @@
+{
+  "app": {
+    "title": "Capability Repo Manager",
+    "loading": "Loading...",
+    "error": "An error occurred"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "settings": "Settings",
+    "export": "Export Pack",
+    "apply": "Apply Pack",
+    "doctor": "Doctor",
+    "compare": "Compare",
+    "back": "Back to Dashboard"
+  },
+  "dashboard": {
+    "title": "Capability Repo Manager",
+    "loading": "Loading repositories...",
+    "no_repos": "No repositories found",
+    "scan": "Scan Repos",
+    "scanning": "Scanning..."
+  },
+  "settings": {
+    "title": "Settings",
+    "loading": "Loading settings...",
+    "scan_roots": "Scan Roots",
+    "scan_roots_hint": "Comma-separated directories to scan for Git repositories",
+    "scan_roots_placeholder": "/home/user/projects, /home/user/work",
+    "scan_depth": "Scan Depth",
+    "scan_depth_hint": "Maximum depth to traverse when scanning for repositories",
+    "ignore_patterns": "Ignore Patterns",
+    "ignore_patterns_hint": "Directory names to skip when scanning (comma-separated)",
+    "pack_storage": "Pack Storage Directory",
+    "pack_storage_placeholder": "~/.capability-repo-manager/packs",
+    "pack_storage_hint": "Where exported capability packs are stored",
+    "save": "Save Settings"
+  },
+  "repo": {
+    "detail_title": "Repository Details",
+    "capabilities": "Capabilities",
+    "resources": "Resources",
+    "branch": "Branch",
+    "dirty_state": "State",
+    "last_indexed": "Last Indexed",
+    "no_capabilities": "No capabilities found"
+  },
+  "pack": {
+    "export_title": "Export Pack",
+    "apply_title": "Apply Pack",
+    "no_packs": "No packs found",
+    "delete": "Delete",
+    "validate": "Validate"
+  },
+  "doctor": {
+    "title": "Doctor",
+    "run": "Run Doctor",
+    "score": "Score",
+    "issues": "Issues",
+    "no_issues": "No issues found",
+    "critical": "Critical",
+    "warning": "Warning",
+    "info": "Info"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "close": "Close",
+    "confirm": "Confirm",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort"
+  }
+}
