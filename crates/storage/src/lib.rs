@@ -1,3 +1,4 @@
+pub mod event_store;
 pub mod migration_store;
 pub mod pack_store;
 pub mod repo_store;
@@ -30,6 +31,11 @@ impl Database {
 
     pub fn conn(&self) -> &Connection {
         &self.conn
+    }
+
+    /// Create an EventStore operating on this database connection.
+    pub fn event_store(&self) -> event_store::EventStore<'_> {
+        event_store::EventStore::new(&self.conn)
     }
 
     fn initialize(&self) -> Result<()> {
@@ -108,6 +114,23 @@ impl Database {
             CREATE INDEX IF NOT EXISTS idx_packs_name_version ON packs(name, version);
             CREATE INDEX IF NOT EXISTS idx_migrations_target ON migration_runs(target_repo_id);
             CREATE INDEX IF NOT EXISTS idx_doctor_repo ON doctor_reports(repo_id);
+
+            CREATE TABLE IF NOT EXISTS operation_events (
+                id TEXT PRIMARY KEY NOT NULL,
+                operation_id TEXT NOT NULL,
+                operation_type TEXT NOT NULL,
+                status TEXT NOT NULL,
+                repo_id TEXT,
+                pack_id TEXT,
+                migration_run_id TEXT,
+                summary TEXT,
+                detail_json TEXT,
+                created_at TEXT NOT NULL
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_op_events_operation_id ON operation_events(operation_id);
+            CREATE INDEX IF NOT EXISTS idx_op_events_created_at ON operation_events(created_at);
+            CREATE INDEX IF NOT EXISTS idx_op_events_type ON operation_events(operation_type);
             "
         )?;
         Ok(())

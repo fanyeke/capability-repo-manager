@@ -14,6 +14,7 @@ pub struct AppSettings {
     pub ignore_patterns: Vec<String>,
     pub pack_storage_dir: String,
     pub file_watch_enabled: bool,
+    pub log_level: String,
 }
 
 impl Default for AppSettings {
@@ -30,6 +31,7 @@ impl Default for AppSettings {
             ],
             pack_storage_dir: default_pack_dir(),
             file_watch_enabled: false,
+            log_level: "info".to_string(),
         }
     }
 }
@@ -60,6 +62,9 @@ impl AppState {
 
         // Load persisted settings, fall back to defaults
         let settings = load_settings_from_file().unwrap_or_default();
+
+        // Initialize tracing with the configured log level
+        crate::init_tracing(&settings.log_level)?;
 
         Ok(Self {
             db: Mutex::new(db),
