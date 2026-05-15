@@ -283,8 +283,8 @@ fn repo_catalog_scan_enriches_with_uuid_and_timestamp() {
     assert!(result.errors.is_empty());
 
     let repo = &result.repos[0];
-    assert!(!repo.id.is_empty(), "UUID should be set");
-    assert_eq!(repo.id.len(), 36, "UUID v4 should be 36 chars"); // standard UUID format
+    // UUID is assigned by the store layer (upsert_by_path), RepoCatalog no longer generates it
+    assert!(repo.id.is_empty(), "UUID should be empty at scan stage");
     assert!(!repo.last_indexed_at.is_empty(), "timestamp should be set");
     assert_eq!(repo.dirty_state, "clean", "fresh repo should be clean");
     assert!(repo.head_commit.is_some(), "commit SHA should be set");
@@ -313,4 +313,52 @@ fn repo_catalog_scan_handles_non_git_directory_gracefully() {
     // Repo should still be included with defaults
     assert_eq!(result.repos[0].name, "fake-repo");
     assert_eq!(result.repos[0].dirty_state, "unknown");
+}
+
+#[test]
+fn repo_catalog_scan_sets_canonical_path() {
+    let tmp = tempfile::tempdir().unwrap();
+    let base = tmp.path().to_path_buf();
+    make_real_repo(&base, "canonical-test");
+
+    let config = ScannerConfig {
+        root_paths: vec![base.to_string_lossy().to_string()],
+        max_depth: 3,
+        ignore_dirs: vec![],
+    };
+
+    let result = repo_scanner::RepoCatalog::scan(config).unwrap();
+    assert_eq!(result.repos.len(), 1);
+
+    let repo = &result.repos[0];
+    assert!(!repo.canonical_path.is_empty(), "canonical_path should be set");
+    assert_eq!(repo.canonical_path, repo.path, "canonical_path should match path (already canonical)");
+}
+
+#[test]
+fn repo_catalog_scan_identity_stable_across_calls() {
+    let tmp = tempfile::tempdir().unwrap();
+    let base = tmp.path().to_path_buf();
+    make_real_repo(&base, "stable-id");
+
+    let cfg1 = ScannerConfig {
+        root_paths: vec![base.to_string_lossy().to_string()],
+        max_depth: 3,
+        ignore_dirs: vec![],
+    };
+
+    let cfg2 = ScannerConfig {
+        root_paths: vec![base.to_string_lossy().to_string()],
+        max_depth: 3,
+        ignore_dirs: vec![],
+    };
+
+    let r1 = repo_scanner::RepoCatalog::scan(cfg1).unwrap();
+    assert_eq!(r1.repos.len(), 1);
+
+    let r2 = repo_scanner::RepoCatalog::scan(cfg2).unwrap();
+    assert_eq!(r2.repos.len(), 1);
+
+    assert_eq!(r1.repos[0].path, r2.repos[0].path, "paths should match across scans");
+    assert_eq!(r1.repos[0].canonical_path, r2.repos[0].canonical_path, "canonical_paths should match across scans");
 }

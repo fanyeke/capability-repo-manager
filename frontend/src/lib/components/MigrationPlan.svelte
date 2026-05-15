@@ -28,11 +28,11 @@
     <div class="plan-summary">
       <div class="summary-item">
         <span class="label">Source</span>
-        <span>{plan.source.name} ({plan.source.type})</span>
+        <span>{plan.source_type}: {plan.source_id}</span>
       </div>
       <div class="summary-item">
-        <span class="label">Target</span>
-        <span>{plan.target.name}</span>
+        <span class="label">Target Repo</span>
+        <span>{plan.target_repo_id}</span>
       </div>
       <div class="summary-item">
         <span class="label">Items</span>

@@ -1,7 +1,7 @@
 pub mod scanner;
 
 use domain::AppError;
-use scanner::{scan_repositories, ScannerConfig};
+pub use scanner::{scan_repositories, ScannerConfig};
 
 /// Result of a scan operation, containing discovered repos and any non-fatal errors
 pub struct ScanResult {
@@ -31,8 +31,8 @@ impl RepoCatalog {
         let mut errors = Vec::new();
 
         for repo in &mut repos {
-            // Generate UUID
-            repo.id = uuid::Uuid::new_v4().to_string();
+            // Set canonical_path from the (already canonical) path
+            repo.canonical_path = repo.path.clone();
 
             // Set last_indexed_at timestamp
             repo.last_indexed_at = chrono::Utc::now().to_rfc3339();
@@ -65,6 +65,10 @@ impl RepoCatalog {
         let mut errors = Vec::new();
 
         for repo in repos.iter_mut() {
+            // Ensure canonical_path is set (existing DB records may have NULL)
+            if repo.canonical_path.is_empty() {
+                repo.canonical_path = repo.path.clone();
+            }
             repo.last_indexed_at = chrono::Utc::now().to_rfc3339();
 
             match git_service::git_cli::extract_metadata(repo) {

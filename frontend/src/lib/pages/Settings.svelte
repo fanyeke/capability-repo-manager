@@ -1,5 +1,6 @@
 <script lang="ts">
   import { currentPage, navigateTo } from "$lib/stores/uiStore";
+  import { _ } from "svelte-i18n";
 
   let scanRoots = $state("");
   let scanDepth = $state("5");
@@ -54,44 +55,44 @@
 
 <div class="settings-page">
   <header class="settings-header">
-    <h1>Settings</h1>
-    <button class="back-btn" onclick={() => navigateTo("dashboard")}>Back to Dashboard</button>
+    <h1>{$_('settings.title')}</h1>
+    <button class="back-btn" onclick={() => navigateTo("dashboard")}>{$_('nav.back')}</button>
   </header>
 
   {#if isLoading}
-    <p class="loading">Loading settings...</p>
+    <p class="loading">{$_('settings.loading')}</p>
   {:else}
     <form class="settings-form" onsubmit={(e) => { e.preventDefault(); saveSettings(); }}>
       <div class="form-group">
-        <label>Scan Roots</label>
+        <label>{$_('settings.scan_roots')}</label>
         <textarea
           bind:value={scanRoots}
-          placeholder="/home/user/projects, /home/user/work"
+          placeholder={$_('settings.scan_roots_placeholder')}
           rows={2}
         ></textarea>
-        <span class="hint">Comma-separated directories to scan for Git repositories</span>
+        <span class="hint">{$_('settings.scan_roots_hint')}</span>
       </div>
 
       <div class="form-group">
-        <label>Scan Depth</label>
+        <label>{$_('settings.scan_depth')}</label>
         <input type="number" bind:value={scanDepth} min="1" max="20" />
-        <span class="hint">Maximum depth to traverse when scanning for repositories</span>
+        <span class="hint">{$_('settings.scan_depth_hint')}</span>
       </div>
 
       <div class="form-group">
-        <label>Ignore Patterns</label>
+        <label>{$_('settings.ignore_patterns')}</label>
         <textarea bind:value={ignorePatterns} rows={2}></textarea>
-        <span class="hint">Directory names to skip when scanning (comma-separated)</span>
+        <span class="hint">{$_('settings.ignore_patterns_hint')}</span>
       </div>
 
       <div class="form-group">
-        <label>Pack Storage Directory</label>
-        <input type="text" bind:value={packStorageDir} placeholder="~/.capability-repo-manager/packs" />
-        <span class="hint">Where exported capability packs are stored</span>
+        <label>{$_('settings.pack_storage')}</label>
+        <input type="text" bind:value={packStorageDir} placeholder={$_('settings.pack_storage_placeholder')} />
+        <span class="hint">{$_('settings.pack_storage_hint')}</span>
       </div>
 
       <div class="form-actions">
-        <button type="submit" class="save-btn" disabled={isLoading}>Save Settings</button>
+        <button type="submit" class="save-btn" disabled={isLoading}>{$_('settings.save')}</button>
       </div>
     </form>
   {/if}

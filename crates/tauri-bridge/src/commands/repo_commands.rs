@@ -8,6 +8,8 @@ use domain::{CapabilityResource, DoctorReport, Repository};
 use repo_scanner::{RepoCatalog, ScanError, ScannerConfig};
 use storage::{repo_store::RepositoryStore, resource_store::ResourceStore};
 
+use super::{doctor_commands, settings_commands};
+
 #[derive(serde::Serialize)]
 pub struct RepositorySummary {
     pub id: String,
@@ -16,6 +18,8 @@ pub struct RepositorySummary {
     pub branch: Option<String>,
     pub dirty_state: String,
     pub capability_counts: HashMap<String, usize>,
+    pub capability_index_status: String,
+    pub last_capability_error: Option<String>,
     pub doctor_score: Option<i32>,
     pub last_indexed_at: String,
 }
@@ -44,6 +48,8 @@ pub struct ScanResultOutput {
     pub repos_found: u32,
     pub repos_added: u32,
     pub repos_updated: u32,
+    pub repos_parsed: u32,
+    pub repos_parse_failed: u32,
     pub errors: Vec<ScanErrorOutput>,
 }
 
@@ -89,34 +95,61 @@ pub fn scan_repositories(
     let db = state.db.lock().map_err(|e| e.to_string())?;
     let repo_store = RepositoryStore::new(&db);
 
+    // Phase 2: For each repo, use upsert_by_path which handles identity via canonical path
     let mut repos_added = 0u32;
     let mut repos_updated = 0u32;
+    let mut repos_parsed = 0u32;
+    let mut repos_parse_failed = 0u32;
     let mut stored_errors: Vec<ScanError> = Vec::new();
 
     for repo in &scan_result.repos {
-        match repo_store.get_by_path(&repo.path) {
-            Ok(Some(_existing)) => {
-                repos_updated += 1;
-                if let Err(e) = repo_store.update(repo) {
-                    stored_errors.push(ScanError {
-                        repo_path: repo.path.clone(),
-                        message: format!("Failed to update repo: {}", e),
-                    });
+        let is_new = repo_store.get_by_canonical_path(&repo.canonical_path)
+            .unwrap_or(None)
+            .is_none();
+
+        match repo_store.upsert_by_path(repo) {
+            Ok(stored) => {
+                if is_new {
+                    repos_added += 1;
+                } else {
+                    repos_updated += 1;
                 }
-            }
-            Ok(None) => {
-                repos_added += 1;
-                if let Err(e) = repo_store.insert(repo) {
-                    stored_errors.push(ScanError {
-                        repo_path: repo.path.clone(),
-                        message: format!("Failed to insert repo: {}", e),
-                    });
+
+                // Phase 3: Capability parsing
+                match claude_parser::parse_repo(&repo.path) {
+                    Ok(inventory) => {
+                        let all_resources = collect_resources(&stored.id, &inventory);
+                        let resource_store = ResourceStore::new(&db);
+                        if let Err(e) = resource_store.replace_for_repo(&stored.id, &all_resources) {
+                            stored_errors.push(ScanError {
+                                repo_path: repo.path.clone(),
+                                message: format!("Failed to store capabilities: {}", e),
+                            });
+                        }
+                        if let Err(e) = repo_store.update_index_status(&stored.id, "fresh", None) {
+                            stored_errors.push(ScanError {
+                                repo_path: repo.path.clone(),
+                                message: format!("Failed to update index status: {}", e),
+                            });
+                        }
+                        repos_parsed += 1;
+                    }
+                    Err(e) => {
+                        let err_msg = e.to_string();
+                        if let Err(db_err) = repo_store.update_index_status(&stored.id, "parse_failed", Some(&err_msg)) {
+                            stored_errors.push(ScanError {
+                                repo_path: repo.path.clone(),
+                                message: format!("Failed to record parse error: {}", db_err),
+                            });
+                        }
+                        repos_parse_failed += 1;
+                    }
                 }
             }
             Err(e) => {
                 stored_errors.push(ScanError {
                     repo_path: repo.path.clone(),
-                    message: format!("Database error: {}", e),
+                    message: format!("Failed to upsert repo: {}", e),
                 });
             }
         }
@@ -131,6 +164,8 @@ pub fn scan_repositories(
         repos_found: scan_result.repos.len() as u32,
         repos_added,
         repos_updated,
+        repos_parsed,
+        repos_parse_failed,
         errors,
     })
 }
@@ -173,6 +208,11 @@ pub fn list_repositories(
             *capability_counts.entry(r.r#type.clone()).or_insert(0) += 1;
         }
 
+        let doctor_score = doctor_commands::query_latest_report(&repo.id, &db)
+            .ok()
+            .flatten()
+            .map(|r| r.score);
+
         summaries.push(RepositorySummary {
             id: repo.id,
             name: repo.name,
@@ -180,7 +220,9 @@ pub fn list_repositories(
             branch: repo.current_branch,
             dirty_state: repo.dirty_state,
             capability_counts,
-            doctor_score: None,
+            capability_index_status: repo.capability_index_status,
+            last_capability_error: repo.last_capability_error,
+            doctor_score,
             last_indexed_at: repo.last_indexed_at,
         });
     }
@@ -228,46 +270,95 @@ pub fn refresh_repository(
     repo_store.update(&repo).map_err(|e| format!("Failed to update repo: {}", e))?;
 
     // Re-parse capabilities
-    let parsed = claude_parser::parse_repo(&repo.path)
-        .unwrap_or_else(|_| claude_parser::CapabilityInventory {
-            skills: vec![],
-            mcp: vec![],
-            hooks: vec![],
-            rules: vec![],
-            agents: vec![],
-            commands: vec![],
-            plugins: vec![],
-            settings: vec![],
-        });
-
     let resource_store = ResourceStore::new(&db);
-    resource_store
-        .delete_by_repo(&repo_id)
-        .map_err(|e| format!("Failed to clear old resources: {}", e))?;
 
-    let all_resources = collect_resources(&repo_id, &parsed);
-    if !all_resources.is_empty() {
-        resource_store
-            .insert_batch(&all_resources)
-            .map_err(|e| format!("Failed to store resources: {}", e))?;
+    match claude_parser::parse_repo(&repo.path) {
+        Ok(parsed) => {
+            let all_resources = collect_resources(&repo_id, &parsed);
+            resource_store
+                .replace_for_repo(&repo_id, &all_resources)
+                .map_err(|e| format!("Failed to replace resources: {}", e))?;
+            repo_store
+                .update_index_status(&repo_id, "fresh", None)
+                .map_err(|e| format!("Failed to update index status: {}", e))?;
+
+            let inventory = CapabilityInventory {
+                skills: parsed.skills,
+                mcp: parsed.mcp,
+                hooks: parsed.hooks,
+                rules: parsed.rules,
+                agents: parsed.agents,
+                commands: parsed.commands,
+                plugins: parsed.plugins,
+                settings: parsed.settings,
+            };
+
+            let doctor_latest = doctor_commands::query_latest_report(&repo_id, &db).ok().flatten();
+
+            Ok(RepoDetail {
+                repo,
+                capabilities: inventory,
+                doctor_latest,
+            })
+        }
+        Err(e) => {
+            let err_msg = e.to_string();
+            repo_store
+                .update_index_status(&repo_id, "parse_failed", Some(&err_msg))
+                .map_err(|e| format!("Failed to record parse error: {}", e))?;
+
+            // Re-fetch repo with updated status for response
+            let updated_repo = repo_store
+                .get_by_id(&repo_id)
+                .map_err(|e| format!("Database error: {}", e))?
+                .ok_or_else(|| format!("Repository not found after refresh: {}", repo_id))?;
+
+            // Return existing (old) resources — NOT deleted
+            let existing_resources = resource_store
+                .get_by_repo(&repo_id)
+                .unwrap_or_default();
+            let inventory = group_resources(existing_resources);
+            let doctor_latest = doctor_commands::query_latest_report(&repo_id, &db).ok().flatten();
+
+            Ok(RepoDetail {
+                repo: updated_repo,
+                capabilities: inventory,
+                doctor_latest,
+            })
+        }
+    }
+}
+
+#[tauri::command]
+pub fn refresh_all_repositories(
+    state: State<AppState>,
+) -> Result<u32, String> {
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    let repo_store = RepositoryStore::new(&db);
+
+    let mut repos = repo_store
+        .list_all()
+        .map_err(|e| format!("Database error: {}", e))?;
+
+    if repos.is_empty() {
+        return Ok(0u32);
     }
 
-    let inventory = CapabilityInventory {
-        skills: parsed.skills,
-        mcp: parsed.mcp,
-        hooks: parsed.hooks,
-        rules: parsed.rules,
-        agents: parsed.agents,
-        commands: parsed.commands,
-        plugins: parsed.plugins,
-        settings: parsed.settings,
-    };
+    let errors = RepoCatalog::refresh_all(&mut repos);
 
-    Ok(RepoDetail {
-        repo,
-        capabilities: inventory,
-        doctor_latest: None,
-    })
+    for repo in &repos {
+        if let Err(e) = repo_store.update(repo) {
+            log::warn!("Failed to update repo {}: {}", repo.name, e);
+        }
+    }
+
+    if !errors.is_empty() {
+        for err in &errors {
+            log::warn!("Startup refresh warning: {} - {}", err.repo_path, err.message);
+        }
+    }
+
+    Ok(repos.len() as u32)
 }
 
 #[tauri::command]
@@ -289,11 +380,12 @@ pub fn get_repository_detail(
         .unwrap_or_default();
 
     let inventory = group_resources(resources);
+    let doctor_latest = doctor_commands::query_latest_report(&repo_id, &db).ok().flatten();
 
     Ok(RepoDetail {
         repo,
         capabilities: inventory,
-        doctor_latest: None,
+        doctor_latest,
     })
 }
 
@@ -311,7 +403,7 @@ pub fn remove_repository(
         .ok_or_else(|| format!("Repository not found: {}", repo_id))?;
 
     repo_store
-        .delete(&repo_id)
+        .delete_cascade(&repo_id)
         .map_err(|e| format!("Failed to remove repository: {}", e))?;
 
     Ok(())
@@ -319,6 +411,12 @@ pub fn remove_repository(
 
 #[tauri::command]
 pub fn get_settings(state: State<AppState>) -> Result<AppSettings, String> {
+    // Try loading from file first, fall back to in-memory defaults
+    if let Some(file_settings) = settings_commands::load_from_file() {
+        let mut settings = state.settings.lock().map_err(|e| e.to_string())?;
+        *settings = file_settings.clone();
+        return Ok(file_settings);
+    }
     let settings = state.settings.lock().map_err(|e| e.to_string())?;
     Ok(settings.clone())
 }
@@ -328,6 +426,9 @@ pub fn update_settings(
     new_settings: AppSettings,
     state: State<AppState>,
 ) -> Result<(), String> {
+    // Persist to file
+    settings_commands::save_to_file(&new_settings)?;
+    // Update in-memory state
     let mut settings = state.settings.lock().map_err(|e| e.to_string())?;
     *settings = new_settings;
     Ok(())

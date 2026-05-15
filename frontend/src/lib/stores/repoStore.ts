@@ -37,6 +37,9 @@ export const filteredRepos = derived(
         if (va > vb) return desc ? -1 : 1;
         return 0;
       });
+    } else {
+      // Default sort by name ascending
+      result.sort((a, b) => a.name.localeCompare(b.name));
     }
 
     return result;

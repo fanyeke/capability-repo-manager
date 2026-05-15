@@ -87,9 +87,7 @@ pub fn export_pack(
     let mut warnings: Vec<String> = Vec::new();
 
     // Step 0: Check available disk space
-    if let Err(e) = check_disk_space(&request.output_base_dir, MIN_DISK_SPACE) {
-        return Err(e);
-    }
+    check_disk_space(&request.output_base_dir, MIN_DISK_SPACE)?;
 
     // Step 1: Validate selection
     if request.selected_resources.is_empty() {
@@ -105,8 +103,7 @@ pub fn export_pack(
     for resource in &request.selected_resources {
         let source_rel = resource
             .source_path
-            .as_ref()
-            .map(|p| p.clone())
+            .clone()
             .unwrap_or_else(|| format!("{}/resource", resource.name));
 
         // Compute content hash

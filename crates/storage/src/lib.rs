@@ -1,3 +1,5 @@
+pub mod migration_store;
+pub mod pack_store;
 pub mod repo_store;
 pub mod resource_store;
 
@@ -10,15 +12,19 @@ pub struct Database {
 impl Database {
     pub fn open(path: &str) -> Result<Self> {
         let conn = Connection::open(path)?;
+        conn.execute_batch("PRAGMA foreign_keys = ON")?;
         let db = Self { conn };
         db.initialize()?;
+        db.run_migrations()?;
         Ok(db)
     }
 
     pub fn open_in_memory() -> Result<Self> {
         let conn = Connection::open_in_memory()?;
+        conn.execute_batch("PRAGMA foreign_keys = ON")?;
         let db = Self { conn };
         db.initialize()?;
+        db.run_migrations()?;
         Ok(db)
     }
 
@@ -33,11 +39,16 @@ impl Database {
                 id TEXT PRIMARY KEY NOT NULL,
                 name TEXT NOT NULL,
                 path TEXT NOT NULL UNIQUE,
+                canonical_path TEXT,
                 remote_url TEXT,
                 current_branch TEXT,
                 head_commit TEXT,
                 dirty_state TEXT NOT NULL DEFAULT 'unknown',
-                last_indexed_at TEXT NOT NULL DEFAULT ''
+                first_indexed_at TEXT NOT NULL DEFAULT '',
+                last_indexed_at TEXT NOT NULL DEFAULT '',
+                capability_index_status TEXT NOT NULL DEFAULT 'never_indexed',
+                last_capability_indexed_at TEXT,
+                last_capability_error TEXT
             );
 
             CREATE TABLE IF NOT EXISTS capability_resources (
@@ -99,6 +110,25 @@ impl Database {
             CREATE INDEX IF NOT EXISTS idx_doctor_repo ON doctor_reports(repo_id);
             "
         )?;
+        Ok(())
+    }
+
+    /// Run ALTER TABLE migrations for databases created with older schema versions.
+    fn run_migrations(&self) -> Result<()> {
+        // These are idempotent: rusqlite ignores "duplicate column" errors
+        // when the column already exists.
+        for migration in &[
+            "ALTER TABLE repositories ADD COLUMN canonical_path TEXT",
+            "ALTER TABLE repositories ADD COLUMN first_indexed_at TEXT NOT NULL DEFAULT ''",
+            "ALTER TABLE repositories ADD COLUMN capability_index_status TEXT NOT NULL DEFAULT 'never_indexed'",
+            "ALTER TABLE repositories ADD COLUMN last_capability_indexed_at TEXT",
+            "ALTER TABLE repositories ADD COLUMN last_capability_error TEXT",
+        ] {
+            let _ = self.conn.execute_batch(migration);
+        }
+        let _ = self.conn.execute_batch(
+            "CREATE INDEX IF NOT EXISTS idx_repos_canonical_path ON repositories(canonical_path)"
+        );
         Ok(())
     }
 }

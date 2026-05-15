@@ -30,11 +30,12 @@ function makePlan(overrides: Partial<MigrationPlanType> = {}): MigrationPlanType
   ];
   return {
     plan_id: "plan-1",
-    source: { type: "pack", id: "pack-1", name: "test-pack" },
-    target: { id: "repo-1", name: "target-repo" },
+    source_type: "pack",
+    source_id: "pack-1",
+    target_repo_id: "repo-1",
     items,
     conflicts,
-    missing_deps: [],
+    missing_dependencies: [],
     ...overrides,
   };
 }

@@ -6,6 +6,7 @@ use crate::state::AppState;
 use domain::CapabilityPack;
 use pack_engine;
 use pack_engine::manifest::Manifest;
+use storage::pack_store::PackStore;
 use storage::{repo_store::RepositoryStore, resource_store::ResourceStore};
 
 #[derive(serde::Serialize)]
@@ -104,6 +105,12 @@ pub fn export_capability_pack(
     let result = pack_engine::export_pack(request, &mut library)
         .map_err(|e| format!("Export failed: {}", e))?;
 
+    // Persist pack metadata to DB
+    let pack_store = PackStore::new(&db);
+    pack_store
+        .insert_pack(&result.pack)
+        .map_err(|e| format!("Failed to persist pack metadata: {}", e))?;
+
     // Store pack resources in DB
     let mut pack_resources: Vec<domain::CapabilityResource> = Vec::new();
     for res in &result.manifest.resources {
@@ -145,26 +152,15 @@ pub fn list_packs(
     state: State<AppState>,
 ) -> Result<Vec<PackSummary>, String> {
     let db = state.db.lock().map_err(|e| e.to_string())?;
-    let settings = state.settings.lock().map_err(|e| e.to_string())?;
 
-    let library = pack_engine::library::PackStore::new(PathBuf::from(&settings.pack_storage_dir));
-    let packs = library.list(None);
+    let pack_store = PackStore::new(&db);
+    let packs = pack_store
+        .list_packs(filter.search.as_deref(), filter.pack_type.as_deref())
+        .map_err(|e| format!("Database error: {}", e))?;
 
     let mut summaries = Vec::new();
     for pack in packs {
-        if let Some(ref search) = filter.search {
-            let s = search.to_lowercase();
-            if !pack.name.to_lowercase().contains(&s) {
-                continue;
-            }
-        }
-        if let Some(ref pt) = filter.pack_type {
-            if &pack.pack_type != pt {
-                continue;
-            }
-        }
-
-        let resources = storage::resource_store::ResourceStore::new(&db)
+        let resources = ResourceStore::new(&db)
             .get_by_pack(&pack.id)
             .unwrap_or_default();
 
@@ -197,14 +193,14 @@ pub fn get_pack_detail(
     state: State<AppState>,
 ) -> Result<PackDetail, String> {
     let db = state.db.lock().map_err(|e| e.to_string())?;
-    let settings = state.settings.lock().map_err(|e| e.to_string())?;
 
-    let library = pack_engine::library::PackStore::new(PathBuf::from(&settings.pack_storage_dir));
-    let pack = library
-        .get_by_id(&pack_id)
+    let pack_store = PackStore::new(&db);
+    let pack = pack_store
+        .get_pack_by_id(&pack_id)
+        .map_err(|e| format!("Database error: {}", e))?
         .ok_or_else(|| format!("Pack not found: {}", pack_id))?;
 
-    let resources = storage::resource_store::ResourceStore::new(&db)
+    let resources = ResourceStore::new(&db)
         .get_by_pack(&pack_id)
         .unwrap_or_default();
 
@@ -218,7 +214,7 @@ pub fn get_pack_detail(
     };
 
     Ok(PackDetail {
-        pack: pack.clone(),
+        pack,
         resources,
         manifest,
     })
@@ -229,12 +225,36 @@ pub fn delete_pack(
     pack_id: String,
     state: State<AppState>,
 ) -> Result<(), String> {
-    let settings = state.settings.lock().map_err(|e| e.to_string())?;
+    let db = state.db.lock().map_err(|e| e.to_string())?;
 
-    let mut library = pack_engine::library::PackStore::new(PathBuf::from(&settings.pack_storage_dir));
-    library
-        .delete(&pack_id)
-        .map_err(|e| format!("Failed to delete pack: {}", e))?;
+    let pack_store = PackStore::new(&db);
+
+    // First get pack info to know storage_dir (before deleting DB record)
+    let pack = pack_store
+        .get_pack_by_id(&pack_id)
+        .map_err(|e| format!("Database error: {}", e))?
+        .ok_or_else(|| format!("Pack not found: {}", pack_id))?;
+
+    // Delete files first, then DB (atomicity: file failure stops before DB delete)
+    let settings = state.settings.lock().map_err(|e| e.to_string())?;
+    let allowed_base = std::path::Path::new(&settings.pack_storage_dir).canonicalize().unwrap_or_default();
+    let pack_dir = std::path::Path::new(&pack.storage_dir);
+    if pack_dir.exists() {
+        // Safety check: ensure pack_dir is within the allowed storage directory
+        if let Ok(canonical) = pack_dir.canonicalize() {
+            if !allowed_base.as_os_str().is_empty() && !canonical.starts_with(&allowed_base) {
+                return Err(format!("Pack directory outside allowed storage area: {}", pack_dir.display()));
+            }
+        }
+        std::fs::remove_dir_all(pack_dir)
+            .map_err(|e| format!("Failed to delete pack directory: {}", e))?;
+    }
+
+    // Now delete DB record
+    pack_store
+        .delete_pack(&pack_id)
+        .map_err(|e| format!("Database error: {}", e))?
+        .ok_or_else(|| format!("Pack not found: {}", pack_id))?;
 
     Ok(())
 }
@@ -244,11 +264,12 @@ pub fn validate_pack(
     pack_id: String,
     state: State<AppState>,
 ) -> Result<ValidationResult, String> {
-    let settings = state.settings.lock().map_err(|e| e.to_string())?;
+    let db = state.db.lock().map_err(|e| e.to_string())?;
 
-    let library = pack_engine::library::PackStore::new(PathBuf::from(&settings.pack_storage_dir));
-    let pack = library
-        .get_by_id(&pack_id)
+    let pack_store = PackStore::new(&db);
+    let pack = pack_store
+        .get_pack_by_id(&pack_id)
+        .map_err(|e| format!("Database error: {}", e))?
         .ok_or_else(|| format!("Pack not found: {}", pack_id))?;
 
     let pack_dir = std::path::Path::new(&pack.storage_dir);

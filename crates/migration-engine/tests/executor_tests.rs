@@ -245,7 +245,7 @@ fn execute_mixed_results_has_correct_summary() {
 
     let report = executor::execute_plan(&plan, &pack_resources, &pack_dir, &target_dir).unwrap();
 
-    assert_eq!(report.status, "partial");
+    assert_eq!(report.status, "partial_failure");
     assert_eq!(report.summary.added, 1);
     assert_eq!(report.summary.skipped, 1);
     assert_eq!(report.summary.failed, 1);

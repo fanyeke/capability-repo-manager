@@ -12,6 +12,8 @@ function makeRepo(id: string, name: string, dirty: "clean" | "modified" | "unkno
     branch: "main",
     dirty_state: dirty,
     capability_counts: { skills: 1, mcp: 0, hooks: 0, rules: 0, agents: 0 },
+    capability_index_status: "never_indexed" as const,
+    last_capability_error: null,
     doctor_score: 100,
     last_indexed_at: "2026-01-01T00:00:00Z",
   };

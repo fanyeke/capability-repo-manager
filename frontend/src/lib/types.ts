@@ -6,11 +6,16 @@ export interface Repository {
   id: string;
   name: string;
   path: string;
+  canonical_path: string;
   remote_url: string | null;
   current_branch: string | null;
   head_commit: string | null;
   dirty_state: "clean" | "modified" | "unknown";
+  first_indexed_at: string;
   last_indexed_at: string;
+  capability_index_status: "never_indexed" | "fresh" | "stale" | "parse_failed";
+  last_capability_indexed_at: string | null;
+  last_capability_error: string | null;
 }
 
 export interface RepositorySummary {
@@ -26,6 +31,8 @@ export interface RepositorySummary {
     rules: number;
     agents: number;
   };
+  capability_index_status: "never_indexed" | "fresh" | "stale" | "parse_failed";
+  last_capability_error: string | null;
   doctor_score: number | null;
   last_indexed_at: string;
 }
@@ -88,6 +95,8 @@ export interface ScanResult {
   repos_found: number;
   repos_added: number;
   repos_updated: number;
+  repos_parsed: number;
+  repos_parse_failed: number;
   errors: ScanError[];
 }
 
@@ -195,11 +204,12 @@ export interface ValidationError {
 
 export interface MigrationPlan {
   plan_id: string;
-  source: { type: "repo" | "pack"; id: string; name: string };
-  target: { id: string; name: string };
+  source_type: string;
+  source_id: string;
+  target_repo_id: string;
   items: MigrationPlanItem[];
   conflicts: MigrationConflict[];
-  missing_deps: Dependency[];
+  missing_dependencies: Dependency[];
 }
 
 export interface MigrationPlanItem {

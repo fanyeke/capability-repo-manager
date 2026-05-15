@@ -11,11 +11,16 @@ function makeDetail(name: string): RepoDetail {
     id: "repo-1",
     name,
     path: `/path/${name}`,
+    canonical_path: `/path/${name}`,
     remote_url: null,
     current_branch: "main",
     head_commit: "abc123",
     dirty_state: "clean",
+    first_indexed_at: "2026-01-01T00:00:00Z",
     last_indexed_at: "2026-01-01T00:00:00Z",
+    capability_index_status: "never_indexed" as const,
+    last_capability_indexed_at: null,
+    last_capability_error: null,
   };
   return {
     repo,

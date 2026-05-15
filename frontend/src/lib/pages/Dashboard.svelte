@@ -2,6 +2,7 @@
   import { currentPage, navigateTo, navigateToRepo } from "$lib/stores/uiStore";
   import { repos, filteredRepos, scanRepositories, loadRepos, selectRepo, isLoading } from "$lib/stores/repoStore";
   import RepoList from "$lib/components/RepoList.svelte";
+  import { _ } from "svelte-i18n";
 
   let filter = $state({});
 
@@ -33,19 +34,19 @@
 
 <div class="dashboard">
   <header class="dashboard-header">
-    <h1>Capability Repo Manager</h1>
+    <h1>{$_('app.title')}</h1>
     <nav class="nav-links">
-      <button class="nav-btn" onclick={() => currentPage.set("settings")}>Settings</button>
-      <button class="nav-btn" onclick={() => currentPage.set("packexport")}>Export Pack</button>
-      <button class="nav-btn" onclick={() => currentPage.set("packapply")}>Apply Pack</button>
-      <button class="nav-btn" onclick={() => currentPage.set("doctor")}>Doctor</button>
-      <button class="nav-btn" onclick={() => currentPage.set("compare")}>Compare</button>
+      <button class="nav-btn" onclick={() => currentPage.set("settings")}>{$_('nav.settings')}</button>
+      <button class="nav-btn" onclick={() => currentPage.set("packexport")}>{$_('nav.export')}</button>
+      <button class="nav-btn" onclick={() => currentPage.set("packapply")}>{$_('nav.apply')}</button>
+      <button class="nav-btn" onclick={() => currentPage.set("doctor")}>{$_('nav.doctor')}</button>
+      <button class="nav-btn" onclick={() => currentPage.set("compare")}>{$_('nav.compare')}</button>
     </nav>
   </header>
 
   <main class="dashboard-content">
     {#if $isLoading}
-      <p class="loading">Loading repositories...</p>
+      <p class="loading">{$_('dashboard.loading')}</p>
     {:else}
       <RepoList
         repos={$filteredRepos}
