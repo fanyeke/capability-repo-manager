@@ -8,6 +8,7 @@
   let filter = $state({});
 
   onMount(() => {
+    isLoading.set(false);
     loadRepos();
   });
 

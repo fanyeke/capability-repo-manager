@@ -1,6 +1,17 @@
 import { writable, derived } from "svelte/store";
 import type { RepositorySummary, RepoDetail, RepoFilter, ScanResult } from "$lib/types";
 
+/// Wrapper around Tauri invoke that times out after 30 seconds.
+async function invokeWithTimeout<T>(cmd: string, args: Record<string, unknown>): Promise<T> {
+  const { invoke } = await import("@tauri-apps/api/core");
+  return Promise.race([
+    invoke<T>(cmd, args),
+    new Promise<T>((_, reject) =>
+      setTimeout(() => reject(new Error(`Command '${cmd}' timed out after 30s`)), 30000)
+    ),
+  ]);
+}
+
 export const repos = writable<RepositorySummary[]>([]);
 export const selectedRepoId = writable<string | null>(null);
 export const selectedRepoDetail = writable<RepoDetail | null>(null);
@@ -48,16 +59,17 @@ export const filteredRepos = derived(
 
 export async function scanRepositories(paths: string[]): Promise<void> {
   isScanning.set(true);
+  isLoading.set(true);
   error.set(null);
   try {
-    const { invoke } = await import("@tauri-apps/api/core");
-    const result = await invoke<ScanResult>("scan_repositories", { paths });
+    const result = await invokeWithTimeout<ScanResult>("scan_repositories", { paths });
     scanResult.set(result);
     await loadRepos();
   } catch (e: any) {
     error.set(e?.message ?? String(e));
   } finally {
     isScanning.set(false);
+    isLoading.set(false);
   }
 }
 
@@ -65,9 +77,8 @@ export async function loadRepos(): Promise<void> {
   isLoading.set(true);
   error.set(null);
   try {
-    const { invoke } = await import("@tauri-apps/api/core");
     const filter = getFilter();
-    const result = await invoke<RepositorySummary[]>("list_repositories", {
+    const result = await invokeWithTimeout<RepositorySummary[]>("list_repositories", {
       filter,
     });
     repos.set(result);

@@ -10,8 +10,14 @@
     if (!scanPaths.trim()) return;
     const paths = scanPaths.split(/[,\s]+/).filter((p) => p);
     isScanning = true;
-    await scanRepositories(paths);
-    currentPage.set("dashboard");
+    try {
+      await scanRepositories(paths);
+      currentPage.set("dashboard");
+    } catch (e) {
+      console.error("Scan failed:", e);
+    } finally {
+      isScanning = false;
+    }
   }
 
   function handleSkip() {
@@ -41,7 +47,9 @@
       <button class="primary-btn" onclick={handleScan} disabled={isScanning}>
         {isScanning ? "Scanning..." : "Scan Repositories"}
       </button>
-      {#if showSkip || !scanPaths.trim()}
+      {#if isScanning}
+        <button class="skip-btn" onclick={() => { isScanning = false; currentPage.set("dashboard"); }}>Cancel</button>
+      {:else if showSkip || !scanPaths.trim()}
         <button class="skip-btn" onclick={handleSkip}>Skip for now</button>
       {/if}
     </div>
