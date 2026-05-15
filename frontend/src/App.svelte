@@ -7,7 +7,7 @@
   import { currentPage } from "$lib/stores/uiStore";
   import { setupI18n, waitForI18n } from "$lib/i18n";
   import { onMount } from "svelte";
-  import { _ } from "svelte-i18n";
+  import { locale, _ } from "svelte-i18n";
 
   // Lazy-loaded pages (loaded on demand)
   let PackExport: any = $state(null);
@@ -70,6 +70,8 @@
 <main>
   {#if bootError}
     <BootError title={bootError.title} message={bootError.message} detail={bootError.detail} />
+  {:else if !$locale}
+    <div class="page-loading">Loading...</div>
   {:else if $currentPage === "guidedsetup"}
     <GuidedSetup />
   {:else if $currentPage === "dashboard"}
