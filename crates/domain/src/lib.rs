@@ -18,5 +18,5 @@ pub use migration::{
 };
 pub use op_context::OperationContext;
 pub use pack::CapabilityPack;
-pub use redact::redact_sensitive;
+pub use redact::{redact_sensitive, RedactResult};
 pub use repository::Repository;

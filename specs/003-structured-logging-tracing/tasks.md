@@ -68,7 +68,7 @@
 
 - [ ] T014 [P] [US3] Implement `export_debug_bundle` command in `crates/tauri-bridge/src/commands/settings_commands.rs` — collect logs (last 7 days), redacted settings, recent operation events, recent doctor reports; assemble as .zip using zip crate
 - [ ] T015 [P] [US3] Add `Export Debug Bundle` button to `frontend/src/lib/pages/Settings.svelte` — calls export_debug_bundle, shows save dialog
-- [ ] T016 [US3] Add app_start event logging in `crates/tauri-bridge/src/lib.rs` — log version, platform, settings_path, db_path, log_dir
+- [X] T016 [US3] Add app_start event logging in `crates/tauri-bridge/src/lib.rs` — log version, platform, settings_path, db_path, log_dir
 
 **Checkpoint**: US3 done — debug bundle is exportable
 

@@ -435,6 +435,8 @@ pub fn refresh_repository(
 pub fn refresh_all_repositories(
     state: State<AppState>,
 ) -> Result<u32, String> {
+    let ctx = OperationContext::new("refresh_all_repositories");
+
     let db = state.db.lock().map_err(|e| e.to_string())?;
     let repo_store = RepositoryStore::new(&db);
 
@@ -450,13 +452,23 @@ pub fn refresh_all_repositories(
 
     for repo in &repos {
         if let Err(e) = repo_store.update(repo) {
-            log::warn!("Failed to update repo {}: {}", repo.name, e);
+            tracing::warn!(
+                operation_id = %ctx.operation_id,
+                repo_name = %repo.name,
+                error = %e,
+                "failed_to_update_repo"
+            );
         }
     }
 
     if !errors.is_empty() {
         for err in &errors {
-            log::warn!("Startup refresh warning: {} - {}", err.repo_path, err.message);
+            tracing::warn!(
+                operation_id = %ctx.operation_id,
+                repo_path = %err.repo_path,
+                error = %err.message,
+                "startup_refresh_warning"
+            );
         }
     }
 

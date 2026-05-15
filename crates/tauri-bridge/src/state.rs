@@ -66,6 +66,16 @@ impl AppState {
         // Initialize tracing with the configured log level
         crate::init_tracing(&settings.log_level)?;
 
+        // Clean up old log files (14-day retention)
+        crate::clean_old_logs();
+
+        // Log the app_start event
+        let home = std::env::var("HOME").unwrap_or_else(|_| ".".into());
+        let settings_path = std::path::PathBuf::from(&home)
+            .join(".capability-repo-manager")
+            .join("settings.json");
+        crate::log_app_start(db_path, &settings_path.to_string_lossy());
+
         Ok(Self {
             db: Mutex::new(db),
             settings: Mutex::new(settings),

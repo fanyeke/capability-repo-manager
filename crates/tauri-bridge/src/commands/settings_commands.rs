@@ -57,7 +57,7 @@ pub fn export_debug_bundle(
     let db = state.db.lock().map_err(|e| e.to_string())?;
 
     let file = std::fs::File::create(&destination_path)
-        .map_err(|e| format!("Failed to create zip file: {}", e))?;
+        .map_err(|_| "无法写入目标路径，请选择其他目录".to_string())?;
     let mut zip = ZipWriter::new(file);
     let options = SimpleFileOptions::default()
         .compression_method(zip::CompressionMethod::Deflated);
@@ -78,7 +78,7 @@ pub fn export_debug_bundle(
     let redacted_settings = redact_sensitive(&settings_content);
     zip.start_file("settings.json", options)
         .map_err(|e| format!("Failed to start settings.json in zip: {}", e))?;
-    zip.write_all(redacted_settings.as_bytes())
+    zip.write_all(redacted_settings.output.as_bytes())
         .map_err(|e| format!("Failed to write settings.json: {}", e))?;
 
     // operation_events.json

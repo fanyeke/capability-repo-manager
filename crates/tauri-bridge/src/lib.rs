@@ -20,12 +20,21 @@ use tracing_subscriber::EnvFilter;
 ///
 /// Log files are written to `~/.capability-repo-manager/logs/` with daily rotation.
 /// Respects the `RUST_LOG` environment variable; falls back to `info` level.
+///
+/// On failure to create the log directory or initialize the subscriber, falls back
+/// to console-only output with an `eprintln!` warning.
 pub fn init_tracing(log_level: &str) -> Result<(), String> {
     let log_dir = get_log_dir();
 
-    // Ensure log directory exists
-    std::fs::create_dir_all(&log_dir)
-        .map_err(|e| format!("Failed to create log directory: {}", e))?;
+    // Try to ensure log directory exists; fall back to console-only on failure
+    if let Err(e) = std::fs::create_dir_all(&log_dir) {
+        eprintln!(
+            "Warning: Could not create log directory {}: {}. Logging to console only.",
+            log_dir.display(),
+            e
+        );
+        return init_console_only(log_level);
+    }
 
     // Daily rolling file appender: app-YYYY-MM-DD.log
     let file_appender = rolling::daily(&log_dir, "app");
@@ -50,20 +59,100 @@ pub fn init_tracing(log_level: &str) -> Result<(), String> {
     let filter = EnvFilter::try_from_default_env()
         .unwrap_or_else(|_| EnvFilter::new(log_level));
 
-    tracing_subscriber::registry()
+    match tracing_subscriber::registry()
         .with(filter)
         .with(file_layer)
         .with(console_layer)
         .try_init()
-        .map_err(|e| format!("Failed to init tracing subscriber: {}", e))?;
+    {
+        Ok(()) => {
+            tracing::info!(
+                level = log_level,
+                dir = %log_dir.display(),
+                "logging_initialized"
+            );
+            Ok(())
+        }
+        Err(e) => {
+            eprintln!(
+                "Warning: Could not initialize tracing subscriber: {}. Logging unavailable.",
+                e
+            );
+            Ok(())
+        }
+    }
+}
 
+/// Set up console-only tracing when the log directory is not available.
+fn init_console_only(log_level: &str) -> Result<(), String> {
+    let console_layer = tracing_subscriber::fmt::layer()
+        .with_target(true)
+        .with_writer(|| std::io::stderr());
+
+    let filter = EnvFilter::try_from_default_env()
+        .unwrap_or_else(|_| EnvFilter::new(log_level));
+
+    match tracing_subscriber::registry()
+        .with(filter)
+        .with(console_layer)
+        .try_init()
+    {
+        Ok(()) => {
+            eprintln!("Tracing initialized (console only)");
+            Ok(())
+        }
+        Err(e) => {
+            eprintln!(
+                "Warning: Could not initialize tracing subscriber: {}. No logging available.",
+                e
+            );
+            Ok(())
+        }
+    }
+}
+
+/// Log the app_start event with environment metadata.
+///
+/// Called after `init_tracing` succeeds so the event appears in logs.
+pub fn log_app_start(db_path: &str, settings_path: &str) {
     tracing::info!(
-        level = log_level,
-        dir = %log_dir.display(),
-        "logging_initialized"
+        version = env!("CARGO_PKG_VERSION"),
+        platform = std::env::consts::OS,
+        settings_path = %settings_path,
+        db_path = %db_path,
+        log_dir = %get_log_dir().display(),
+        "app_start"
     );
+}
 
-    Ok(())
+/// Clean up log files older than 14 days.
+///
+/// Called at startup to prevent unbounded log disk usage.
+pub fn clean_old_logs() {
+    let log_dir = get_log_dir();
+    if !log_dir.exists() {
+        return;
+    }
+
+    let cutoff = chrono::Utc::now() - chrono::Duration::days(14);
+    if let Ok(entries) = std::fs::read_dir(&log_dir) {
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.extension().and_then(|e| e.to_str()) != Some("log") {
+                continue;
+            }
+            if let Ok(metadata) = path.metadata() {
+                if let Ok(modified) = metadata.modified() {
+                    let modified_time: chrono::DateTime<chrono::Utc> = modified.into();
+                    if modified_time < cutoff {
+                        if std::fs::remove_file(&path).is_ok() {
+                            tracing::info!(path = %path.display(), "cleaned_old_log_file");
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 /// Reconfigure the tracing filter at runtime when the log level changes.
@@ -79,7 +168,7 @@ pub fn set_log_level(level: &str) {
 }
 
 /// Get the log directory path.
-fn get_log_dir() -> PathBuf {
+pub(crate) fn get_log_dir() -> PathBuf {
     let home = std::env::var("HOME").unwrap_or_else(|_| ".".into());
     PathBuf::from(home)
         .join(".capability-repo-manager")
