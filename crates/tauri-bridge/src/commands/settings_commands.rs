@@ -48,12 +48,21 @@ pub fn save_to_file(settings: &AppSettings) -> Result<(), String> {
     Ok(())
 }
 
+/// Redact home directory paths from a string, replacing `/home/username` with `~`.
+fn redact_paths_in_content(content: &str, home: &str) -> String {
+    content.replace(home, "~")
+}
+
 /// Export a debug bundle (.zip) with logs, redacted settings, and operation summaries.
 #[tauri::command]
 pub fn export_debug_bundle(
     destination_path: String,
+    redact_paths: Option<bool>,
     state: State<AppState>,
 ) -> Result<(), String> {
+    let redact_paths = redact_paths.unwrap_or(false);
+    let home = std::env::var("HOME").unwrap_or_else(|_| ".".into());
+
     let db = state.db.lock().map_err(|e| e.to_string())?;
 
     let file = std::fs::File::create(&destination_path)
@@ -75,10 +84,14 @@ pub fn export_debug_bundle(
 
     // settings.json (redacted)
     let settings_content = std::fs::read_to_string(settings_path()).unwrap_or_default();
-    let redacted_settings = redact_sensitive(&settings_content);
+    let redact_result = redact_sensitive(&settings_content);
+    let mut redacted_content = redact_result.output;
+    if redact_paths {
+        redacted_content = redact_paths_in_content(&redacted_content, &home);
+    }
     zip.start_file("settings.json", options)
         .map_err(|e| format!("Failed to start settings.json in zip: {}", e))?;
-    zip.write_all(redacted_settings.output.as_bytes())
+    zip.write_all(redacted_content.as_bytes())
         .map_err(|e| format!("Failed to write settings.json: {}", e))?;
 
     // operation_events.json
@@ -121,8 +134,15 @@ pub fn export_debug_bundle(
                     if let Ok(mut f) = std::fs::File::open(&path) {
                         let mut buf = Vec::new();
                         if f.read_to_end(&mut buf).is_ok() {
-                            let _ = zip.start_file(&zip_path, options);
-                            let _ = zip.write_all(&buf);
+                            if redact_paths {
+                                let content = String::from_utf8_lossy(&buf);
+                                let redacted = redact_paths_in_content(&content, &home);
+                                let _ = zip.start_file(&zip_path, options);
+                                let _ = zip.write_all(redacted.as_bytes());
+                            } else {
+                                let _ = zip.start_file(&zip_path, options);
+                                let _ = zip.write_all(&buf);
+                            }
                         }
                     }
                 }

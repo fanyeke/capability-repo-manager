@@ -16,23 +16,24 @@
   },
   "dependencies": {
     "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-dialog": "^2.7.1",
     "@tauri-apps/plugin-shell": "^2",
     "svelte-i18n": "^4"
   },
   "devDependencies": {
+    "@playwright/test": "^1",
     "@sveltejs/vite-plugin-svelte": "^4",
+    "@testing-library/svelte": "^5",
     "@tsconfig/svelte": "^5",
+    "eslint": "^9",
+    "eslint-plugin-svelte": "^2",
+    "jsdom": "^25",
+    "prettier": "^3",
+    "prettier-plugin-svelte": "^3",
     "svelte": "^5",
     "svelte-check": "^4",
     "typescript": "^5",
     "vite": "^6",
-    "vitest": "^2",
-    "prettier": "^3",
-    "prettier-plugin-svelte": "^3",
-    "eslint": "^9",
-    "eslint-plugin-svelte": "^2",
-    "@playwright/test": "^1",
-    "@testing-library/svelte": "^5",
-    "jsdom": "^25"
+    "vitest": "^2"
   }
 }
