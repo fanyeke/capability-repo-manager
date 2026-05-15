@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -8,17 +10,21 @@ pub enum ConflictAction {
     Merge,
 }
 
-impl ConflictAction {
-    pub fn from_str(s: &str) -> Option<Self> {
+impl FromStr for ConflictAction {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "skip" => Some(Self::Skip),
-            "overwrite" => Some(Self::Overwrite),
-            "rename" => Some(Self::Rename),
-            "merge" => Some(Self::Merge),
-            _ => None,
+            "skip" => Ok(Self::Skip),
+            "overwrite" => Ok(Self::Overwrite),
+            "rename" => Ok(Self::Rename),
+            "merge" => Ok(Self::Merge),
+            _ => Err(()),
         }
     }
+}
 
+impl ConflictAction {
     pub fn as_str(&self) -> &'static str {
         match self {
             Self::Skip => "skip",

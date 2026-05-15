@@ -1,5 +1,5 @@
 use std::io::{Read, Write};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use tauri::State;
 use zip::ZipWriter;
@@ -53,21 +53,19 @@ fn redact_paths_in_content(content: &str, home: &str) -> String {
     content.replace(home, "~")
 }
 
-/// Export a debug bundle (.zip) with logs, redacted settings, and operation summaries.
-#[tauri::command]
-pub fn export_debug_bundle(
-    destination_path: String,
-    redact_paths: Option<bool>,
-    state: State<AppState>,
-) -> Result<(), String> {
-    let redact_paths = redact_paths.unwrap_or(false);
-    let home = std::env::var("HOME").unwrap_or_else(|_| ".".into());
-
-    let db = state.db.lock().map_err(|e| e.to_string())?;
-
-    let file = std::fs::File::create(&destination_path)
-        .map_err(|_| "无法写入目标路径，请选择其他目录".to_string())?;
-    let mut zip = ZipWriter::new(file);
+/// Build a debug bundle zip in memory from the given database and configuration.
+///
+/// Takes the database, settings file content, log directory path, and home directory
+/// as parameters so it can be tested without a Tauri runtime. Returns the zip as bytes.
+pub fn build_debug_bundle_zip(
+    db: &storage::Database,
+    settings_content: &str,
+    log_dir: &Path,
+    home: &str,
+    redact_paths: bool,
+) -> Result<Vec<u8>, String> {
+    let mut buf = std::io::Cursor::new(Vec::new());
+    let mut zip = ZipWriter::new(&mut buf);
     let options = SimpleFileOptions::default()
         .compression_method(zip::CompressionMethod::Deflated);
 
@@ -83,11 +81,10 @@ pub fn export_debug_bundle(
         .map_err(|e| format!("Failed to write app_info.json: {}", e))?;
 
     // settings.json (redacted)
-    let settings_content = std::fs::read_to_string(settings_path()).unwrap_or_default();
-    let redact_result = redact_sensitive(&settings_content);
+    let redact_result = redact_sensitive(settings_content);
     let mut redacted_content = redact_result.output;
     if redact_paths {
-        redacted_content = redact_paths_in_content(&redacted_content, &home);
+        redacted_content = redact_paths_in_content(&redacted_content, home);
     }
     zip.start_file("settings.json", options)
         .map_err(|e| format!("Failed to start settings.json in zip: {}", e))?;
@@ -116,10 +113,9 @@ pub fn export_debug_bundle(
         .map_err(|e| format!("Failed to write doctor_reports.json: {}", e))?;
 
     // logs/ (last 7 days)
-    let log_dir = log_dir_path();
     if log_dir.exists() {
         let cutoff = chrono::Utc::now() - chrono::Duration::days(7);
-        if let Ok(entries) = std::fs::read_dir(&log_dir) {
+        if let Ok(entries) = std::fs::read_dir(log_dir) {
             for entry in entries.flatten() {
                 let path = entry.path();
                 if !path.is_file() { continue; }
@@ -132,16 +128,16 @@ pub fn export_debug_bundle(
                 if let Some(name) = path.file_name().and_then(|n| n.to_str()) {
                     let zip_path = format!("logs/{}", name);
                     if let Ok(mut f) = std::fs::File::open(&path) {
-                        let mut buf = Vec::new();
-                        if f.read_to_end(&mut buf).is_ok() {
+                        let mut buf2 = Vec::new();
+                        if f.read_to_end(&mut buf2).is_ok() {
                             if redact_paths {
-                                let content = String::from_utf8_lossy(&buf);
-                                let redacted = redact_paths_in_content(&content, &home);
+                                let content = String::from_utf8_lossy(&buf2);
+                                let redacted = redact_paths_in_content(&content, home);
                                 let _ = zip.start_file(&zip_path, options);
                                 let _ = zip.write_all(redacted.as_bytes());
                             } else {
                                 let _ = zip.start_file(&zip_path, options);
-                                let _ = zip.write_all(&buf);
+                                let _ = zip.write_all(&buf2);
                             }
                         }
                     }
@@ -151,6 +147,39 @@ pub fn export_debug_bundle(
     }
 
     zip.finish().map_err(|e| format!("Failed to finalize zip: {}", e))?;
+    Ok(buf.into_inner())
+}
+
+/// Export a debug bundle (.zip) with logs, redacted settings, and operation summaries.
+#[tauri::command]
+pub fn export_debug_bundle(
+    destination_path: String,
+    redact_paths: Option<bool>,
+    state: State<AppState>,
+) -> Result<(), String> {
+    let redact_paths = redact_paths.unwrap_or(false);
+    let home = std::env::var("HOME").unwrap_or_else(|_| ".".into());
+
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    let settings_content = std::fs::read_to_string(settings_path()).unwrap_or_default();
+    let log_dir = log_dir_path();
+
+    let bytes = build_debug_bundle_zip(
+        &db,
+        &settings_content,
+        &log_dir,
+        &home,
+        redact_paths,
+    )?;
+
+    std::fs::write(&destination_path, bytes).map_err(|e| {
+        if e.kind() == std::io::ErrorKind::PermissionDenied {
+            "Cannot write to target path, please choose another directory.".to_string()
+        } else {
+            format!("Failed to write debug bundle: {}", e)
+        }
+    })?;
+
     tracing::info!(path = %destination_path, "debug_bundle_exported");
     Ok(())
 }

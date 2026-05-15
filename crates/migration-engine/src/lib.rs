@@ -124,7 +124,7 @@ pub fn create_scoped_snapshot(
 /// Returns an error if any action is not a valid ConflictAction value.
 pub fn validate_strategies(strategies: &[(String, String)]) -> Result<(), domain::AppError> {
     for (resource_id, action) in strategies {
-        if domain::ConflictAction::from_str(action).is_none() {
+        if action.parse::<domain::ConflictAction>().is_err() {
             return Err(domain::AppError::Migration(format!(
                 "Invalid conflict action '{}' for resource '{}'. Valid values: skip, overwrite, rename, merge",
                 action, resource_id

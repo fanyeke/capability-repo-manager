@@ -1,8 +1,8 @@
-/// Centralized constants for Claude Code directory structure.
-///
-/// All crates should reference these constants instead of hardcoding
-/// directory/file names, so that changes (e.g. `.claude/rules` → `.claude/instructions`)
-/// require only one update.
+//! Centralized constants for Claude Code directory structure.
+//!
+//! All crates should reference these constants instead of hardcoding
+//! directory/file names, so that changes (e.g. `.claude/rules` → `.claude/instructions`)
+//! require only one update.
 
 /// Root Claude Code config directory within a repository.
 pub const CLAUDE_DIR: &str = ".claude";

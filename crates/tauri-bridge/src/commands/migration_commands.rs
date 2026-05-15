@@ -243,7 +243,7 @@ pub fn apply_migration_plan(
 
     // Verify all conflicts resolved — check no item has action outside the enum
     for item in &plan.items {
-        if domain::ConflictAction::from_str(&item.action).is_none() && item.action != "add" {
+        if item.action.parse::<domain::ConflictAction>().is_err() && item.action != "add" {
             let msg = format!(
                 "Unresolved conflict for resource '{}': action '{}' is not valid. Resolve all conflicts before applying.",
                 item.resource_id, item.action
@@ -546,9 +546,8 @@ pub fn get_migration_history(
         .map_err(|e| format!("Database error: {}", e))
 }
 
-fn dirs_or_default_snapshots(repo_path: &str) -> PathBuf {
-    let base = std::env::var("HOME")
+fn dirs_or_default_snapshots(_repo_path: &str) -> PathBuf {
+    std::env::var("HOME")
         .map(|h| PathBuf::from(h).join(".capability-repo-manager").join("snapshots"))
-        .unwrap_or_else(|_| PathBuf::from("/tmp").join("capability-repo-manager-snapshots"));
-    base
+        .unwrap_or_else(|_| PathBuf::from("/tmp").join("capability-repo-manager-snapshots"))
 }

@@ -38,9 +38,9 @@
 
 **Independent Test**: Run a scan; grep log for the operation_id shows scan_started → repo_discovered → parse_finished → scan_finished
 
-- [ ] T008 [P] [US1] Create OperationContext at scan_repositories command entry in `crates/tauri-bridge/src/commands/repo_commands.rs` — generate UUID, pass context to all sub-steps
-- [ ] T009 [P] [US1] Add event logging to scan pipeline: scan_started (INFO, roots, max_depth), repo_discovered (DEBUG, path), repo_deduplicated (DEBUG, canonical_path), git_metadata_failed (WARN), capability_parse_started/finished (INFO/DEBUG), parse_failed (WARN), scan_finished (INFO, summary counts) — all with operation_id in `crates/tauri-bridge/src/commands/repo_commands.rs`
-- [ ] T010 [US1] Record OperationEvent to DB after scan completes in `crates/tauri-bridge/src/commands/repo_commands.rs` — call event_store.insert_event() with scan summary
+- [X] T008 [P] [US1] Create OperationContext at scan_repositories command entry in `crates/tauri-bridge/src/commands/repo_commands.rs` — generate UUID, pass context to all sub-steps
+- [X] T009 [P] [US1] Add event logging to scan pipeline: scan_started (INFO, roots, max_depth), repo_discovered (DEBUG, path), repo_deduplicated (DEBUG, canonical_path), git_metadata_failed (WARN), capability_parse_started/finished (INFO/DEBUG), parse_failed (WARN), scan_finished (INFO, summary counts) — all with operation_id in `crates/tauri-bridge/src/commands/repo_commands.rs`
+- [X] T010 [US1] Record OperationEvent to DB after scan completes in `crates/tauri-bridge/src/commands/repo_commands.rs` — call event_store.insert_event() with scan summary
 
 **Checkpoint**: US1 done — scan operations are fully traceable via logs
 

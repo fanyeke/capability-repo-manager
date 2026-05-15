@@ -36,3 +36,4 @@ tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
 tracing-appender = "0.2"
 rusqlite = { version = "0.31", features = ["bundled"] }
 zip = { version = "2", features = ["deflate"] }
+filetime = "0.2"

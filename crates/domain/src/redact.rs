@@ -1,8 +1,8 @@
-/// Sensitive data redaction utility.
-///
-/// Regex-based pattern matching for tokens, API keys, bearer auth, secrets, and
-/// generic KEY=VALUE env-var assignments. Designed to be used before writing
-/// log output so sensitive values never appear in log files.
+//! Sensitive data redaction utility.
+//!
+//! Regex-based pattern matching for tokens, API keys, bearer auth, secrets, and
+//! generic KEY=VALUE env-var assignments. Designed to be used before writing
+//! log output so sensitive values never appear in log files.
 
 /// The result of a redaction operation.
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]

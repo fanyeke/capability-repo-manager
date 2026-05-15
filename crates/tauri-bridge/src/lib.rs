@@ -87,7 +87,7 @@ pub fn init_tracing(log_level: &str) -> Result<(), String> {
 fn init_console_only(log_level: &str) -> Result<(), String> {
     let console_layer = tracing_subscriber::fmt::layer()
         .with_target(true)
-        .with_writer(|| std::io::stderr());
+        .with_writer(std::io::stderr);
 
     let filter = EnvFilter::try_from_default_env()
         .unwrap_or_else(|_| EnvFilter::new(log_level));
@@ -144,10 +144,8 @@ pub fn clean_old_logs() {
             if let Ok(metadata) = path.metadata() {
                 if let Ok(modified) = metadata.modified() {
                     let modified_time: chrono::DateTime<chrono::Utc> = modified.into();
-                    if modified_time < cutoff {
-                        if std::fs::remove_file(&path).is_ok() {
-                            tracing::info!(path = %path.display(), "cleaned_old_log_file");
-                        }
+                    if modified_time < cutoff && std::fs::remove_file(&path).is_ok() {
+                        tracing::info!(path = %path.display(), "cleaned_old_log_file");
                     }
                 }
             }
