@@ -119,29 +119,29 @@
 
 ### Sub-phase 8a: Types & Store (serial internal)
 
-- [ ] T030 [P] [US6] Add `ConflictAction` enum (`Skip`, `Overwrite`, `Rename`, `Merge`) to `crates/domain/src/migration.rs` — replace free-string `action` field
-- [ ] T031 [P] [US6] Add `MigrationSnapshot` and `SnapshotItem` domain types to `crates/domain/src/migration.rs`
-- [ ] T032 [P] [US6] Create `crates/storage/src/migration_store.rs` with: `insert_run()`, `get_run()`, `update_status()`, `update_snapshot()`, `update_report()`, `list_by_repo()`
-- [ ] T033 [US6] Register `migration_store` module in `crates/storage/src/lib.rs`
+- [X] T030 [P] [US6] Add `ConflictAction` enum (`Skip`, `Overwrite`, `Rename`, `Merge`) to `crates/domain/src/migration.rs` — replace free-string `action` field
+- [X] T031 [P] [US6] Add `MigrationSnapshot` and `SnapshotItem` domain types to `crates/domain/src/migration.rs`
+- [X] T032 [P] [US6] Create `crates/storage/src/migration_store.rs` with: `insert_run()`, `get_run()`, `update_status()`, `update_snapshot()`, `update_report()`, `list_by_repo()`
+- [X] T033 [US6] Register `migration_store` module in `crates/storage/src/lib.rs`
 
 ### Sub-phase 8b: Snapshot & Execution (depends on 8a)
 
-- [ ] T034 [US6] Add `create_snapshot(affected_paths, target_dir, snapshot_dir)` in `crates/migration-engine/src/executor.rs` — backup each affected file, write JSON manifest
-- [ ] T035 [US6] Add `restore_snapshot(snapshot_dir, target_dir)` in `crates/migration-engine/src/rollback.rs` — restore only files in manifest; delete files that didn't previously exist
-- [ ] T036 [US6] Rework `apply_migration_plan` in `crates/tauri-bridge/src/commands/migration_commands.rs`:
+- [X] T034 [US6] Add `create_snapshot(affected_paths, target_dir, snapshot_dir)` in `crates/migration-engine/src/executor.rs` — backup each affected file, write JSON manifest
+- [X] T035 [US6] Add `restore_snapshot(snapshot_dir, target_dir)` in `crates/migration-engine/src/rollback.rs` — restore only files in manifest; delete files that didn't previously exist
+- [X] T036 [US6] Rework `apply_migration_plan` in `crates/tauri-bridge/src/commands/migration_commands.rs`:
   - Validate all `ConflictStrategy` actions against `ConflictAction` enum (reject invalid)
   - Verify all conflicts resolved (reject if unresolved)
   - State machine: `planned → ready → executing → success/partial_failure/failed`
   - Call `create_snapshot()` before any file writes
   - Per-file execution: track success/failure per item
   - Determine final status from aggregate results
-- [ ] T037 [US6] Fix `rollback_migration` in `crates/tauri-bridge/src/commands/migration_commands.rs`:
+- [X] T037 [US6] Fix `rollback_migration` in `crates/tauri-bridge/src/commands/migration_commands.rs`:
   - Accept status `success` or `partial_failure` only (reject others)
   - Call `restore_snapshot()` with scoped snapshot
   - Update status to `rolled_back`
-- [ ] T038 [US6] Prevent re-apply: check `status != 'planned'` before execution
-- [ ] T039 [P] [US6] Write tests in `crates/migration-engine/tests/`: snapshot_create, snapshot_restore, per_file_exec, rollback_restores_only_touched
-- [ ] T040 [P] [US6] Write integration test in `crates/tauri-bridge/tests/` (or `tests/integration/`): full plan→snapshot→execute→rollback cycle
+- [X] T038 [US6] Prevent re-apply: check `status != 'planned'` before execution
+- [X] T039 [P] [US6] Write tests in `crates/migration-engine/tests/`: snapshot_create, snapshot_restore, per_file_exec, rollback_restores_only_touched
+- [X] T040 [P] [US6] Write integration test in `crates/tauri-bridge/tests/` (or `tests/integration/`): full plan→snapshot→execute→rollback cycle
 
 **Checkpoint**: US6 done — migration is now safe and auditable
 

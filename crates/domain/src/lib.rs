@@ -9,8 +9,9 @@ pub use capability::CapabilityResource;
 pub use doctor::{DoctorIssue, DoctorReport};
 pub use error::AppError;
 pub use migration::{
-    MigrationConflict, MigrationPlan, MigrationPlanItem, MigrationReport, MigrationReportItem,
-    MigrationReportSummary, MigrationRun, ResourceDependency,
+    ConflictAction, MigrationConflict, MigrationPlan, MigrationPlanItem, MigrationReport,
+    MigrationReportItem, MigrationReportSummary, MigrationRun, MigrationSnapshot,
+    ResourceDependency, SnapshotItem,
 };
 pub use pack::CapabilityPack;
 pub use repository::Repository;

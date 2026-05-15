@@ -1,3 +1,5 @@
+pub mod migration_store;
+pub mod pack_store;
 pub mod repo_store;
 pub mod resource_store;
 

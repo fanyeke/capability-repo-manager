@@ -89,6 +89,46 @@ pub fn rollback_migration(snapshot_path: &str, target_dir: &std::path::Path) -> 
     rollback::rollback_to_snapshot(snapshot_path, target_dir)
 }
 
+/// Restore from a scoped snapshot (only affected files).
+pub fn restore_scoped(snapshot_dir: &std::path::Path, target_dir: &std::path::Path) -> Result<(), domain::AppError> {
+    rollback::restore_from_scoped_snapshot(snapshot_dir, target_dir)
+}
+
+/// Create a scoped snapshot of only the affected files and write the manifest.
+pub fn create_scoped_snapshot(
+    items: &[domain::MigrationPlanItem],
+    target_dir: &std::path::Path,
+    snapshot_dir: &std::path::Path,
+) -> Result<Vec<domain::SnapshotItem>, domain::AppError> {
+    executor::create_snapshot(items, target_dir, snapshot_dir)
+}
+
+/// Validate conflict strategies against the ConflictAction enum.
+/// Returns an error if any action is not a valid ConflictAction value.
+pub fn validate_strategies(strategies: &[(String, String)]) -> Result<(), domain::AppError> {
+    for (resource_id, action) in strategies {
+        if domain::ConflictAction::from_str(action).is_none() {
+            return Err(domain::AppError::Migration(format!(
+                "Invalid conflict action '{}' for resource '{}'. Valid values: skip, overwrite, rename, merge",
+                action, resource_id
+            )));
+        }
+    }
+    Ok(())
+}
+
+/// Check whether a migration run status allows execution.
+/// Only `planned` status can be executed.
+pub fn can_execute(status: &str) -> bool {
+    status == "planned"
+}
+
+/// Check whether a migration run status allows rollback.
+/// Only `success` or `partial_failure` can be rolled back.
+pub fn can_rollback(status: &str) -> bool {
+    status == "success" || status == "partial_failure"
+}
+
 /// Check for circular reference between source and target.
 pub fn check_circular_reference(
     source_id: &str,

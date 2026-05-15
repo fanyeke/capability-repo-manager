@@ -1,6 +1,50 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub enum ConflictAction {
+    Skip,
+    Overwrite,
+    Rename,
+    Merge,
+}
+
+impl ConflictAction {
+    pub fn from_str(s: &str) -> Option<Self> {
+        match s {
+            "skip" => Some(Self::Skip),
+            "overwrite" => Some(Self::Overwrite),
+            "rename" => Some(Self::Rename),
+            "merge" => Some(Self::Merge),
+            _ => None,
+        }
+    }
+
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::Skip => "skip",
+            Self::Overwrite => "overwrite",
+            Self::Rename => "rename",
+            Self::Merge => "merge",
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct MigrationSnapshot {
+    pub id: String,
+    pub run_id: String,
+    pub created_at: String,
+    pub items: Vec<SnapshotItem>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct SnapshotItem {
+    pub target_path: String,
+    pub existed_before: bool,
+    pub backup_path: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct MigrationPlan {
     pub plan_id: String,
     pub source_type: String,

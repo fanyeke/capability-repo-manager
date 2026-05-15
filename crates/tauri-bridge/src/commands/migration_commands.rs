@@ -6,7 +6,7 @@ use crate::state::AppState;
 use domain;
 use migration_engine;
 use pack_engine;
-use storage::{repo_store::RepositoryStore, resource_store::ResourceStore};
+use storage::{migration_store::MigrationStore, repo_store::RepositoryStore, resource_store::ResourceStore};
 
 #[derive(serde::Deserialize)]
 pub struct ConflictStrategy {
@@ -41,7 +41,7 @@ pub fn build_migration_plan(
     let _target_repo = repo_store
         .get_by_id(&target_repo_id)
         .map_err(|e| format!("Database error: {}", e))?
-        .ok_or_else(|| format!("Target repository not found: {}", target_repo_id))?;
+        .ok_or_else(|| "Target repository not found".to_string())?;
 
     // Check circular reference
     migration_engine::check_circular_reference(&pack_id, &target_repo_id, pack.source_repo_id.as_deref())
@@ -62,7 +62,7 @@ pub fn build_migration_plan(
         &target_repo_id,
     );
 
-    // Store the migration run in DB
+    // Store the migration run in DB via migration_store
     let plan_json = serde_json::to_string(&plan).map_err(|e| format!("Serialization error: {}", e))?;
 
     let run = domain::MigrationRun {
@@ -78,22 +78,8 @@ pub fn build_migration_plan(
         executed_at: None,
     };
 
-    db.conn().execute(
-        "INSERT OR REPLACE INTO migration_runs (id, source_type, source_id, target_repo_id, status, plan_json, report_json, snapshot_path, created_at, executed_at)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
-        rusqlite::params![
-            run.id,
-            run.source_type,
-            run.source_id,
-            run.target_repo_id,
-            run.status,
-            run.plan_json,
-            run.report_json,
-            run.snapshot_path,
-            run.created_at,
-            run.executed_at,
-        ],
-    ).map_err(|e| format!("Database error: {}", e))?;
+    let store = MigrationStore::new(&db);
+    store.insert_run(&run).map_err(|e| format!("Database error: {}", e))?;
 
     Ok(plan)
 }
@@ -107,37 +93,42 @@ pub fn apply_migration_plan(
     let db = state.db.lock().map_err(|e| e.to_string())?;
     let settings = state.settings.lock().map_err(|e| e.to_string())?;
 
-    // Fetch the stored migration plan
-    let mut stmt = db.conn().prepare(
-        "SELECT id, source_type, source_id, target_repo_id, status, plan_json, snapshot_path
-         FROM migration_runs WHERE id = ?1"
-    ).map_err(|e| format!("Database error: {}", e))?;
+    let store = MigrationStore::new(&db);
 
-    let mut rows = stmt.query_map(rusqlite::params![plan_id], |row| {
-        Ok((
-            row.get::<_, String>(0)?,
-            row.get::<_, String>(1)?,
-            row.get::<_, String>(2)?,
-            row.get::<_, String>(3)?,
-            row.get::<_, String>(4)?,
-            row.get::<_, String>(5)?,
-            row.get::<_, Option<String>>(6)?,
-        ))
-    }).map_err(|e| format!("Database error: {}", e))?;
+    // Fetch the stored migration run
+    let run = store
+        .get_run(&plan_id)
+        .map_err(|e| format!("Database error: {}", e))?
+        .ok_or_else(|| format!("Migration plan not found: {}", plan_id))?;
 
-    let (_id, _source_type, source_id, target_repo_id, status, plan_json, _snapshot) =
-        match rows.next() {
-            Some(Ok(row)) => row,
-            Some(Err(e)) => return Err(format!("Database error: {}", e)),
-            None => return Err(format!("Migration plan not found: {}", plan_id)),
-        };
-
-    if status != "planned" {
-        return Err(format!("Migration plan {} has already been applied or failed", plan_id));
+    // T038: Prevent re-apply — only "planned" can be executed
+    if !migration_engine::can_execute(&run.status) {
+        return Err(format!(
+            "Migration plan {} has status '{}', only 'planned' can be executed",
+            plan_id, run.status
+        ));
     }
 
+    // T036 step 1: Validate all ConflictStrategy actions against ConflictAction enum
+    let strategy_pairs: Vec<(String, String)> = strategies
+        .iter()
+        .map(|s| (s.resource_id.clone(), s.action.clone()))
+        .collect();
+    migration_engine::validate_strategies(&strategy_pairs)
+        .map_err(|e| format!("{}", e))?;
+
     let mut plan: domain::MigrationPlan =
-        serde_json::from_str(&plan_json).map_err(|e| format!("Plan deserialization error: {}", e))?;
+        serde_json::from_str(&run.plan_json).map_err(|e| format!("Plan deserialization error: {}", e))?;
+
+    // Verify all conflicts resolved — check no item has action outside the enum
+    for item in &plan.items {
+        if domain::ConflictAction::from_str(&item.action).is_none() && item.action != "add" {
+            return Err(format!(
+                "Unresolved conflict for resource '{}': action '{}' is not valid. Resolve all conflicts before applying.",
+                item.resource_id, item.action
+            ));
+        }
+    }
 
     // Apply user conflict strategies
     for strategy in &strategies {
@@ -148,30 +139,43 @@ pub fn apply_migration_plan(
         }
     }
 
-    // Get the pack and target resources
+    // State machine: planned → ready
+    store.update_status(&plan_id, "ready").map_err(|e| format!("Database error: {}", e))?;
+
+    // Get pack and target resources
     let library = pack_engine::library::PackStore::new(PathBuf::from(&settings.pack_storage_dir));
     let pack = library
-        .get_by_id(&source_id)
-        .ok_or_else(|| format!("Pack not found: {}", source_id))?;
+        .get_by_id(&run.source_id)
+        .ok_or_else(|| format!("Pack not found: {}", run.source_id))?;
 
     let resource_store = ResourceStore::new(&db);
     let repo_store = RepositoryStore::new(&db);
 
     let pack_resources = resource_store
-        .get_by_pack(&source_id)
+        .get_by_pack(&run.source_id)
         .unwrap_or_default();
 
     let target_repo = repo_store
-        .get_by_id(&target_repo_id)
+        .get_by_id(&run.target_repo_id)
         .map_err(|e| format!("Database error: {}", e))?
-        .ok_or_else(|| format!("Target repository not found: {}", target_repo_id))?;
-
-    let _target_resources = resource_store
-        .get_by_repo(&target_repo_id)
-        .unwrap_or_default();
+        .ok_or_else(|| "Target repository not found".to_string())?;
 
     let pack_dir = PathBuf::from(&pack.storage_dir);
     let target_dir = PathBuf::from(&target_repo.path);
+
+    // State machine: ready → executing
+    store.update_status(&plan_id, "executing").map_err(|e| format!("Database error: {}", e))?;
+
+    // Create scoped snapshot before file writes
+    let snapshot_base = dirs_or_default_snapshots(&target_repo.path);
+    let snapshot_dir = snapshot_base.join(&plan_id);
+    let snapshot_path = snapshot_dir.to_string_lossy().to_string();
+
+    migration_engine::create_scoped_snapshot(&plan.items, &target_dir, &snapshot_dir)
+        .map_err(|e| format!("Snapshot creation failed: {}", e))?;
+
+    // Store snapshot path
+    store.update_snapshot(&plan_id, &snapshot_path).map_err(|e| format!("Database error: {}", e))?;
 
     // Execute
     let report = migration_engine::executor::execute_plan(
@@ -182,13 +186,23 @@ pub fn apply_migration_plan(
     )
     .map_err(|e| format!("Migration execution failed: {}", e))?;
 
+    // Determine final status from aggregate results
+    let final_status = match report.status.as_str() {
+        "success" => "success",
+        "partial_failure" => "partial_failure",
+        "failed" => "failed",
+        _ => "failed",
+    };
+
     // Update the migration run
     let report_json = serde_json::to_string(&report).map_err(|e| format!("Serialization error: {}", e))?;
     let now = chrono::Utc::now().to_rfc3339();
 
+    store.update_status(&plan_id, final_status).map_err(|e| format!("Database error: {}", e))?;
+
     db.conn().execute(
-        "UPDATE migration_runs SET status = ?1, report_json = ?2, executed_at = ?3 WHERE id = ?4",
-        rusqlite::params!["applied", report_json, now, plan_id],
+        "UPDATE migration_runs SET report_json = ?1, executed_at = ?2 WHERE id = ?3",
+        rusqlite::params![report_json, now, plan_id],
     ).map_err(|e| format!("Database error: {}", e))?;
 
     Ok(report)
@@ -201,45 +215,40 @@ pub fn rollback_migration(
 ) -> Result<RollbackResult, String> {
     let db = state.db.lock().map_err(|e| e.to_string())?;
 
-    let mut stmt = db.conn().prepare(
-        "SELECT id, status, snapshot_path, target_repo_id FROM migration_runs WHERE id = ?1"
-    ).map_err(|e| format!("Database error: {}", e))?;
+    let store = MigrationStore::new(&db);
 
-    let mut rows = stmt.query_map(rusqlite::params![run_id], |row| {
-        Ok((
-            row.get::<_, String>(0)?,
-            row.get::<_, String>(1)?,
-            row.get::<_, Option<String>>(2)?,
-            row.get::<_, String>(3)?,
-        ))
-    }).map_err(|e| format!("Database error: {}", e))?;
+    let run = store
+        .get_run(&run_id)
+        .map_err(|e| format!("Database error: {}", e))?
+        .ok_or_else(|| format!("Migration run not found: {}", run_id))?;
 
-    let (_id, status, snapshot_path, target_repo_id) = match rows.next() {
-        Some(Ok(row)) => row,
-        Some(Err(e)) => return Err(format!("Database error: {}", e)),
-        None => return Err(format!("Migration run not found: {}", run_id)),
-    };
-
-    if status != "applied" {
-        return Err(format!("Cannot rollback: migration is in '{}' state, not 'applied'", status));
+    // T037: Only accept success or partial_failure for rollback
+    if !migration_engine::can_rollback(&run.status) {
+        return Err(format!(
+            "Cannot rollback: migration is in '{}' state. Only 'success' or 'partial_failure' can be rolled back.",
+            run.status
+        ));
     }
 
-    let snapshot = snapshot_path.ok_or_else(|| "No snapshot available for rollback".to_string())?;
+    let snapshot_path = run
+        .snapshot_path
+        .ok_or_else(|| "No snapshot available for rollback".to_string())?;
 
     let repo_store = RepositoryStore::new(&db);
     let target_repo = repo_store
-        .get_by_id(&target_repo_id)
+        .get_by_id(&run.target_repo_id)
         .map_err(|e| format!("Database error: {}", e))?
         .ok_or_else(|| "Target repository not found".to_string())?;
 
     let target_dir = PathBuf::from(&target_repo.path);
-    migration_engine::rollback_migration(&snapshot, &target_dir)
+    let snapshot_dir = PathBuf::from(&snapshot_path);
+
+    // Use scoped restore
+    migration_engine::restore_scoped(&snapshot_dir, &target_dir)
         .map_err(|e| format!("Rollback failed: {}", e))?;
 
-    db.conn().execute(
-        "UPDATE migration_runs SET status = 'rolled_back' WHERE id = ?1",
-        rusqlite::params![run_id],
-    ).map_err(|e| format!("Database error: {}", e))?;
+    // Update status to rolled_back
+    store.update_status(&run_id, "rolled_back").map_err(|e| format!("Database error: {}", e))?;
 
     Ok(RollbackResult {
         success: true,
@@ -254,31 +263,16 @@ pub fn get_migration_history(
     state: State<AppState>,
 ) -> Result<Vec<domain::MigrationRun>, String> {
     let db = state.db.lock().map_err(|e| e.to_string())?;
+    let store = MigrationStore::new(&db);
 
-    let mut stmt = db.conn().prepare(
-        "SELECT id, source_type, source_id, target_repo_id, status, plan_json, report_json, snapshot_path, created_at, executed_at
-         FROM migration_runs WHERE target_repo_id = ?1 ORDER BY created_at DESC"
-    ).map_err(|e| format!("Database error: {}", e))?;
+    store
+        .list_by_repo(&repo_id)
+        .map_err(|e| format!("Database error: {}", e))
+}
 
-    let rows = stmt.query_map(rusqlite::params![repo_id], |row| {
-        Ok(domain::MigrationRun {
-            id: row.get(0)?,
-            source_type: row.get(1)?,
-            source_id: row.get(2)?,
-            target_repo_id: row.get(3)?,
-            status: row.get(4)?,
-            plan_json: row.get(5)?,
-            report_json: row.get(6)?,
-            snapshot_path: row.get(7)?,
-            created_at: row.get(8)?,
-            executed_at: row.get(9)?,
-        })
-    }).map_err(|e| format!("Database error: {}", e))?;
-
-    let mut runs = Vec::new();
-    for row in rows {
-        runs.push(row.map_err(|e| format!("Database error: {}", e))?);
-    }
-
-    Ok(runs)
+fn dirs_or_default_snapshots(repo_path: &str) -> PathBuf {
+    let base = std::env::var("HOME")
+        .map(|h| PathBuf::from(h).join(".capability-repo-manager").join("snapshots"))
+        .unwrap_or_else(|_| PathBuf::from("/tmp").join("capability-repo-manager-snapshots"));
+    base
 }
