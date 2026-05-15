@@ -3,6 +3,7 @@ pub mod doctor;
 pub mod error;
 pub mod migration;
 pub mod pack;
+pub mod paths;
 pub mod repository;
 
 pub use capability::CapabilityResource;

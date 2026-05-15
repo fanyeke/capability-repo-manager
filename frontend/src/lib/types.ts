@@ -204,11 +204,12 @@ export interface ValidationError {
 
 export interface MigrationPlan {
   plan_id: string;
-  source: { type: "repo" | "pack"; id: string; name: string };
-  target: { id: string; name: string };
+  source_type: string;
+  source_id: string;
+  target_repo_id: string;
   items: MigrationPlanItem[];
   conflicts: MigrationConflict[];
-  missing_deps: Dependency[];
+  missing_dependencies: Dependency[];
 }
 
 export interface MigrationPlanItem {

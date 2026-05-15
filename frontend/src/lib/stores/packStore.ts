@@ -24,7 +24,9 @@ export const filteredPacks = derived(
 
     if ($filter.search) {
       const s = $filter.search.toLowerCase();
-      result = result.filter((p) => p.name.toLowerCase().includes(s));
+      result = result.filter(
+        (p) => p.name.toLowerCase().includes(s) || (p.description ?? "").toLowerCase().includes(s),
+      );
     }
 
     if ($filter.pack_type) {
