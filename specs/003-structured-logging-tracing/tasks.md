@@ -99,8 +99,8 @@
 - [X] T024 [P] Add pack export/delete logging: pack_export_started/finished (INFO), pack_delete_started/finished (INFO) in `crates/tauri-bridge/src/commands/pack_commands.rs`
 - [X] T025 [P] Add doctor logging: doctor_started/finished (INFO, score, issue counts) in `crates/tauri-bridge/src/commands/doctor_commands.rs`
 - [X] T026 [P] Add structured error logging for failed operations: include error code, operation_id, module name, entity IDs in `crates/tauri-bridge/src/commands/migration_commands.rs` and `crates/tauri-bridge/src/commands/repo_commands.rs`
-- [ ] T027 [P] Write integration test for operation_id propagation across scan pipeline in `crates/storage/tests/logging_integration_tests.rs`
-- [ ] T028 [P] Write integration test for debug bundle export in `crates/tauri-bridge/tests/debug_bundle_tests.rs`
+- [X] T027 [P] Write integration test for operation_id propagation across scan pipeline in `crates/storage/tests/logging_integration_tests.rs`
+- [X] T028 [P] Write integration test for debug bundle export in `crates/tauri-bridge/tests/debug_bundle_tests.rs`
 
 **Checkpoint**: All flows instrumented, error context enhanced, integration tests green
 
