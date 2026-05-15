@@ -2,9 +2,13 @@ use std::sync::Mutex;
 
 use storage::Database;
 
+use crate::LogGuard;
+
 pub struct AppState {
     pub db: Mutex<Database>,
     pub settings: Mutex<AppSettings>,
+    /// Must be kept alive for the process lifetime. Dropping stops log output.
+    pub _log_guard: Option<LogGuard>,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -63,8 +67,9 @@ impl AppState {
         // Load persisted settings, fall back to defaults
         let settings = load_settings_from_file().unwrap_or_default();
 
-        // Initialize tracing with the configured log level
-        crate::init_tracing(&settings.log_level)?;
+        // Initialize tracing with the configured log level.
+        // The returned LogGuard MUST be kept alive for the process lifetime.
+        let log_guard = crate::init_tracing(&settings.log_level)?;
 
         // Clean up old log files (14-day retention)
         crate::clean_old_logs();
@@ -79,6 +84,7 @@ impl AppState {
         Ok(Self {
             db: Mutex::new(db),
             settings: Mutex::new(settings),
+            _log_guard: Some(log_guard),
         })
     }
 }

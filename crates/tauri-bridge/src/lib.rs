@@ -23,7 +23,10 @@ use tracing_subscriber::EnvFilter;
 ///
 /// On failure to create the log directory or initialize the subscriber, falls back
 /// to console-only output with an `eprintln!` warning.
-pub fn init_tracing(log_level: &str) -> Result<(), String> {
+///
+/// Returns a `LogGuard` that MUST be kept alive for the lifetime of the process.
+/// Dropping the guard stops the non_blocking log writers.
+pub fn init_tracing(log_level: &str) -> Result<LogGuard, String> {
     let log_dir = get_log_dir();
 
     // Try to ensure log directory exists; fall back to console-only on failure
@@ -38,10 +41,10 @@ pub fn init_tracing(log_level: &str) -> Result<(), String> {
 
     // Daily rolling file appender: app-YYYY-MM-DD.log
     let file_appender = rolling::daily(&log_dir, "app");
-    let (file_writer, _guard) = tracing_appender::non_blocking(file_appender);
+    let (file_writer, file_guard) = tracing_appender::non_blocking(file_appender);
 
     // Console output (stderr)
-    let (console_writer, _console_guard) = tracing_appender::non_blocking(std::io::stderr());
+    let (console_writer, console_guard) = tracing_appender::non_blocking(std::io::stderr());
 
     // File layer: structured JSON format for machine parsing
     let file_layer = tracing_subscriber::fmt::layer()
@@ -59,56 +62,48 @@ pub fn init_tracing(log_level: &str) -> Result<(), String> {
     let filter = EnvFilter::try_from_default_env()
         .unwrap_or_else(|_| EnvFilter::new(log_level));
 
-    match tracing_subscriber::registry()
+    tracing_subscriber::registry()
         .with(filter)
         .with(file_layer)
         .with(console_layer)
         .try_init()
-    {
-        Ok(()) => {
-            tracing::info!(
-                level = log_level,
-                dir = %log_dir.display(),
-                "logging_initialized"
-            );
-            Ok(())
-        }
-        Err(e) => {
-            eprintln!(
-                "Warning: Could not initialize tracing subscriber: {}. Logging unavailable.",
-                e
-            );
-            Ok(())
-        }
-    }
+        .map_err(|e| format!("Failed to init tracing subscriber: {}", e))?;
+
+    tracing::info!(
+        level = log_level,
+        dir = %log_dir.display(),
+        "logging_initialized"
+    );
+
+    Ok(LogGuard {
+        _file_guard: Some(file_guard),
+        _console_guard: Some(console_guard),
+    })
 }
 
 /// Set up console-only tracing when the log directory is not available.
-fn init_console_only(log_level: &str) -> Result<(), String> {
+fn init_console_only(log_level: &str) -> Result<LogGuard, String> {
+    let (console_writer, console_guard) = tracing_appender::non_blocking(std::io::stderr());
+
     let console_layer = tracing_subscriber::fmt::layer()
         .with_target(true)
-        .with_writer(std::io::stderr);
+        .with_writer(console_writer);
 
     let filter = EnvFilter::try_from_default_env()
         .unwrap_or_else(|_| EnvFilter::new(log_level));
 
-    match tracing_subscriber::registry()
+    tracing_subscriber::registry()
         .with(filter)
         .with(console_layer)
         .try_init()
-    {
-        Ok(()) => {
-            eprintln!("Tracing initialized (console only)");
-            Ok(())
-        }
-        Err(e) => {
-            eprintln!(
-                "Warning: Could not initialize tracing subscriber: {}. No logging available.",
-                e
-            );
-            Ok(())
-        }
-    }
+        .map_err(|e| format!("Failed to init tracing subscriber: {}", e))?;
+
+    eprintln!("Tracing initialized (console only)");
+
+    Ok(LogGuard {
+        _file_guard: None,
+        _console_guard: Some(console_guard),
+    })
 }
 
 /// Log the app_start event with environment metadata.
@@ -173,12 +168,12 @@ pub(crate) fn get_log_dir() -> PathBuf {
         .join("logs")
 }
 
-/// Explicit guard type returned by `init_tracing` to keep the file appender alive.
+/// Guards returned by `init_tracing` / `init_console_only`.
 ///
-/// The guard is intentionally unused in the current setup — the non_blocking
-/// writers are owned by the subscriber and live for the process lifetime.
-#[allow(dead_code)]
-struct LogGuard {
-    _file_guard: tracing_appender::non_blocking::WorkerGuard,
-    _console_guard: tracing_appender::non_blocking::WorkerGuard,
+/// MUST be kept alive for the lifetime of the process. Dropping these guards
+/// flushes and shuts down the non_blocking log writers, preventing any further
+/// log output from being written.
+pub struct LogGuard {
+    _file_guard: Option<tracing_appender::non_blocking::WorkerGuard>,
+    _console_guard: Option<tracing_appender::non_blocking::WorkerGuard>,
 }
