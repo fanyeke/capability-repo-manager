@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { RepositorySummary, RepoFilter } from "$lib/types";
   import RepoCard from "./RepoCard.svelte";
+  import { _ } from "svelte-i18n";
 
   let {
     repos,
@@ -58,7 +59,7 @@
       <input
         type="search"
         bind:value={searchText}
-        placeholder="Search repositories..."
+        placeholder={$_('common.search')}
         oninput={handleSearch}
       />
     </div>
@@ -69,20 +70,20 @@
         class:active={dirtyOnly}
         onclick={toggleDirtyFilter}
       >
-        Modified only
+        {$_('repo.dirty_state')}
       </button>
 
       <button class="scan-btn primary" onclick={onScan} disabled={isLoading}>
-        {isLoading ? "Scanning..." : "Scan Repos"}
+        {isLoading ? $_('dashboard.scanning') : $_('dashboard.scan')}
       </button>
     </div>
 
     <div class="sort-controls">
-      <span class="sort-label">Sort by:</span>
+      <span class="sort-label">{$_('common.sort')}:</span>
       {#each [
-        { key: "name", label: "Name" },
-        { key: "last_indexed_at", label: "Last indexed" },
-        { key: "dirty_state", label: "Status" },
+        { key: "name", label: $_('common.sort') },
+        { key: "last_indexed_at", label: $_('repo.last_indexed') },
+        { key: "dirty_state", label: $_('repo.dirty_state') },
       ] as option}
         <button
           class="sort-btn"
@@ -99,9 +100,9 @@
   </div>
 
   {#if isLoading}
-    <p class="loading-text">Loading repositories...</p>
+    <p class="loading-text">{$_('dashboard.loading')}</p>
   {:else if repos.length === 0}
-    <p class="empty-text">No repositories found. Scan a directory to get started.</p>
+    <p class="empty-text">{$_('dashboard.no_repos')}</p>
   {:else}
     <div class="repo-grid">
       {#each repos as repo (repo.id)}
