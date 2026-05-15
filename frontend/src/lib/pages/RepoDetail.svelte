@@ -20,6 +20,9 @@
 
 <div class="repo-detail-page">
   <header class="repo-header">
+    <div class="header-top">
+      <button class="back-btn" onclick={() => navigateTo("dashboard")}>Back</button>
+    </div>
     {#if detail}
       <div class="header-info">
         <h1>{detail.repo.name}</h1>
@@ -46,7 +49,6 @@
         <button class="action-btn" onclick={() => currentPage.set("doctor")}>
           Run Doctor
         </button>
-        <button class="back-btn" onclick={() => navigateTo("dashboard")}>Back</button>
       </div>
     {:else}
       <p class="loading">Loading repository...</p>
@@ -172,6 +174,10 @@
   .action-btn.danger {
     color: #dc2626;
     border-color: #fecaca;
+  }
+  .header-top {
+    width: 100%;
+    margin-bottom: 8px;
   }
   .back-btn {
     padding: 8px 16px;
