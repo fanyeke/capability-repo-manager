@@ -139,6 +139,90 @@ impl<'a> ResourceStore<'a> {
         Ok(())
     }
 
+    /// Look up a single resource by its primary key (id).
+    /// Returns `None` if no resource with that id exists.
+    pub fn get_by_id(&self, resource_id: &str) -> Result<Option<CapabilityResource>> {
+        let mut stmt = self.db.conn().prepare(
+            "SELECT id, repo_id, pack_id, type, name, source_path, scope, tracked_by_git, content_hash, metadata_json, error_message
+             FROM capability_resources WHERE id = ?1"
+        )?;
+
+        let mut rows = stmt.query_map(params![resource_id], |row| {
+            Ok(CapabilityResource {
+                id: row.get(0)?,
+                repo_id: row.get(1)?,
+                pack_id: row.get(2)?,
+                r#type: row.get(3)?,
+                name: row.get(4)?,
+                source_path: row.get(5)?,
+                scope: row.get(6)?,
+                tracked_by_git: row.get::<_, i32>(7)? != 0,
+                content_hash: row.get(8)?,
+                metadata_json: row.get(9)?,
+                error_message: row.get(10)?,
+            })
+        })?;
+
+        match rows.next() {
+            Some(Ok(resource)) => Ok(Some(resource)),
+            Some(Err(e)) => Err(e),
+            None => Ok(None),
+        }
+    }
+
+    /// Atomically replace all resources for a pack.
+    ///
+    /// Runs in a transaction: deletes old resources for the pack,
+    /// then inserts the new ones.
+    pub fn replace_for_pack(&self, pack_id: &str, resources: &[CapabilityResource]) -> Result<()> {
+        let conn = self.db.conn();
+        conn.execute_batch("BEGIN")?;
+
+        if let Err(e) = conn.execute(
+            "DELETE FROM capability_resources WHERE pack_id = ?1",
+            params![pack_id],
+        ) {
+            let _ = conn.execute_batch("ROLLBACK");
+            return Err(e);
+        }
+
+        for r in resources {
+            if let Err(e) = conn.execute(
+                "INSERT INTO capability_resources \
+                 (id, repo_id, pack_id, type, name, source_path, scope, tracked_by_git, content_hash, metadata_json, error_message) \
+                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
+                params![
+                    r.id,
+                    r.repo_id,
+                    r.pack_id,
+                    r.r#type,
+                    r.name,
+                    r.source_path,
+                    r.scope,
+                    r.tracked_by_git as i32,
+                    r.content_hash,
+                    r.metadata_json,
+                    r.error_message,
+                ],
+            ) {
+                let _ = conn.execute_batch("ROLLBACK");
+                return Err(e);
+            }
+        }
+
+        conn.execute_batch("COMMIT")?;
+        Ok(())
+    }
+
+    /// Delete all resources associated with a pack.
+    pub fn delete_by_pack(&self, pack_id: &str) -> Result<()> {
+        self.db.conn().execute(
+            "DELETE FROM capability_resources WHERE pack_id = ?1",
+            params![pack_id],
+        )?;
+        Ok(())
+    }
+
     pub fn delete_by_repo(&self, repo_id: &str) -> Result<()> {
         self.db.conn().execute(
             "DELETE FROM capability_resources WHERE repo_id = ?1",

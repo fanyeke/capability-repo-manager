@@ -84,9 +84,9 @@
 
 **Independent Test**: Click any capability resource; verify correct metadata returned
 
-- [ ] T019 [P] [US4] Implement `get_by_id(resource_id)` in `crates/storage/src/resource_store.rs`
-- [ ] T020 [US4] Fix `get_resource_detail` in `crates/tauri-bridge/src/commands/capability_commands.rs`: use `resource_store.get_by_id(resource_id)` instead of `get_by_repo("")` + in-memory filter
-- [ ] T021 [P] [US4] Write test for `get_by_id` in `crates/storage/tests/resource_store_tests.rs`
+- [X] T019 [P] [US4] Implement `get_by_id(resource_id)` in `crates/storage/src/resource_store.rs`
+- [X] T020 [US4] Fix `get_resource_detail` in `crates/tauri-bridge/src/commands/capability_commands.rs`: use `resource_store.get_by_id(resource_id)` instead of `get_by_repo("")` + in-memory filter
+- [X] T021 [P] [US4] Write test for `get_by_id` in `crates/storage/tests/resource_store_tests.rs`
 
 **Checkpoint**: US4 done — resource detail is now accurate
 
@@ -98,14 +98,14 @@
 
 **Independent Test**: Export a pack, simulate restart, verify pack still listable and detailed
 
-- [ ] T022 [P] [US5] Create `crates/storage/src/pack_store.rs` with: `insert_pack()`, `get_pack_by_id()`, `get_pack_by_name_version()`, `list_packs(filter)`, `delete_pack()`
-- [ ] T023 [US5] Register `pack_store` module in `crates/storage/src/lib.rs`
-- [ ] T024 [US5] Modify `export_capability_pack` in `crates/tauri-bridge/src/commands/pack_commands.rs`: after pack files written to disk, insert pack metadata into DB via `pack_store.insert_pack()`, and insert pack resources into `capability_resources` with `pack_id` set
-- [ ] T025 [US5] Modify `list_packs` in `crates/tauri-bridge/src/commands/pack_commands.rs`: query DB-backed pack_store instead of in-memory `PackStore`
-- [ ] T026 [US5] Modify `get_pack_detail` in `crates/tauri-bridge/src/commands/pack_commands.rs`: query DB-backed pack_store
-- [ ] T027 [US5] Fix `delete_pack` in `crates/tauri-bridge/src/commands/pack_commands.rs`: cascade-delete pack DB row + pack resources + disk directory
-- [ ] T028 [P] [US5] Write tests for `crates/storage/tests/resource_store_tests.rs`: `replace_for_pack`, `delete_by_pack`
-- [ ] T029 [P] [US5] Write tests for `crates/storage/src/pack_store.rs`
+- [X] T022 [P] [US5] Create `crates/storage/src/pack_store.rs` with: `insert_pack()`, `get_pack_by_id()`, `get_pack_by_name_version()`, `list_packs(filter)`, `delete_pack()`
+- [X] T023 [US5] Register `pack_store` module in `crates/storage/src/lib.rs`
+- [X] T024 [US5] Modify `export_capability_pack` in `crates/tauri-bridge/src/commands/pack_commands.rs`: after pack files written to disk, insert pack metadata into DB via `pack_store.insert_pack()`, and insert pack resources into `capability_resources` with `pack_id` set
+- [X] T025 [US5] Modify `list_packs` in `crates/tauri-bridge/src/commands/pack_commands.rs`: query DB-backed pack_store instead of in-memory `PackStore`
+- [X] T026 [US5] Modify `get_pack_detail` in `crates/tauri-bridge/src/commands/pack_commands.rs`: query DB-backed pack_store
+- [X] T027 [US5] Fix `delete_pack` in `crates/tauri-bridge/src/commands/pack_commands.rs`: cascade-delete pack DB row + pack resources + disk directory
+- [X] T028 [P] [US5] Write tests for `crates/storage/tests/resource_store_tests.rs`: `replace_for_pack`, `delete_by_pack`
+- [X] T029 [P] [US5] Write tests for `crates/storage/src/pack_store.rs`
 
 **Checkpoint**: US5 done — packs are now persistent across restarts
 

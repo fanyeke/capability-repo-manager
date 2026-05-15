@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use tauri::State;
 
 use crate::state::AppState;
@@ -55,13 +53,9 @@ pub fn get_resource_detail(
     let db = state.db.lock().map_err(|e| e.to_string())?;
     let resource_store = ResourceStore::new(&db);
 
-    let resources = resource_store
-        .get_by_repo("")
-        .map_err(|e| format!("Database error: {}", e))?;
-
-    let resource = resources
-        .into_iter()
-        .find(|r| r.id == resource_id)
+    let resource = resource_store
+        .get_by_id(&resource_id)
+        .map_err(|e| format!("Database error: {}", e))?
         .ok_or_else(|| format!("Resource not found: {}", resource_id))?;
 
     let deps = resolve_dependencies(&resource);
