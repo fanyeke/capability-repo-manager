@@ -13,9 +13,7 @@ pub fn build_plan(
     let mut missing_dependencies = Vec::new();
 
     for pack_res in pack_resources {
-        let target_match = target_resources
-            .iter()
-            .find(|t| t.r#type == pack_res.r#type && t.name == pack_res.name);
+        let target_match = target_resources.iter().find(|t| t.r#type == pack_res.r#type && t.name == pack_res.name);
 
         let (action, conflict) = classify_resource(pack_res, target_match);
         if let Some(c) = conflict {
@@ -26,7 +24,7 @@ pub fn build_plan(
             resource_id: pack_res.id.clone(),
             action,
             source_path: pack_res.source_path.clone(),
-            target_path: target_match.and_then(|t| t.source_path.clone()),
+            target_path: target_match.and_then(|t| t.source_path.clone()).or_else(|| pack_res.source_path.clone()),
             status: "pending".to_string(),
         });
     }
@@ -34,12 +32,8 @@ pub fn build_plan(
     // Check dependencies
     if let Some(deps) = extract_dependencies(pack_resources) {
         for dep in &deps {
-            let satisfied = pack_resources
-                .iter()
-                .any(|r| r.r#type == dep.dep_type && r.name == dep.name)
-                || target_resources
-                    .iter()
-                    .any(|r| r.r#type == dep.dep_type && r.name == dep.name);
+            let satisfied = pack_resources.iter().any(|r| r.r#type == dep.dep_type && r.name == dep.name)
+                || target_resources.iter().any(|r| r.r#type == dep.dep_type && r.name == dep.name);
             if !satisfied {
                 missing_dependencies.push(dep.clone());
             }
@@ -70,11 +64,7 @@ fn classify_resource(
                     resource_name: pack.name.clone(),
                     resource_type: pack.r#type.clone(),
                     reason: "overwrite".to_string(),
-                    recommended_actions: vec![
-                        "skip".to_string(),
-                        "overwrite".to_string(),
-                        "rename".to_string(),
-                    ],
+                    recommended_actions: vec!["skip".to_string(), "overwrite".to_string()],
                 };
                 ("overwrite".to_string(), Some(conflict))
             } else {
@@ -82,11 +72,7 @@ fn classify_resource(
                     resource_name: pack.name.clone(),
                     resource_type: pack.r#type.clone(),
                     reason: "path_conflict".to_string(),
-                    recommended_actions: vec![
-                        "skip".to_string(),
-                        "overwrite".to_string(),
-                        "rename".to_string(),
-                    ],
+                    recommended_actions: vec!["skip".to_string(), "overwrite".to_string()],
                 };
                 ("overwrite".to_string(), Some(conflict))
             }
@@ -101,17 +87,13 @@ fn extract_dependencies(resources: &[CapabilityResource]) -> Option<Vec<Resource
             if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(meta) {
                 if let Some(dep_list) = parsed.get("dependencies").and_then(|d| d.as_array()) {
                     for dep in dep_list {
-                        if let (Some(dep_type), Some(name)) = (
-                            dep.get("type").and_then(|v| v.as_str()),
-                            dep.get("name").and_then(|v| v.as_str()),
-                        ) {
+                        if let (Some(dep_type), Some(name)) =
+                            (dep.get("type").and_then(|v| v.as_str()), dep.get("name").and_then(|v| v.as_str()))
+                        {
                             deps.push(ResourceDependency {
                                 dep_type: dep_type.to_string(),
                                 name: name.to_string(),
-                                required: dep
-                                    .get("required")
-                                    .and_then(|v| v.as_bool())
-                                    .unwrap_or(false),
+                                required: dep.get("required").and_then(|v| v.as_bool()).unwrap_or(false),
                                 status: "missing".to_string(),
                             });
                         }

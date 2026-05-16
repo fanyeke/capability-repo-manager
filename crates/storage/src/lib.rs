@@ -1,3 +1,6 @@
+pub mod event_store;
+pub mod migration_store;
+pub mod pack_store;
 pub mod repo_store;
 pub mod resource_store;
 
@@ -10,20 +13,29 @@ pub struct Database {
 impl Database {
     pub fn open(path: &str) -> Result<Self> {
         let conn = Connection::open(path)?;
+        conn.execute_batch("PRAGMA foreign_keys = ON")?;
         let db = Self { conn };
         db.initialize()?;
+        db.run_migrations()?;
         Ok(db)
     }
 
     pub fn open_in_memory() -> Result<Self> {
         let conn = Connection::open_in_memory()?;
+        conn.execute_batch("PRAGMA foreign_keys = ON")?;
         let db = Self { conn };
         db.initialize()?;
+        db.run_migrations()?;
         Ok(db)
     }
 
     pub fn conn(&self) -> &Connection {
         &self.conn
+    }
+
+    /// Create an EventStore operating on this database connection.
+    pub fn event_store(&self) -> event_store::EventStore<'_> {
+        event_store::EventStore::new(&self.conn)
     }
 
     fn initialize(&self) -> Result<()> {
@@ -33,11 +45,16 @@ impl Database {
                 id TEXT PRIMARY KEY NOT NULL,
                 name TEXT NOT NULL,
                 path TEXT NOT NULL UNIQUE,
+                canonical_path TEXT,
                 remote_url TEXT,
                 current_branch TEXT,
                 head_commit TEXT,
                 dirty_state TEXT NOT NULL DEFAULT 'unknown',
-                last_indexed_at TEXT NOT NULL DEFAULT ''
+                first_indexed_at TEXT NOT NULL DEFAULT '',
+                last_indexed_at TEXT NOT NULL DEFAULT '',
+                capability_index_status TEXT NOT NULL DEFAULT 'never_indexed',
+                last_capability_indexed_at TEXT,
+                last_capability_error TEXT
             );
 
             CREATE TABLE IF NOT EXISTS capability_resources (
@@ -97,8 +114,44 @@ impl Database {
             CREATE INDEX IF NOT EXISTS idx_packs_name_version ON packs(name, version);
             CREATE INDEX IF NOT EXISTS idx_migrations_target ON migration_runs(target_repo_id);
             CREATE INDEX IF NOT EXISTS idx_doctor_repo ON doctor_reports(repo_id);
-            "
+
+            CREATE TABLE IF NOT EXISTS operation_events (
+                id TEXT PRIMARY KEY NOT NULL,
+                operation_id TEXT NOT NULL,
+                operation_type TEXT NOT NULL,
+                status TEXT NOT NULL,
+                repo_id TEXT,
+                pack_id TEXT,
+                migration_run_id TEXT,
+                summary TEXT,
+                detail_json TEXT,
+                created_at TEXT NOT NULL
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_op_events_operation_id ON operation_events(operation_id);
+            CREATE INDEX IF NOT EXISTS idx_op_events_created_at ON operation_events(created_at);
+            CREATE INDEX IF NOT EXISTS idx_op_events_type ON operation_events(operation_type);
+            ",
         )?;
+        Ok(())
+    }
+
+    /// Run ALTER TABLE migrations for databases created with older schema versions.
+    fn run_migrations(&self) -> Result<()> {
+        // These are idempotent: rusqlite ignores "duplicate column" errors
+        // when the column already exists.
+        for migration in &[
+            "ALTER TABLE repositories ADD COLUMN canonical_path TEXT",
+            "ALTER TABLE repositories ADD COLUMN first_indexed_at TEXT NOT NULL DEFAULT ''",
+            "ALTER TABLE repositories ADD COLUMN capability_index_status TEXT NOT NULL DEFAULT 'never_indexed'",
+            "ALTER TABLE repositories ADD COLUMN last_capability_indexed_at TEXT",
+            "ALTER TABLE repositories ADD COLUMN last_capability_error TEXT",
+        ] {
+            let _ = self.conn.execute_batch(migration);
+        }
+        let _ = self
+            .conn
+            .execute_batch("CREATE INDEX IF NOT EXISTS idx_repos_canonical_path ON repositories(canonical_path)");
         Ok(())
     }
 }

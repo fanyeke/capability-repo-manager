@@ -1,6 +1,8 @@
 pub mod agent_parser;
+pub mod commands_parser;
 pub mod hook_parser;
 pub mod mcp_parser;
+pub mod plugins_parser;
 pub mod rule_parser;
 pub mod skill_parser;
 
@@ -28,9 +30,9 @@ pub fn parse_repo(repo_path: &str) -> Result<CapabilityInventory, domain::AppErr
         hooks: hook_parser::parse_hooks(repo_path),
         rules: rule_parser::parse_rules(repo_path),
         agents: agent_parser::parse_agents(repo_path),
-        commands: Vec::new(),
-        plugins: Vec::new(),
-        settings: Vec::new(),
+        commands: commands_parser::parse_commands(repo_path),
+        plugins: plugins_parser::parse_plugins(repo_path),
+        settings: Vec::new(), // TODO: implement settings_parser
     })
 }
 
@@ -64,11 +66,7 @@ pub(crate) fn parse_md_dir(
             continue;
         }
 
-        let name = path
-            .file_stem()
-            .unwrap()
-            .to_string_lossy()
-            .to_string();
+        let name = path.file_stem().unwrap().to_string_lossy().to_string();
 
         let content = match fs::read_to_string(&path) {
             Ok(c) => c,

@@ -80,15 +80,13 @@ fn test_doctor_report_serde() {
         id: "r1".to_string(),
         repo_id: "repo1".to_string(),
         score: 85,
-        issues: vec![
-            DoctorIssue {
-                severity: "warning".to_string(),
-                code: "SKILL_INCOMPLETE".to_string(),
-                message: "Skill 'ui-review' missing SKILL.md".to_string(),
-                resource_ref: Some("res-123".to_string()),
-                recommendation: Some("Add SKILL.md to skills/ui-review/".to_string()),
-            },
-        ],
+        issues: vec![DoctorIssue {
+            severity: "warning".to_string(),
+            code: "SKILL_INCOMPLETE".to_string(),
+            message: "Skill 'ui-review' missing SKILL.md".to_string(),
+            resource_ref: Some("res-123".to_string()),
+            recommendation: Some("Add SKILL.md to skills/ui-review/".to_string()),
+        }],
         created_at: "2026-05-14T10:00:00Z".to_string(),
     };
 

@@ -35,9 +35,7 @@ fn drift_missing_in_target() {
         make_resource("r1", "repo-a", "skill", "skill-a", "skills/a/SKILL.md", "aaa"),
         make_resource("r2", "repo-a", "skill", "skill-b", "skills/b/SKILL.md", "bbb"),
     ];
-    let b = vec![
-        make_resource("r3", "repo-b", "skill", "skill-a", "skills/a/SKILL.md", "aaa"),
-    ];
+    let b = vec![make_resource("r3", "repo-b", "skill", "skill-a", "skills/a/SKILL.md", "aaa")];
 
     let result = drift::compare(&a, &b);
     // a is source, b is target. "missing" = in source but not in target (target lacks it)
@@ -84,7 +82,7 @@ fn drift_different_types_are_separate() {
     let result = drift::compare(&a, &b);
     // Different types are treated as different resources
     assert_eq!(result.missing.len(), 1); // skill/my-skill missing in b
-    assert_eq!(result.extra.len(), 1);   // mcp/my-skill extra in b
+    assert_eq!(result.extra.len(), 1); // mcp/my-skill extra in b
     assert!(result.same.is_empty());
     assert!(result.modified.is_empty());
 }

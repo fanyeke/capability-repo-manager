@@ -33,9 +33,7 @@ fn test_library_insert_pack() {
 #[test]
 fn test_library_duplicate_name_version_rejected() {
     let mut store = PackStore::new(PathBuf::from("/tmp/packs"));
-    store
-        .insert(make_pack("id-1", "same-name", "1.0.0", "project"))
-        .unwrap();
+    store.insert(make_pack("id-1", "same-name", "1.0.0", "project")).unwrap();
     let result = store.insert(make_pack("id-2", "same-name", "1.0.0", "blueprint"));
     assert!(result.is_err());
     assert!(result.unwrap_err().contains("already exists"));
@@ -44,9 +42,7 @@ fn test_library_duplicate_name_version_rejected() {
 #[test]
 fn test_library_get_by_id() {
     let mut store = PackStore::new(PathBuf::from("/tmp/packs"));
-    store
-        .insert(make_pack("abc-123", "my-pack", "2.0.0", "blueprint"))
-        .unwrap();
+    store.insert(make_pack("abc-123", "my-pack", "2.0.0", "blueprint")).unwrap();
 
     let found = store.get_by_id("abc-123");
     assert!(found.is_some());
@@ -59,15 +55,9 @@ fn test_library_get_by_id() {
 #[test]
 fn test_library_list_packs() {
     let mut store = PackStore::new(PathBuf::from("/tmp/packs"));
-    store
-        .insert(make_pack("p1", "pack-a", "1.0.0", "project"))
-        .unwrap();
-    store
-        .insert(make_pack("p2", "pack-b", "1.0.0", "blueprint"))
-        .unwrap();
-    store
-        .insert(make_pack("p3", "pack-c", "2.0.0", "baseline"))
-        .unwrap();
+    store.insert(make_pack("p1", "pack-a", "1.0.0", "project")).unwrap();
+    store.insert(make_pack("p2", "pack-b", "1.0.0", "blueprint")).unwrap();
+    store.insert(make_pack("p3", "pack-c", "2.0.0", "baseline")).unwrap();
 
     let all = store.list(None);
     assert_eq!(all.len(), 3);
@@ -76,9 +66,7 @@ fn test_library_list_packs() {
 #[test]
 fn test_library_delete_pack() {
     let mut store = PackStore::new(PathBuf::from("/tmp/packs"));
-    store
-        .insert(make_pack("to-delete", "temp-pack", "1.0.0", "project"))
-        .unwrap();
+    store.insert(make_pack("to-delete", "temp-pack", "1.0.0", "project")).unwrap();
     assert_eq!(store.len(), 1);
 
     let removed = store.delete("to-delete").unwrap();
@@ -90,15 +78,9 @@ fn test_library_delete_pack() {
 #[test]
 fn test_library_list_packs_filtered_by_type() {
     let mut store = PackStore::new(PathBuf::from("/tmp/packs"));
-    store
-        .insert(make_pack("p1", "proj-pack", "1.0.0", "project"))
-        .unwrap();
-    store
-        .insert(make_pack("p2", "blue-pack", "1.0.0", "blueprint"))
-        .unwrap();
-    store
-        .insert(make_pack("p3", "proj-pack-2", "2.0.0", "project"))
-        .unwrap();
+    store.insert(make_pack("p1", "proj-pack", "1.0.0", "project")).unwrap();
+    store.insert(make_pack("p2", "blue-pack", "1.0.0", "blueprint")).unwrap();
+    store.insert(make_pack("p3", "proj-pack-2", "2.0.0", "project")).unwrap();
 
     let projects = store.list(Some("project"));
     assert_eq!(projects.len(), 2);
@@ -114,15 +96,9 @@ fn test_library_list_packs_filtered_by_type() {
 #[test]
 fn test_library_search() {
     let mut store = PackStore::new(PathBuf::from("/tmp/packs"));
-    store
-        .insert(make_pack("p1", "devops-setup", "1.0.0", "project"))
-        .unwrap();
-    store
-        .insert(make_pack("p2", "frontend-toolkit", "1.0.0", "blueprint"))
-        .unwrap();
-    store
-        .insert(make_pack("p3", "backend-utils", "1.0.0", "project"))
-        .unwrap();
+    store.insert(make_pack("p1", "devops-setup", "1.0.0", "project")).unwrap();
+    store.insert(make_pack("p2", "frontend-toolkit", "1.0.0", "blueprint")).unwrap();
+    store.insert(make_pack("p3", "backend-utils", "1.0.0", "project")).unwrap();
 
     let results = store.search("devops");
     assert_eq!(results.len(), 1);

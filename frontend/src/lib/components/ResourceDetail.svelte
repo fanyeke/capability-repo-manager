@@ -1,150 +1,243 @@
 <script lang="ts">
-  import type { CapabilityResource } from "$lib/types";
+  import { _ } from 'svelte-i18n';
+  import type { CapabilityResource, ResourceContent } from '$lib/types';
+  import { FileText, Code, Archive } from 'lucide-svelte';
+  import Badge from './Badge.svelte';
+  import StatusPill from './StatusPill.svelte';
+  import ResourceIcon from './ResourceIcon.svelte';
+  import Tabs from './Tabs.svelte';
+  import CodeViewer from './CodeViewer.svelte';
+  import Banner from './Banner.svelte';
+  import Skeleton from './Skeleton.svelte';
 
   let {
     resource,
   }: {
     resource: CapabilityResource | null;
   } = $props();
+
+  let activeTab = $state<'overview' | 'content' | 'metadata'>('overview');
+  let content = $state<ResourceContent | null>(null);
+  let contentLoading = $state(false);
+  let contentError = $state<string | null>(null);
+
+  // Default tab based on resource type
+  $effect(() => {
+    if (resource) {
+      const textTypes = ['skill', 'rule', 'hook', 'command', 'agent'];
+      activeTab = textTypes.includes(resource.type) ? 'content' : 'overview';
+      // Reset content cache on resource change
+      content = null;
+      contentError = null;
+      contentLoading = false;
+    }
+  });
+
+  $effect(() => {
+    if (resource && activeTab === 'content') {
+      loadContent();
+    }
+  });
+
+  async function loadContent() {
+    if (!resource) return;
+    contentLoading = true;
+    contentError = null;
+    content = null;
+    try {
+      const { invoke } = await import('@tauri-apps/api/core');
+      const result = await invoke<ResourceContent>('get_resource_content', {
+        resourceId: resource.id,
+      });
+      content = result;
+    } catch (e: any) {
+      contentError = e?.message ?? String(e);
+    } finally {
+      contentLoading = false;
+    }
+  }
+
+  const textContentTypes = ['skill', 'rule', 'hook', 'command', 'agent'];
+
+  const tabs = [
+    { id: 'overview', label: $_('resource.tab_overview') },
+    { id: 'content', label: $_('resource.tab_content') },
+    { id: 'metadata', label: $_('resource.tab_metadata') },
+  ];
+
+  function formatBytes(bytes: number): string {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB'];
+    const i = Math.min(Math.floor(Math.log(bytes) / Math.log(k)), sizes.length - 1);
+    return `${(bytes / Math.pow(k, i)).toFixed(i > 0 ? 1 : 0)} ${sizes[i]}`;
+  }
+
+  function formatMetadata(json: string): string {
+    try {
+      return JSON.stringify(JSON.parse(json), null, 2);
+    } catch {
+      return json;
+    }
+  }
+
+  function contentPreview(): string | null {
+    if (!content?.content) return null;
+    return content.content.slice(0, 200) + (content.content.length > 200 ? '...' : '');
+  }
 </script>
 
 {#if !resource}
-  <div class="resource-empty">
-    <p>Select a resource to view details</p>
-  </div>
+  <div class="resource-empty">{$_('resource.select_hint')}</div>
 {:else}
-  <div class="resource-detail">
-    <div class="detail-header">
-      <h3>{resource.name}</h3>
-      <span class="type-badge type-{resource.type}">{resource.type}</span>
+  <Tabs tabs={tabs} active={activeTab} onChange={(id) => activeTab = id as any} />
+
+  {#if activeTab === 'overview'}
+    <div class="overview-section">
+      <div class="overview-header">
+        <ResourceIcon type={resource.type} size={20} />
+        <h3>{resource.name}</h3>
+        <Badge variant="info">{resource.type}</Badge>
+      </div>
+      <dl class="overview-fields">
+        <div class="field-row"><dt>{$_('resource.scope')}</dt><dd><StatusPill status={resource.scope === 'project' ? 'info' : resource.scope === 'local' ? 'warning' : 'info'} label={resource.scope} /></dd></div>
+        <div class="field-row"><dt>{$_('resource.source_path')}</dt><dd class="mono">{resource.source_path ?? '—'}</dd></div>
+        <div class="field-row"><dt>{$_('resource.git_tracked')}</dt><dd>{resource.tracked_by_git ? $_('resource.yes') : $_('resource.no')}</dd></div>
+        {#if content?.content}
+          <div class="field-row preview-row">
+            <dt>{$_('resource.preview')}</dt>
+            <dd class="preview-text">{contentPreview()}</dd>
+          </div>
+        {/if}
+      </dl>
+      {#if resource.error_message}
+        <Banner type="error" dismissible={false}>
+          {resource.error_message}
+        </Banner>
+      {/if}
     </div>
 
-    <div class="detail-fields">
-      <div class="field">
-        <label>Scope</label>
-        <span class="scope-badge scope-{resource.scope}">{resource.scope}</span>
-      </div>
-
-      {#if resource.source_path}
-        <div class="field">
-          <label>Source Path</label>
-          <code>{resource.source_path}</code>
+  {:else if activeTab === 'content'}
+    <div class="content-section">
+      {#if contentLoading}
+        <Skeleton variant="card" />
+        <Skeleton variant="text" />
+        <Skeleton variant="text" />
+      {:else if contentError}
+        <Banner type="error" dismissible={false}>{contentError}</Banner>
+      {:else if content}
+        {#if content.is_binary}
+          <Banner type="info" dismissible={false}>
+            <Archive size={14} /> {$_('resource.binary_file')} ({formatBytes(content.size_bytes)})
+          </Banner>
+        {:else if content.content}
+          <CodeViewer code={content.content} language={content.language} maxHeight="500px" />
+        {:else if content.error}
+          <Banner type="warning" dismissible={false}>{content.error}</Banner>
+        {/if}
+      {:else}
+        <div class="content-placeholder">
+          <Code size={32} />
+          <p>{$_('resource.load_content')}</p>
         </div>
       {/if}
+    </div>
 
-      <div class="field">
-        <label>Git Tracked</label>
-        <span>{resource.tracked_by_git ? "Yes" : "No"}</span>
-      </div>
-
-      {#if resource.content_hash}
-        <div class="field">
-          <label>Content Hash</label>
-          <code class="hash">{resource.content_hash}</code>
-        </div>
-      {/if}
-
+  {:else if activeTab === 'metadata'}
+    <div class="metadata-section">
       {#if resource.metadata_json}
-        <div class="field">
-          <label>Metadata</label>
-          <pre class="metadata">{resource.metadata_json}</pre>
-        </div>
+        <CodeViewer code={formatMetadata(resource.metadata_json)} language="json" maxHeight="400px" />
+      {:else}
+        <p class="empty-meta">{$_('resource.no_metadata')}</p>
       {/if}
     </div>
-
-    {#if resource.error_message}
-      <div class="error-box">
-        <strong>Parse Error</strong>
-        <p>{resource.error_message}</p>
-      </div>
-    {/if}
-  </div>
+  {/if}
 {/if}
 
 <style>
   .resource-empty {
     text-align: center;
-    color: #94a3b8;
-    padding: 40px 0;
+    color: var(--text-muted);
+    padding: var(--space-8);
   }
-  .resource-detail {
-    padding: 16px;
-  }
-  .detail-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 20px;
-  }
-  .detail-header h3 {
-    margin: 0;
-    font-size: 1.15rem;
-  }
-  .type-badge {
-    padding: 3px 10px;
-    border-radius: 12px;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    background: #e0e7ff;
-    color: #3730a3;
-  }
-  .detail-fields {
+  .overview-section {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: var(--space-3);
+    padding: var(--space-3) 0;
   }
-  .field label {
-    display: block;
-    font-size: 0.75rem;
-    color: #64748b;
-    margin-bottom: 2px;
+  .overview-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  .overview-header h3 {
+    margin: 0;
+    font-size: var(--font-size-md);
+    flex: 1;
+  }
+  .overview-fields {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin: 0;
+  }
+  .field-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: var(--font-size-sm);
+    padding: var(--space-1) 0;
+    border-bottom: 1px solid var(--border-default);
+  }
+  .field-row dt {
+    color: var(--text-muted);
+    font-size: var(--font-size-xs);
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
-  .field code {
-    background: #f1f5f9;
-    padding: 2px 6px;
-    border-radius: 3px;
-    font-size: 0.85rem;
+  .field-row dd {
+    margin: 0;
+    color: var(--text-secondary);
   }
-  .field code.hash {
-    font-size: 0.75rem;
-    word-break: break-all;
+  .field-row .mono {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-xs);
   }
-  .scope-badge {
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 0.8rem;
+  .field-row .hash {
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
-  .scope-project { background: #dbeafe; color: #1e40af; }
-  .scope-local { background: #fef3c7; color: #92400e; }
-  .scope-user { background: #ede9fe; color: #5b21b6; }
-  .scope-inherited { background: #fce7f3; color: #831843; }
-  .scope-unknown { background: #f1f5f9; color: #64748b; }
-  .metadata {
-    background: #f8fafc;
-    padding: 8px;
-    border-radius: 4px;
-    font-size: 0.8rem;
-    max-height: 200px;
-    overflow: auto;
+  .preview-row { align-items: flex-start; }
+  .preview-text {
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    line-height: 1.5;
+    max-height: 80px;
+    overflow: hidden;
+    text-overflow: ellipsis;
     white-space: pre-wrap;
-    word-break: break-all;
+    word-break: break-word;
+    max-width: 300px;
   }
-  .error-box {
-    margin-top: 16px;
-    padding: 12px;
-    background: #fef2f2;
-    border: 1px solid #fecaca;
-    border-radius: 6px;
+  .content-section {
+    padding: var(--space-2) 0;
   }
-  .error-box strong {
-    color: #dc2626;
-    font-size: 0.85rem;
+  .content-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-8);
+    color: var(--text-muted);
   }
-  .error-box p {
-    color: #991b1b;
-    font-size: 0.85rem;
-    margin: 4px 0 0 0;
+  .metadata-section {
+    padding: var(--space-2) 0;
+  }
+  .empty-meta {
+    text-align: center;
+    color: var(--text-muted);
+    padding: var(--space-4);
   }
 </style>

@@ -7,16 +7,8 @@ fn setup_target_with_content(dir: &TempDir) -> PathBuf {
     let target = dir.path().join("target-repo");
     fs::create_dir_all(target.join("skills/my-skill")).unwrap();
     fs::create_dir_all(target.join(".claude")).unwrap();
-    fs::write(
-        target.join("skills/my-skill/SKILL.md"),
-        "original content",
-    )
-    .unwrap();
-    fs::write(
-        target.join(".claude/settings.json"),
-        r#"{"original": true}"#,
-    )
-    .unwrap();
+    fs::write(target.join("skills/my-skill/SKILL.md"), "original content").unwrap();
+    fs::write(target.join(".claude/settings.json"), r#"{"original": true}"#).unwrap();
     target
 }
 

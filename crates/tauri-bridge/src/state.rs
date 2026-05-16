@@ -2,9 +2,13 @@ use std::sync::Mutex;
 
 use storage::Database;
 
+use crate::LogGuard;
+
 pub struct AppState {
     pub db: Mutex<Database>,
     pub settings: Mutex<AppSettings>,
+    /// Must be kept alive for the process lifetime. Dropping stops log output.
+    pub _log_guard: Option<LogGuard>,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -14,6 +18,9 @@ pub struct AppSettings {
     pub ignore_patterns: Vec<String>,
     pub pack_storage_dir: String,
     pub file_watch_enabled: bool,
+    pub log_level: String,
+    pub theme: Option<String>,
+    pub reduced_motion: Option<bool>,
 }
 
 impl Default for AppSettings {
@@ -30,22 +37,48 @@ impl Default for AppSettings {
             ],
             pack_storage_dir: default_pack_dir(),
             file_watch_enabled: false,
+            log_level: "info".to_string(),
+            theme: Some("dark".to_string()),
+            reduced_motion: Some(false),
         }
     }
 }
 
 fn default_pack_dir() -> String {
-    std::env::var("HOME")
-        .map(|h| format!("{}/.capability-repo-manager/packs", h))
-        .unwrap_or_else(|_| ".".into())
+    std::env::var("HOME").map(|h| format!("{}/.capability-repo-manager/packs", h)).unwrap_or_else(|_| ".".into())
+}
+
+/// Load settings from `~/.capability-repo-manager/settings.json`.
+/// Returns `None` if the file doesn't exist or can't be read.
+fn load_settings_from_file() -> Option<AppSettings> {
+    let home = std::env::var("HOME").unwrap_or_else(|_| ".".into());
+    let path = std::path::PathBuf::from(home).join(".capability-repo-manager").join("settings.json");
+    if !path.exists() {
+        return None;
+    }
+    let content = std::fs::read_to_string(path).ok()?;
+    serde_json::from_str(&content).ok()
 }
 
 impl AppState {
     pub fn new(db_path: &str) -> Result<Self, String> {
         let db = Database::open(db_path).map_err(|e| format!("Failed to open database: {}", e))?;
-        Ok(Self {
-            db: Mutex::new(db),
-            settings: Mutex::new(AppSettings::default()),
-        })
+
+        // Load persisted settings, fall back to defaults
+        let settings = load_settings_from_file().unwrap_or_default();
+
+        // Initialize tracing with the configured log level.
+        // The returned LogGuard MUST be kept alive for the process lifetime.
+        let log_guard = crate::init_tracing(&settings.log_level)?;
+
+        // Clean up old log files (14-day retention)
+        crate::clean_old_logs();
+
+        // Log the app_start event
+        let home = std::env::var("HOME").unwrap_or_else(|_| ".".into());
+        let settings_path = std::path::PathBuf::from(&home).join(".capability-repo-manager").join("settings.json");
+        crate::log_app_start(db_path, &settings_path.to_string_lossy());
+
+        Ok(Self { db: Mutex::new(db), settings: Mutex::new(settings), _log_guard: Some(log_guard) })
     }
 }

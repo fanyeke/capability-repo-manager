@@ -10,3 +10,9 @@ serde_json.workspace = true
 uuid.workspace = true
 chrono.workspace = true
 rusqlite.workspace = true
+
+[dev-dependencies]
+repo-scanner = { path = "../repo-scanner" }
+claude-parser = { path = "../claude-parser" }
+git2.workspace = true
+tempfile = "3"

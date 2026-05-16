@@ -2,9 +2,8 @@ use domain::Repository;
 
 pub fn extract_metadata(repo: &mut Repository) -> Result<(), domain::AppError> {
     let repo_path = std::path::Path::new(&repo.path);
-    let git_repo = git2::Repository::open(repo_path).map_err(|e| {
-        domain::AppError::Git(format!("Failed to open git repo at {}: {}", repo.path, e))
-    })?;
+    let git_repo = git2::Repository::open(repo_path)
+        .map_err(|e| domain::AppError::Git(format!("Failed to open git repo at {}: {}", repo.path, e)))?;
 
     // Branch name
     if let Ok(head) = git_repo.head() {
@@ -38,9 +37,8 @@ fn check_dirty_state(repo: &git2::Repository) -> Result<String, domain::AppError
     let mut opts = git2::StatusOptions::new();
     opts.include_untracked(true);
 
-    let statuses = repo
-        .statuses(Some(&mut opts))
-        .map_err(|e| domain::AppError::Git(format!("Failed to get status: {}", e)))?;
+    let statuses =
+        repo.statuses(Some(&mut opts)).map_err(|e| domain::AppError::Git(format!("Failed to get status: {}", e)))?;
 
     for status in statuses.iter() {
         let flags = status.status();

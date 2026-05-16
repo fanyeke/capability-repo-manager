@@ -1,55 +1,202 @@
 <script lang="ts">
-  import Dashboard from "$lib/pages/Dashboard.svelte";
-  import RepoDetail from "$lib/pages/RepoDetail.svelte";
-  import Settings from "$lib/pages/Settings.svelte";
-  import GuidedSetup from "$lib/pages/GuidedSetup.svelte";
-  import PackExport from "$lib/pages/PackExport.svelte";
-  import PackApply from "$lib/pages/PackApply.svelte";
-  import Doctor from "$lib/pages/Doctor.svelte";
-  import Compare from "$lib/pages/Compare.svelte";
-  import { currentPage } from "$lib/stores/uiStore";
-  import { onMount } from "svelte";
+  import AppShell from '$lib/components/AppShell.svelte';
+  import Dashboard from '$lib/pages/Dashboard.svelte';
+  import RepoDetail from '$lib/pages/RepoDetail.svelte';
+  import Settings from '$lib/pages/Settings.svelte';
+  import GuidedSetup from '$lib/pages/GuidedSetup.svelte';
+  import BootError from '$lib/components/BootError.svelte';
+  import Toast from '$lib/components/Toast.svelte';
+  import { currentPage, theme, reducedMotion } from '$lib/stores/uiStore';
+  import { zoomIn, zoomOut, resetZoom } from '$lib/stores/zoomStore';
+  import { setupI18n, waitForI18n } from '$lib/i18n';
+  import { onMount } from 'svelte';
+  import { locale, _ } from 'svelte-i18n';
+
+  // Lazy-loaded pages (loaded on demand)
+  let PackExport: any = $state(null);
+  let PackApply: any = $state(null);
+  let Doctor: any = $state(null);
+  let Compare: any = $state(null);
+  let Activity: any = $state(null);
+
+  let bootError: { title: string; message: string; detail: string } | null = $state(null);
 
   onMount(async () => {
-    // Check if there are any repos already indexed
-    try {
-      const { invoke } = await import("@tauri-apps/api/core");
-      const repos = await invoke<any[]>("list_repositories", { filter: {} });
-      if (repos.length === 0) {
-        currentPage.set("guidedsetup");
+    setupI18n();
+    await waitForI18n();
+
+    // System theme listener
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    function onSystemChange() {
+      if ($theme === 'system') {
+        document.documentElement.dataset.theme = mq.matches ? 'dark' : 'light';
       }
-    } catch {
-      // First launch, show guided setup
-      currentPage.set("guidedsetup");
+    }
+    mq.addEventListener('change', onSystemChange);
+
+    // Zoom keyboard shortcuts: Ctrl/Cmd +/-
+    function handleKeydown(e: KeyboardEvent) {
+      if (!(e.ctrlKey || e.metaKey)) return;
+      if (e.key === '=' || e.key === '+') { e.preventDefault(); zoomIn(); }
+      else if (e.key === '-') { e.preventDefault(); zoomOut(); }
+      else if (e.key === '0') { e.preventDefault(); resetZoom(); }
+    }
+    document.addEventListener('keydown', handleKeydown);
+
+    try {
+      const { invoke } = await import('@tauri-apps/api/core');
+      // Load theme & motion settings
+      try {
+        const settings = await invoke<{ theme?: string; reduced_motion?: boolean }>('get_settings');
+        if (settings.theme) theme.set(settings.theme as 'dark' | 'light' | 'system');
+        if (settings.reduced_motion !== undefined) reducedMotion.set(settings.reduced_motion);
+      } catch { /* settings may not have these fields yet */ }
+      const repos = await invoke<any[]>('list_repositories', { filter: {} });
+      if (repos.length === 0) {
+        currentPage.set('guidedsetup');
+      }
+    } catch (e: any) {
+      const msg = String(e?.message ?? e);
+      // Categorize error
+      if (
+        msg.includes('not found') ||
+        msg.includes('No function') ||
+        msg.includes('not registered')
+      ) {
+        bootError = {
+          title: $_('app.backend_unavailable_title'),
+          message: $_('app.backend_unavailable_message'),
+          detail: msg,
+        };
+      } else if (msg.includes('no such table') || msg.includes('database')) {
+        bootError = {
+          title: $_('app.database_error_title'),
+          message: $_('app.database_error_message'),
+          detail: msg,
+        };
+      } else {
+        // First launch or empty state
+        currentPage.set('guidedsetup');
+      }
     }
   });
+
+  async function loadPage(name: string) {
+    if (name === 'packexport' && !PackExport) {
+      PackExport = (await import('$lib/pages/PackExport.svelte')).default;
+    } else if (name === 'packapply' && !PackApply) {
+      PackApply = (await import('$lib/pages/PackApply.svelte')).default;
+    } else if (name === 'doctor' && !Doctor) {
+      Doctor = (await import('$lib/pages/Doctor.svelte')).default;
+    } else if (name === 'compare' && !Compare) {
+      Compare = (await import('$lib/pages/Compare.svelte')).default;
+    } else if (name === 'activity' && !Activity) {
+      Activity = (await import('$lib/pages/Activity.svelte')).default;
+    }
+  }
+
+  // Pre-load page when currentPage changes
+  $effect(() => {
+    const page = $currentPage;
+    loadPage(page);
+  });
+
+  function renderPage() {
+    if (bootError) {
+      return BootError;
+    }
+    if (!$locale) return null;
+
+    const page = $currentPage;
+    if (page === 'guidedsetup') return GuidedSetup;
+    if (page === 'dashboard') return Dashboard;
+    if (page === 'settings') return Settings;
+    if (page === 'packexport') return PackExport;
+    if (page === 'packapply') return PackApply;
+    if (page === 'doctor') return Doctor;
+    if (page === 'compare') return Compare;
+    if (page === 'activity') return Activity;
+    if (page.startsWith('repo:')) return null; // Handled inline
+    return null;
+  }
 </script>
 
-<main>
-  {#if $currentPage === "guidedsetup"}
-    <GuidedSetup />
-  {:else if $currentPage === "dashboard"}
-    <Dashboard />
-  {:else if $currentPage === "settings"}
-    <Settings />
-  {:else if $currentPage === "packexport"}
-    <PackExport />
-  {:else if $currentPage === "packapply"}
-    <PackApply />
-  {:else if $currentPage === "doctor"}
-    <Doctor />
-  {:else if $currentPage === "compare"}
-    <Compare />
-  {:else if $currentPage.startsWith("repo:")}
-    <RepoDetail repoId={$currentPage.slice(5)} />
-  {/if}
-</main>
+{#if bootError}
+  <BootError title={bootError.title} message={bootError.message} detail={bootError.detail} />
+{:else if !$locale}
+  <div class="page-loading">Loading...</div>
+{:else}
+  <AppShell>
+    <Toast />
+    {#if $currentPage === 'guidedsetup'}
+      <GuidedSetup />
+    {:else if $currentPage === 'dashboard'}
+      <Dashboard />
+    {:else if $currentPage === 'repositories' || $currentPage === 'packs'}
+      <Dashboard />
+    {:else if $currentPage === 'packexport'}
+      {#if PackExport}
+        <PackExport />
+      {:else}
+        <div class="page-loading">{$_('app.loading')}</div>
+      {/if}
+    {:else if $currentPage === 'migration' || $currentPage === 'packapply'}
+      {#if PackApply}
+        <PackApply />
+      {:else}
+        <div class="page-loading">{$_('app.loading')}</div>
+      {/if}
+    {:else if $currentPage === 'settings'}
+      <Settings />
+    {:else if $currentPage === 'packexport'}
+      {#if PackExport}
+        <PackExport />
+      {:else}
+        <div class="page-loading">{$_('app.loading')}</div>
+      {/if}
+    {:else if $currentPage === 'packapply'}
+      {#if PackApply}
+        <PackApply />
+      {:else}
+        <div class="page-loading">{$_('app.loading')}</div>
+      {/if}
+    {:else if $currentPage === 'doctor'}
+      {#if Doctor}
+        <Doctor />
+      {:else}
+        <div class="page-loading">{$_('app.loading')}</div>
+      {/if}
+    {:else if $currentPage === 'compare'}
+      {#if Compare}
+        <Compare />
+      {:else}
+        <div class="page-loading">{$_('app.loading')}</div>
+      {/if}
+    {:else if $currentPage === 'activity'}
+      {#if Activity}
+        <Activity />
+      {:else}
+        <div class="page-loading">{$_('app.loading')}</div>
+      {/if}
+    {:else if $currentPage.startsWith('repo:')}
+      <RepoDetail repoId={$currentPage.slice(5)} />
+    {:else}
+      <BootError
+        title={$_('app.unknown_page_title')}
+        message={$_('app.unknown_page_message')}
+        detail={$currentPage}
+      />
+    {/if}
+  </AppShell>
+{/if}
 
 <style>
-  main {
-    min-height: 100vh;
-    background: var(--bg-primary, #f8fafc);
-    color: var(--text-primary, #0f172a);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  .page-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 60vh;
+    color: var(--text-muted);
+    font-size: var(--font-size-sm);
   }
 </style>

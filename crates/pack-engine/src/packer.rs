@@ -20,10 +20,7 @@ pub fn create_pack(
 ) -> Result<PackResult, String> {
     let pack_dir = base_dir.join(&manifest.name);
     if pack_dir.exists() {
-        return Err(format!(
-            "Pack directory already exists: {}",
-            pack_dir.display()
-        ));
+        return Err(format!("Pack directory already exists: {}", pack_dir.display()));
     }
 
     fs::create_dir_all(&pack_dir).map_err(|e| format!("Failed to create pack directory: {}", e))?;
@@ -31,30 +28,17 @@ pub fn create_pack(
     for resource in resources {
         let dest = pack_dir.join(&resource.relative_dest);
         if let Some(parent) = dest.parent() {
-            fs::create_dir_all(parent)
-                .map_err(|e| format!("Failed to create directory: {}", e))?;
+            fs::create_dir_all(parent).map_err(|e| format!("Failed to create directory: {}", e))?;
         }
-        fs::copy(&resource.source_path, &dest).map_err(|e| {
-            format!(
-                "Failed to copy {} -> {}: {}",
-                resource.source_path.display(),
-                dest.display(),
-                e
-            )
-        })?;
+        fs::copy(&resource.source_path, &dest)
+            .map_err(|e| format!("Failed to copy {} -> {}: {}", resource.source_path.display(), dest.display(), e))?;
     }
 
     let manifest_path = pack_dir.join("pack.manifest.json");
-    let manifest_json = manifest
-        .to_json()
-        .map_err(|e| format!("Failed to serialize manifest: {}", e))?;
-    fs::write(&manifest_path, manifest_json)
-        .map_err(|e| format!("Failed to write manifest: {}", e))?;
+    let manifest_json = manifest.to_json().map_err(|e| format!("Failed to serialize manifest: {}", e))?;
+    fs::write(&manifest_path, manifest_json).map_err(|e| format!("Failed to write manifest: {}", e))?;
 
-    Ok(PackResult {
-        pack_dir,
-        manifest: manifest.clone(),
-    })
+    Ok(PackResult { pack_dir, manifest: manifest.clone() })
 }
 
 /// Input for a single resource to be packed.
@@ -66,8 +50,7 @@ pub struct PackResourceInput {
 
 /// Compute SHA256 hash of a file's contents.
 pub fn compute_file_hash(path: &Path) -> Result<String, String> {
-    let contents = fs::read(path)
-        .map_err(|e| format!("Failed to read {} for hashing: {}", path.display(), e))?;
+    let contents = fs::read(path).map_err(|e| format!("Failed to read {} for hashing: {}", path.display(), e))?;
     let mut hasher = Sha256::new();
     hasher.update(&contents);
     let result = hasher.finalize();
@@ -92,9 +75,7 @@ pub fn detect_env_placeholders(content: &str) -> Vec<String> {
                 chars.next();
             }
             if !var_name.is_empty()
-                && var_name
-                    .chars()
-                    .all(|c| c.is_ascii_uppercase() || c == '_' || c.is_ascii_digit())
+                && var_name.chars().all(|c| c.is_ascii_uppercase() || c == '_' || c.is_ascii_digit())
             {
                 placeholders.push(var_name);
             }
@@ -148,10 +129,7 @@ mod tests {
         let result = create_pack(temp.path(), &resources, &manifest).unwrap();
         assert!(result.pack_dir.exists());
         assert!(result.pack_dir.join("pack.manifest.json").exists());
-        assert!(result
-            .pack_dir
-            .join("resources/skills/test-skill/SKILL.md")
-            .exists());
+        assert!(result.pack_dir.join("resources/skills/test-skill/SKILL.md").exists());
     }
 
     #[test]
@@ -174,10 +152,7 @@ mod tests {
 
         let hash = compute_file_hash(&file).unwrap();
         // SHA256 of "hello world"
-        assert_eq!(
-            hash,
-            "b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9"
-        );
+        assert_eq!(hash, "b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9");
     }
 
     #[test]

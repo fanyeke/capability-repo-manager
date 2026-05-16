@@ -1,5 +1,6 @@
 <script lang="ts">
-  import type { MigrationConflict } from "$lib/types";
+  import { _ } from 'svelte-i18n';
+  import type { MigrationConflict } from '$lib/types';
 
   let {
     conflicts,
@@ -9,20 +10,22 @@
 </script>
 
 {#if conflicts.length === 0}
-  <p class="no-conflicts">No conflicts detected.</p>
+  <p class="no-conflicts">{$_('migration.no_conflicts')}</p>
 {:else}
   <div class="conflict-list">
-    <h4>Conflicts ({conflicts.length})</h4>
+    <h4>{$_('migration.conflicts_title', { values: { n: conflicts.length } })}</h4>
     {#each conflicts as conflict (conflict.resource_name + conflict.resource_type)}
       <div class="conflict-card">
         <div class="conflict-header">
           <strong>{conflict.resource_name}</strong>
           <span class="type-tag">{conflict.resource_type}</span>
         </div>
-        <p class="conflict-reason">Reason: {conflict.reason}</p>
+        <p class="conflict-reason">
+          {$_('migration.reason', { values: { reason: conflict.reason } })}
+        </p>
         {#if conflict.recommended_actions.length > 0}
           <div class="recommended">
-            <span class="rec-label">Recommended:</span>
+            <span class="rec-label">{$_('migration.recommended')}</span>
             {#each conflict.recommended_actions as action}
               <span class="rec-action">{action}</span>
             {/each}
@@ -37,59 +40,59 @@
   .conflict-list {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: var(--space-2);
   }
   .conflict-list h4 {
     margin: 0;
-    color: #92400e;
+    color: var(--color-warning);
   }
   .conflict-card {
-    background: #fffbeb;
-    border: 1px solid #fde68a;
+    background: var(--color-warning-bg);
+    border: 1px solid var(--color-warning);
     padding: 10px 14px;
-    border-radius: 6px;
+    border-radius: var(--radius-md);
   }
   .conflict-header {
     display: flex;
     align-items: center;
-    gap: 8px;
-    margin-bottom: 4px;
+    gap: var(--space-2);
+    margin-bottom: var(--space-1);
   }
   .conflict-header strong {
-    font-size: 0.9rem;
+    font-size: var(--font-size-md);
   }
   .type-tag {
-    font-size: 0.7rem;
+    font-size: var(--font-size-xs);
     padding: 1px 6px;
-    border-radius: 4px;
-    background: #e0e7ff;
-    color: #3730a3;
+    border-radius: var(--radius-sm);
+    background: var(--color-primary-bg);
+    color: var(--color-primary-text);
   }
   .conflict-reason {
-    font-size: 0.8rem;
-    color: #b45309;
-    margin: 4px 0;
+    font-size: var(--font-size-sm);
+    color: var(--color-warning);
+    margin: var(--space-1) 0;
   }
   .recommended {
     display: flex;
-    gap: 4px;
+    gap: var(--space-1);
     align-items: center;
     flex-wrap: wrap;
   }
   .rec-label {
-    font-size: 0.75rem;
-    color: #92400e;
+    font-size: var(--font-size-xs);
+    color: var(--color-warning);
   }
   .rec-action {
     padding: 1px 6px;
-    background: #fef3c7;
-    border-radius: 3px;
-    font-size: 0.7rem;
-    color: #92400e;
+    background: var(--color-warning-bg);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-xs);
+    color: var(--color-warning);
   }
   .no-conflicts {
-    color: #16a34a;
-    font-size: 0.9rem;
-    padding: 12px 0;
+    color: var(--color-success);
+    font-size: var(--font-size-md);
+    padding: var(--space-3) 0;
   }
 </style>

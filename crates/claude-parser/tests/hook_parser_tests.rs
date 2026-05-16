@@ -32,13 +32,13 @@ fn parses_hooks_from_settings_json() {
     }"#;
     let dir = setup_temp_repo(&[(".claude/settings.json", settings)]);
 
-    let resources = claude_parser::hook_parser::parse_hooks(
-        dir.path().to_str().unwrap(),
-    );
+    let resources = claude_parser::hook_parser::parse_hooks(dir.path().to_str().unwrap());
 
-    assert_eq!(resources.len(), 2);
+    // 2 hooks + 1 settings resource
+    assert_eq!(resources.len(), 3);
     let types: Vec<&str> = resources.iter().map(|r| r.r#type.as_str()).collect();
-    assert!(types.iter().all(|t| *t == "hook"));
+    assert!(types.iter().any(|t| *t == "hook"));
+    assert!(types.iter().any(|t| *t == "settings"));
 
     let names: Vec<&str> = resources.iter().map(|r| r.name.as_str()).collect();
     assert!(names.contains(&"tmux-reminder"));
@@ -46,8 +46,7 @@ fn parses_hooks_from_settings_json() {
 
     // Verify hook type metadata
     let tmux = resources.iter().find(|r| r.name == "tmux-reminder").unwrap();
-    let meta: serde_json::Value =
-        serde_json::from_str(tmux.metadata_json.as_ref().unwrap()).unwrap();
+    let meta: serde_json::Value = serde_json::from_str(tmux.metadata_json.as_ref().unwrap()).unwrap();
     assert_eq!(meta["hook_type"], "PreToolUse");
     assert_eq!(meta["command"], "echo 'long running'");
 }
@@ -61,9 +60,7 @@ fn settings_local_json_has_local_scope() {
     }"#;
     let dir = setup_temp_repo(&[(".claude/settings.local.json", settings)]);
 
-    let resources = claude_parser::hook_parser::parse_hooks(
-        dir.path().to_str().unwrap(),
-    );
+    let resources = claude_parser::hook_parser::parse_hooks(dir.path().to_str().unwrap());
 
     assert_eq!(resources.len(), 1);
     assert_eq!(resources[0].scope, "local");
@@ -74,20 +71,18 @@ fn settings_without_hooks_key_returns_empty() {
     let settings = r#"{"permissions": {"allow": ["read"]}}"#;
     let dir = setup_temp_repo(&[(".claude/settings.json", settings)]);
 
-    let resources = claude_parser::hook_parser::parse_hooks(
-        dir.path().to_str().unwrap(),
-    );
+    let resources = claude_parser::hook_parser::parse_hooks(dir.path().to_str().unwrap());
 
-    assert_eq!(resources.len(), 0);
+    // No hooks but still emit 1 settings resource
+    assert_eq!(resources.len(), 1);
+    assert_eq!(resources[0].r#type, "settings");
 }
 
 #[test]
 fn no_settings_file_returns_empty() {
     let dir = setup_temp_repo(&[("README.md", "# No settings")]);
 
-    let resources = claude_parser::hook_parser::parse_hooks(
-        dir.path().to_str().unwrap(),
-    );
+    let resources = claude_parser::hook_parser::parse_hooks(dir.path().to_str().unwrap());
 
     assert_eq!(resources.len(), 0);
 }
@@ -110,20 +105,17 @@ fn hook_with_multiple_hook_types() {
     }"#;
     let dir = setup_temp_repo(&[(".claude/settings.json", settings)]);
 
-    let resources = claude_parser::hook_parser::parse_hooks(
-        dir.path().to_str().unwrap(),
-    );
+    let resources = claude_parser::hook_parser::parse_hooks(dir.path().to_str().unwrap());
 
-    assert_eq!(resources.len(), 4);
+    // 4 hooks + 1 settings resource
+    assert_eq!(resources.len(), 5);
 
     let pre1 = resources.iter().find(|r| r.name == "pre-hook-1").unwrap();
-    let meta1: serde_json::Value =
-        serde_json::from_str(pre1.metadata_json.as_ref().unwrap()).unwrap();
+    let meta1: serde_json::Value = serde_json::from_str(pre1.metadata_json.as_ref().unwrap()).unwrap();
     assert_eq!(meta1["hook_type"], "PreToolUse");
 
     let stop = resources.iter().find(|r| r.name == "stop-hook").unwrap();
-    let meta_s: serde_json::Value =
-        serde_json::from_str(stop.metadata_json.as_ref().unwrap()).unwrap();
+    let meta_s: serde_json::Value = serde_json::from_str(stop.metadata_json.as_ref().unwrap()).unwrap();
     assert_eq!(meta_s["hook_type"], "Stop");
 }
 
@@ -136,10 +128,10 @@ fn hook_without_name_uses_command_as_name() {
     }"#;
     let dir = setup_temp_repo(&[(".claude/settings.json", settings)]);
 
-    let resources = claude_parser::hook_parser::parse_hooks(
-        dir.path().to_str().unwrap(),
-    );
+    let resources = claude_parser::hook_parser::parse_hooks(dir.path().to_str().unwrap());
 
-    assert_eq!(resources.len(), 1);
-    assert_eq!(resources[0].name, "mytool");
+    // 1 hook + 1 settings resource
+    assert_eq!(resources.len(), 2);
+    assert!(resources.iter().any(|r| r.r#type == "hook" && r.name == "mytool"));
+    assert!(resources.iter().any(|r| r.r#type == "settings"));
 }

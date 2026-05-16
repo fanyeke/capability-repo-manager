@@ -15,31 +15,20 @@ pub struct PackStore {
 impl PackStore {
     /// Create a new PackStore with the given storage root directory.
     pub fn new(storage_root: PathBuf) -> Self {
-        PackStore {
-            packs: Vec::new(),
-            storage_root,
-        }
+        PackStore { packs: Vec::new(), storage_root }
     }
 
     /// Insert a pack into the library. Rejects duplicate (name, version) pairs.
     pub fn insert(&mut self, pack: CapabilityPack) -> Result<(), String> {
-        if self
-            .packs
-            .iter()
-            .any(|p| p.name == pack.name && p.version == pack.version)
-        {
-            return Err(format!(
-                "Pack with name '{}' and version '{}' already exists",
-                pack.name, pack.version
-            ));
+        if self.packs.iter().any(|p| p.name == pack.name && p.version == pack.version) {
+            return Err(format!("Pack with name '{}' and version '{}' already exists", pack.name, pack.version));
         }
 
         // Ensure storage directory exists
         if !pack.storage_dir.is_empty() {
             let dir = Path::new(&pack.storage_dir);
             if !dir.exists() {
-                fs::create_dir_all(dir)
-                    .map_err(|e| format!("Failed to create pack storage dir: {}", e))?;
+                fs::create_dir_all(dir).map_err(|e| format!("Failed to create pack storage dir: {}", e))?;
             }
         }
 
@@ -54,14 +43,7 @@ impl PackStore {
 
     /// List all packs, optionally filtered by pack_type.
     pub fn list(&self, pack_type: Option<&str>) -> Vec<&CapabilityPack> {
-        self.packs
-            .iter()
-            .filter(|p| {
-                pack_type
-                    .map(|pt| p.pack_type == pt)
-                    .unwrap_or(true)
-            })
-            .collect()
+        self.packs.iter().filter(|p| pack_type.map(|pt| p.pack_type == pt).unwrap_or(true)).collect()
     }
 
     /// List all packs matching a search term (matches name and description).
@@ -71,10 +53,7 @@ impl PackStore {
             .iter()
             .filter(|p| {
                 p.name.to_lowercase().contains(&q)
-                    || p.description
-                        .as_ref()
-                        .map(|d| d.to_lowercase().contains(&q))
-                        .unwrap_or(false)
+                    || p.description.as_ref().map(|d| d.to_lowercase().contains(&q)).unwrap_or(false)
             })
             .collect()
     }
@@ -82,19 +61,14 @@ impl PackStore {
     /// Delete a pack by ID. Returns error if pack not found.
     /// Also removes the pack directory from disk.
     pub fn delete(&mut self, id: &str) -> Result<CapabilityPack, String> {
-        let idx = self
-            .packs
-            .iter()
-            .position(|p| p.id == id)
-            .ok_or_else(|| format!("Pack not found: {}", id))?;
+        let idx = self.packs.iter().position(|p| p.id == id).ok_or_else(|| format!("Pack not found: {}", id))?;
 
         let pack = self.packs.remove(idx);
 
         // Remove pack directory from disk
         let pack_dir = Path::new(&pack.storage_dir);
         if pack_dir.exists() {
-            fs::remove_dir_all(pack_dir)
-                .map_err(|e| format!("Failed to delete pack directory: {}", e))?;
+            fs::remove_dir_all(pack_dir).map_err(|e| format!("Failed to delete pack directory: {}", e))?;
         }
 
         Ok(pack)
@@ -145,9 +119,7 @@ mod tests {
     #[test]
     fn test_duplicate_name_version_rejected() {
         let mut store = PackStore::new(PathBuf::from("/tmp/test-packs"));
-        store
-            .insert(make_pack("p1", "test-pack", "1.0.0", "project"))
-            .unwrap();
+        store.insert(make_pack("p1", "test-pack", "1.0.0", "project")).unwrap();
         let result = store.insert(make_pack("p2", "test-pack", "1.0.0", "blueprint"));
         assert!(result.is_err());
         assert!(result.unwrap_err().contains("already exists"));
@@ -156,12 +128,8 @@ mod tests {
     #[test]
     fn test_list_all() {
         let mut store = PackStore::new(PathBuf::from("/tmp/test-packs"));
-        store
-            .insert(make_pack("p1", "pack-a", "1.0.0", "project"))
-            .unwrap();
-        store
-            .insert(make_pack("p2", "pack-b", "2.0.0", "blueprint"))
-            .unwrap();
+        store.insert(make_pack("p1", "pack-a", "1.0.0", "project")).unwrap();
+        store.insert(make_pack("p2", "pack-b", "2.0.0", "blueprint")).unwrap();
 
         let all = store.list(None);
         assert_eq!(all.len(), 2);
@@ -170,12 +138,8 @@ mod tests {
     #[test]
     fn test_list_filter_by_type() {
         let mut store = PackStore::new(PathBuf::from("/tmp/test-packs"));
-        store
-            .insert(make_pack("p1", "pack-a", "1.0.0", "project"))
-            .unwrap();
-        store
-            .insert(make_pack("p2", "pack-b", "2.0.0", "blueprint"))
-            .unwrap();
+        store.insert(make_pack("p1", "pack-a", "1.0.0", "project")).unwrap();
+        store.insert(make_pack("p2", "pack-b", "2.0.0", "blueprint")).unwrap();
 
         let projects = store.list(Some("project"));
         assert_eq!(projects.len(), 1);
@@ -185,12 +149,8 @@ mod tests {
     #[test]
     fn test_search_packs() {
         let mut store = PackStore::new(PathBuf::from("/tmp/test-packs"));
-        store
-            .insert(make_pack("p1", "devops-tools", "1.0.0", "project"))
-            .unwrap();
-        store
-            .insert(make_pack("p2", "frontend-setup", "1.0.0", "blueprint"))
-            .unwrap();
+        store.insert(make_pack("p1", "devops-tools", "1.0.0", "project")).unwrap();
+        store.insert(make_pack("p2", "frontend-setup", "1.0.0", "blueprint")).unwrap();
 
         let results = store.search("devops");
         assert_eq!(results.len(), 1);
@@ -200,9 +160,7 @@ mod tests {
     #[test]
     fn test_delete_pack() {
         let mut store = PackStore::new(PathBuf::from("/tmp/test-packs"));
-        store
-            .insert(make_pack("p1", "test-pack", "1.0.0", "project"))
-            .unwrap();
+        store.insert(make_pack("p1", "test-pack", "1.0.0", "project")).unwrap();
         assert_eq!(store.len(), 1);
 
         let removed = store.delete("p1").unwrap();

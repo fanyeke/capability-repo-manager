@@ -13,6 +13,7 @@ export default defineConfig({
     environment: "jsdom",
     include: ["src/tests/unit/**/*.test.ts"],
     css: false,
+    setupFiles: ["src/tests/vitest-setup.ts"],
     server: {
       deps: {
         inline: ["@testing-library/svelte"],

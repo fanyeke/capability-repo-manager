@@ -6,6 +6,7 @@ use crate::state::AppState;
 use domain::CapabilityPack;
 use pack_engine;
 use pack_engine::manifest::Manifest;
+use storage::pack_store::PackStore;
 use storage::{repo_store::RepositoryStore, resource_store::ResourceStore};
 
 #[derive(serde::Serialize)]
@@ -65,6 +66,18 @@ pub fn export_capability_pack(
     metadata: PackMetadata,
     state: State<AppState>,
 ) -> Result<PackSummary, String> {
+    let ctx = domain::OperationContext::new("export_pack");
+    let _span = tracing::info_span!("export_pack", operation_id = %ctx.operation_id).entered();
+
+    tracing::info!(
+        operation_id = %ctx.operation_id,
+        repo_id = %repo_id,
+        pack_name = %metadata.name,
+        version = %metadata.version,
+        selected = %selection.resource_ids.len(),
+        "pack_export_started"
+    );
+
     let db = state.db.lock().map_err(|e| e.to_string())?;
     let settings = state.settings.lock().map_err(|e| e.to_string())?;
 
@@ -76,14 +89,10 @@ pub fn export_capability_pack(
         .map_err(|e| format!("Database error: {}", e))?
         .ok_or_else(|| format!("Repository not found: {}", repo_id))?;
 
-    let all_resources = resource_store
-        .get_by_repo(&repo_id)
-        .map_err(|e| format!("Database error: {}", e))?;
+    let all_resources = resource_store.get_by_repo(&repo_id).map_err(|e| format!("Database error: {}", e))?;
 
-    let selected: Vec<domain::CapabilityResource> = all_resources
-        .into_iter()
-        .filter(|r| selection.resource_ids.contains(&r.id))
-        .collect();
+    let selected: Vec<domain::CapabilityResource> =
+        all_resources.into_iter().filter(|r| selection.resource_ids.contains(&r.id)).collect();
 
     let output_dir = PathBuf::from(&settings.pack_storage_dir);
     std::fs::create_dir_all(&output_dir).map_err(|e| format!("Cannot create pack directory: {}", e))?;
@@ -101,8 +110,11 @@ pub fn export_capability_pack(
     };
 
     let mut library = pack_engine::library::PackStore::new(PathBuf::from(&settings.pack_storage_dir));
-    let result = pack_engine::export_pack(request, &mut library)
-        .map_err(|e| format!("Export failed: {}", e))?;
+    let result = pack_engine::export_pack(request, &mut library).map_err(|e| format!("Export failed: {}", e))?;
+
+    // Persist pack metadata to DB
+    let pack_store = PackStore::new(&db);
+    pack_store.insert_pack(&result.pack).map_err(|e| format!("Failed to persist pack metadata: {}", e))?;
 
     // Store pack resources in DB
     let mut pack_resources: Vec<domain::CapabilityResource> = Vec::new();
@@ -122,10 +134,15 @@ pub fn export_capability_pack(
         });
     }
     if !pack_resources.is_empty() {
-        resource_store
-            .insert_batch(&pack_resources)
-            .map_err(|e| format!("Failed to store pack resources: {}", e))?;
+        resource_store.insert_batch(&pack_resources).map_err(|e| format!("Failed to store pack resources: {}", e))?;
     }
+
+    tracing::info!(
+        operation_id = %ctx.operation_id,
+        pack_id = %result.pack.id,
+        resources = %result.manifest.resources.len(),
+        "pack_export_finished"
+    );
 
     Ok(PackSummary {
         id: result.pack.id,
@@ -140,41 +157,22 @@ pub fn export_capability_pack(
 }
 
 #[tauri::command]
-pub fn list_packs(
-    filter: PackFilter,
-    state: State<AppState>,
-) -> Result<Vec<PackSummary>, String> {
+pub fn list_packs(filter: PackFilter, state: State<AppState>) -> Result<Vec<PackSummary>, String> {
     let db = state.db.lock().map_err(|e| e.to_string())?;
-    let settings = state.settings.lock().map_err(|e| e.to_string())?;
 
-    let library = pack_engine::library::PackStore::new(PathBuf::from(&settings.pack_storage_dir));
-    let packs = library.list(None);
+    let pack_store = PackStore::new(&db);
+    let packs = pack_store
+        .list_packs(filter.search.as_deref(), filter.pack_type.as_deref())
+        .map_err(|e| format!("Database error: {}", e))?;
 
     let mut summaries = Vec::new();
     for pack in packs {
-        if let Some(ref search) = filter.search {
-            let s = search.to_lowercase();
-            if !pack.name.to_lowercase().contains(&s) {
-                continue;
-            }
-        }
-        if let Some(ref pt) = filter.pack_type {
-            if &pack.pack_type != pt {
-                continue;
-            }
-        }
+        let resources = ResourceStore::new(&db).get_by_pack(&pack.id).unwrap_or_default();
 
-        let resources = storage::resource_store::ResourceStore::new(&db)
-            .get_by_pack(&pack.id)
-            .unwrap_or_default();
-
-        let repo_name = pack.source_repo_id.as_ref().and_then(|rid| {
-            RepositoryStore::new(&db)
-                .get_by_id(rid)
-                .ok()
-                .flatten()
-                .map(|r| r.name)
-        });
+        let repo_name = pack
+            .source_repo_id
+            .as_ref()
+            .and_then(|rid| RepositoryStore::new(&db).get_by_id(rid).ok().flatten().map(|r| r.name));
 
         summaries.push(PackSummary {
             id: pack.id.clone(),
@@ -192,63 +190,86 @@ pub fn list_packs(
 }
 
 #[tauri::command]
-pub fn get_pack_detail(
-    pack_id: String,
-    state: State<AppState>,
-) -> Result<PackDetail, String> {
+pub fn get_pack_detail(pack_id: String, state: State<AppState>) -> Result<PackDetail, String> {
     let db = state.db.lock().map_err(|e| e.to_string())?;
-    let settings = state.settings.lock().map_err(|e| e.to_string())?;
 
-    let library = pack_engine::library::PackStore::new(PathBuf::from(&settings.pack_storage_dir));
-    let pack = library
-        .get_by_id(&pack_id)
+    let pack_store = PackStore::new(&db);
+    let pack = pack_store
+        .get_pack_by_id(&pack_id)
+        .map_err(|e| format!("Database error: {}", e))?
         .ok_or_else(|| format!("Pack not found: {}", pack_id))?;
 
-    let resources = storage::resource_store::ResourceStore::new(&db)
-        .get_by_pack(&pack_id)
-        .unwrap_or_default();
+    let resources = ResourceStore::new(&db).get_by_pack(&pack_id).unwrap_or_default();
 
     let manifest_path = std::path::Path::new(&pack.manifest_path);
     let manifest: serde_json::Value = if manifest_path.exists() {
-        let content = std::fs::read_to_string(manifest_path)
-            .map_err(|e| format!("Cannot read manifest: {}", e))?;
+        let content = std::fs::read_to_string(manifest_path).map_err(|e| format!("Cannot read manifest: {}", e))?;
         serde_json::from_str(&content).unwrap_or(serde_json::json!({}))
     } else {
         serde_json::json!({})
     };
 
-    Ok(PackDetail {
-        pack: pack.clone(),
-        resources,
-        manifest,
-    })
+    Ok(PackDetail { pack, resources, manifest })
 }
 
 #[tauri::command]
-pub fn delete_pack(
-    pack_id: String,
-    state: State<AppState>,
-) -> Result<(), String> {
-    let settings = state.settings.lock().map_err(|e| e.to_string())?;
+pub fn delete_pack(pack_id: String, state: State<AppState>) -> Result<(), String> {
+    let ctx = domain::OperationContext::new("delete_pack");
+    let _span = tracing::info_span!("delete_pack", operation_id = %ctx.operation_id).entered();
 
-    let mut library = pack_engine::library::PackStore::new(PathBuf::from(&settings.pack_storage_dir));
-    library
-        .delete(&pack_id)
-        .map_err(|e| format!("Failed to delete pack: {}", e))?;
+    tracing::info!(
+        operation_id = %ctx.operation_id,
+        pack_id = %pack_id,
+        "pack_delete_started"
+    );
+
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+
+    let pack_store = PackStore::new(&db);
+
+    // First get pack info to know storage_dir (before deleting DB record)
+    let pack = pack_store
+        .get_pack_by_id(&pack_id)
+        .map_err(|e| format!("Database error: {}", e))?
+        .ok_or_else(|| format!("Pack not found: {}", pack_id))?;
+
+    // Delete files first, then DB (atomicity: file failure stops before DB delete)
+    let settings = state.settings.lock().map_err(|e| e.to_string())?;
+    let allowed_base = std::path::Path::new(&settings.pack_storage_dir).canonicalize().unwrap_or_default();
+    let pack_dir = std::path::Path::new(&pack.storage_dir);
+    if pack_dir.exists() {
+        // Safety check: ensure pack_dir is within the allowed storage directory
+        if let Ok(canonical) = pack_dir.canonicalize() {
+            if !allowed_base.as_os_str().is_empty() && !canonical.starts_with(&allowed_base) {
+                return Err(format!("Pack directory outside allowed storage area: {}", pack_dir.display()));
+            }
+        }
+        std::fs::remove_dir_all(pack_dir).map_err(|e| format!("Failed to delete pack directory: {}", e))?;
+    }
+
+    // Now delete DB record
+    pack_store
+        .delete_pack(&pack_id)
+        .map_err(|e| format!("Database error: {}", e))?
+        .ok_or_else(|| format!("Pack not found: {}", pack_id))?;
+
+    tracing::info!(
+        operation_id = %ctx.operation_id,
+        pack_id = %pack_id,
+        "pack_delete_finished"
+    );
 
     Ok(())
 }
 
 #[tauri::command]
-pub fn validate_pack(
-    pack_id: String,
-    state: State<AppState>,
-) -> Result<ValidationResult, String> {
-    let settings = state.settings.lock().map_err(|e| e.to_string())?;
+pub fn validate_pack(pack_id: String, state: State<AppState>) -> Result<ValidationResult, String> {
+    let db = state.db.lock().map_err(|e| e.to_string())?;
 
-    let library = pack_engine::library::PackStore::new(PathBuf::from(&settings.pack_storage_dir));
-    let pack = library
-        .get_by_id(&pack_id)
+    let pack_store = PackStore::new(&db);
+    let pack = pack_store
+        .get_pack_by_id(&pack_id)
+        .map_err(|e| format!("Database error: {}", e))?
         .ok_or_else(|| format!("Pack not found: {}", pack_id))?;
 
     let pack_dir = std::path::Path::new(&pack.storage_dir);
@@ -257,18 +278,13 @@ pub fn validate_pack(
     if !manifest_path.exists() {
         return Ok(ValidationResult {
             valid: false,
-            errors: vec![ValidationError {
-                resource_ref: None,
-                message: "Manifest file not found".to_string(),
-            }],
+            errors: vec![ValidationError { resource_ref: None, message: "Manifest file not found".to_string() }],
         });
     }
 
-    let content = std::fs::read_to_string(&manifest_path)
-        .map_err(|e| format!("Cannot read manifest: {}", e))?;
+    let content = std::fs::read_to_string(&manifest_path).map_err(|e| format!("Cannot read manifest: {}", e))?;
 
-    let manifest: Manifest = serde_json::from_str(&content)
-        .map_err(|e| format!("Invalid manifest JSON: {}", e))?;
+    let manifest: Manifest = serde_json::from_str(&content).map_err(|e| format!("Invalid manifest JSON: {}", e))?;
 
     let result = pack_engine::validate_existing_pack(pack_dir, &manifest);
 
@@ -277,10 +293,7 @@ pub fn validate_pack(
         errors: result
             .errors
             .into_iter()
-            .map(|e| ValidationError {
-                resource_ref: e.resource_ref,
-                message: e.message,
-            })
+            .map(|e| ValidationError { resource_ref: e.resource_ref, message: e.message })
             .collect(),
     })
 }

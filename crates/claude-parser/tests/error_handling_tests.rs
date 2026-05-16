@@ -16,9 +16,7 @@ fn setup_temp_repo(files: &[(&str, &str)]) -> tempfile::TempDir {
 fn malformed_mcp_json_produces_parse_error_resource() {
     let dir = setup_temp_repo(&[(".claude/mcp.json", "not valid json {{{")]);
 
-    let resources = claude_parser::mcp_parser::parse_mcp(
-        dir.path().to_str().unwrap(),
-    );
+    let resources = claude_parser::mcp_parser::parse_mcp(dir.path().to_str().unwrap());
 
     assert_eq!(resources.len(), 1);
     let err = &resources[0];
@@ -31,9 +29,7 @@ fn malformed_mcp_json_produces_parse_error_resource() {
 fn malformed_settings_json_produces_parse_error() {
     let dir = setup_temp_repo(&[(".claude/settings.json", "{broken")]);
 
-    let resources = claude_parser::hook_parser::parse_hooks(
-        dir.path().to_str().unwrap(),
-    );
+    let resources = claude_parser::hook_parser::parse_hooks(dir.path().to_str().unwrap());
 
     assert_eq!(resources.len(), 1);
     assert!(resources[0].error_message.is_some());
@@ -42,15 +38,13 @@ fn malformed_settings_json_produces_parse_error() {
 #[test]
 fn mcp_json_with_invalid_server_entry_handled() {
     let mcp_config = r#"[
-        {"serverName": "good", "command": "echo"},
+        {"name": "good", "command": "echo"},
         "not an object",
-        {"serverName": "also-good", "command": "ls"}
+        {"name": "also-good", "command": "ls"}
     ]"#;
     let dir = setup_temp_repo(&[(".claude/mcp.json", mcp_config)]);
 
-    let resources = claude_parser::mcp_parser::parse_mcp(
-        dir.path().to_str().unwrap(),
-    );
+    let resources = claude_parser::mcp_parser::parse_mcp(dir.path().to_str().unwrap());
 
     // Should have 2 good servers and 1 error resource
     assert_eq!(resources.len(), 3);
@@ -64,9 +58,7 @@ fn mcp_json_with_invalid_server_entry_handled() {
 fn missing_skills_dir_handled_gracefully() {
     let dir = setup_temp_repo(&[("README.md", "# No skills here")]);
 
-    let resources = claude_parser::skill_parser::parse_skills(
-        dir.path().to_str().unwrap(),
-    );
+    let resources = claude_parser::skill_parser::parse_skills(dir.path().to_str().unwrap());
 
     // Should not crash, return empty
     assert_eq!(resources.len(), 0);
@@ -74,11 +66,9 @@ fn missing_skills_dir_handled_gracefully() {
 
 #[test]
 fn skill_dir_without_md_file_is_skipped() {
-    let dir = setup_temp_repo(&[("skills/incomplete/.gitkeep", "")]);
+    let dir = setup_temp_repo(&[(".claude/skills/incomplete/.gitkeep", "")]);
 
-    let resources = claude_parser::skill_parser::parse_skills(
-        dir.path().to_str().unwrap(),
-    );
+    let resources = claude_parser::skill_parser::parse_skills(dir.path().to_str().unwrap());
 
     assert_eq!(resources.len(), 0);
 }
@@ -94,24 +84,20 @@ fn hooks_with_null_command_handled() {
     }"#;
     let dir = setup_temp_repo(&[(".claude/settings.json", settings)]);
 
-    let resources = claude_parser::hook_parser::parse_hooks(
-        dir.path().to_str().unwrap(),
-    );
+    let resources = claude_parser::hook_parser::parse_hooks(dir.path().to_str().unwrap());
 
-    // Should still create a resource, but with no command in metadata
-    assert_eq!(resources.len(), 1);
-    let meta: serde_json::Value =
-        serde_json::from_str(resources[0].metadata_json.as_ref().unwrap()).unwrap();
+    // Should still create a hook and a settings resource
+    assert_eq!(resources.len(), 2);
+    let hook = resources.iter().find(|r| r.r#type == "hook").unwrap();
+    let meta: serde_json::Value = serde_json::from_str(hook.metadata_json.as_ref().unwrap()).unwrap();
     assert!(meta["command"].is_null());
 }
 
 #[test]
 fn empty_skill_md_still_detected() {
-    let dir = setup_temp_repo(&[("skills/empty-skill/SKILL.md", "")]);
+    let dir = setup_temp_repo(&[(".claude/skills/empty-skill/SKILL.md", "")]);
 
-    let resources = claude_parser::skill_parser::parse_skills(
-        dir.path().to_str().unwrap(),
-    );
+    let resources = claude_parser::skill_parser::parse_skills(dir.path().to_str().unwrap());
 
     assert_eq!(resources.len(), 1);
     assert_eq!(resources[0].name, "empty-skill");

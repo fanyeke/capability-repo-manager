@@ -1,122 +1,127 @@
-import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/svelte";
-import MigrationPlan from "$lib/components/MigrationPlan.svelte";
-import type { MigrationPlan as MigrationPlanType, MigrationPlanItem, MigrationConflict } from "$lib/types";
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen } from '@testing-library/svelte';
+import MigrationPlan from '$lib/components/MigrationPlan.svelte';
+import type {
+  MigrationPlan as MigrationPlanType,
+  MigrationPlanItem,
+  MigrationConflict,
+} from '$lib/types';
 
 function makePlan(overrides: Partial<MigrationPlanType> = {}): MigrationPlanType {
   const items: MigrationPlanItem[] = [
     {
-      resource_id: "skill-1",
-      action: "add",
-      source_path: "/source/skill-a",
-      target_path: "/target/skill-a",
-      status: "pending",
+      resource_id: 'skill-1',
+      action: 'add',
+      source_path: '/source/skill-a',
+      target_path: '/target/skill-a',
+      status: 'pending',
     },
     {
-      resource_id: "rule-1",
-      action: "overwrite",
-      source_path: "/source/rule-a",
-      target_path: "/target/rule-a",
-      status: "pending",
+      resource_id: 'rule-1',
+      action: 'overwrite',
+      source_path: '/source/rule-a',
+      target_path: '/target/rule-a',
+      status: 'pending',
     },
   ];
   const conflicts: MigrationConflict[] = [
     {
-      resource_name: "my-hook",
-      resource_type: "hook",
-      reason: "same_name",
-      recommended_actions: ["skip", "rename"],
+      resource_name: 'my-hook',
+      resource_type: 'hook',
+      reason: 'same_name',
+      recommended_actions: ['skip', 'rename'],
     },
   ];
   return {
-    plan_id: "plan-1",
-    source: { type: "pack", id: "pack-1", name: "test-pack" },
-    target: { id: "repo-1", name: "target-repo" },
+    plan_id: 'plan-1',
+    source_type: 'pack',
+    source_id: 'pack-1',
+    target_repo_id: 'repo-1',
     items,
     conflicts,
-    missing_deps: [],
+    missing_dependencies: [],
     ...overrides,
   };
 }
 
-describe("MigrationPlan", () => {
+describe('MigrationPlan', () => {
   const defaultProps = {
     plan: null as MigrationPlanType | null,
     strategies: [] as { resource_id: string; action: string }[],
     onSetStrategy: vi.fn(),
   };
 
-  it("shows empty state when no plan", () => {
+  it('shows empty state when no plan', () => {
     const { container } = render(MigrationPlan, { props: defaultProps });
-    expect(container.textContent).toContain("No migration plan");
+    expect(container.textContent).toContain('暂无迁移计划');
   });
 
-  it("shows plan summary with source and target", () => {
+  it('shows plan summary with source and target', () => {
     const plan = makePlan();
     const { container } = render(MigrationPlan, {
       props: { ...defaultProps, plan },
     });
-    expect(container.textContent).toContain("test-pack");
-    expect(container.textContent).toContain("target-repo");
+    expect(container.textContent).toContain('pack-1');
+    expect(container.textContent).toContain('repo-1');
   });
 
-  it("shows item count in summary", () => {
+  it('shows item count in summary', () => {
     const plan = makePlan();
     const { container } = render(MigrationPlan, {
       props: { ...defaultProps, plan },
     });
-    expect(container.textContent).toContain("2");
+    expect(container.textContent).toContain('2');
   });
 
-  it("shows conflicts section when conflicts exist", () => {
+  it('shows conflicts section when conflicts exist', () => {
     const plan = makePlan();
     const { container } = render(MigrationPlan, {
       props: { ...defaultProps, plan },
     });
-    expect(container.textContent).toContain("Conflicts");
-    expect(container.textContent).toContain("my-hook");
+    expect(container.textContent).toContain('冲突');
+    expect(container.textContent).toContain('my-hook');
   });
 
-  it("shows conflict reason text", () => {
+  it('shows conflict reason text', () => {
     const plan = makePlan();
     const { container } = render(MigrationPlan, {
       props: { ...defaultProps, plan },
     });
-    expect(container.textContent).toContain("same_name");
+    expect(container.textContent).toContain('same_name');
   });
 
-  it("renders table with resource and action columns", () => {
+  it('renders table with resource and action columns', () => {
     const plan = makePlan();
     const { container } = render(MigrationPlan, {
       props: { ...defaultProps, plan },
     });
-    expect(container.textContent).toContain("Resource");
-    expect(container.textContent).toContain("Strategy");
+    expect(container.textContent).toContain('资源');
+    expect(container.textContent).toContain('策略');
   });
 
-  it("renders strategy select for overwrite items", () => {
+  it('renders strategy select for overwrite items', () => {
     const plan = makePlan();
     const { container } = render(MigrationPlan, {
       props: { ...defaultProps, plan },
     });
-    const selects = container.querySelectorAll("select");
+    const selects = container.querySelectorAll('select');
     expect(selects.length).toBeGreaterThan(0);
   });
 
-  it("shows conflict count as 0 when no conflicts", () => {
+  it('shows conflict count as 0 when no conflicts', () => {
     const plan = makePlan({ conflicts: [] });
     const { container } = render(MigrationPlan, {
       props: { ...defaultProps, plan },
     });
-    expect(container.textContent).toContain("0");
+    expect(container.textContent).toContain('0');
   });
 
-  it("shows action badges for items", () => {
+  it('shows action badges for items', () => {
     const plan = makePlan();
     const { container } = render(MigrationPlan, {
       props: { ...defaultProps, plan },
     });
-    expect(container.textContent).toContain("add");
-    expect(container.textContent).toContain("overwrite");
+    expect(container.textContent).toContain('add');
+    expect(container.textContent).toContain('overwrite');
   });
 });

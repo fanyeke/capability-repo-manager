@@ -1,6 +1,6 @@
 use domain::{
-    MigrationConflict, MigrationPlan, MigrationPlanItem, MigrationReport, MigrationReportItem,
-    MigrationReportSummary, MigrationRun, ResourceDependency,
+    MigrationConflict, MigrationPlan, MigrationPlanItem, MigrationReport, MigrationReportItem, MigrationReportSummary,
+    MigrationRun, ResourceDependency,
 };
 
 #[test]
@@ -30,7 +30,7 @@ fn test_migration_plan_with_conflicts() {
             resource_name: "pre-commit-hook".to_string(),
             resource_type: "hook".to_string(),
             reason: "same_name".to_string(),
-            recommended_actions: vec!["skip".to_string(), "overwrite".to_string(), "rename".to_string()],
+            recommended_actions: vec!["skip".to_string(), "overwrite".to_string()],
         }],
         missing_dependencies: vec![ResourceDependency {
             dep_type: "env".to_string(),
@@ -68,12 +68,7 @@ fn test_migration_run_state_transitions() {
 
 #[test]
 fn test_migration_report_summary() {
-    let summary = MigrationReportSummary {
-        added: 5,
-        overwritten: 2,
-        skipped: 1,
-        failed: 0,
-    };
+    let summary = MigrationReportSummary { added: 5, overwritten: 2, skipped: 1, failed: 0 };
     assert_eq!(summary.added + summary.overwritten + summary.skipped + summary.failed, 8);
 }
 
@@ -95,12 +90,7 @@ fn test_migration_report_with_failures() {
                 error: Some("Permission denied".to_string()),
             },
         ],
-        summary: MigrationReportSummary {
-            added: 1,
-            overwritten: 0,
-            skipped: 0,
-            failed: 1,
-        },
+        summary: MigrationReportSummary { added: 1, overwritten: 0, skipped: 0, failed: 1 },
     };
 
     assert_eq!(report.status, "applied");

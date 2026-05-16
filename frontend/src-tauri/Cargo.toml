@@ -12,7 +12,9 @@ tauri-build = { version = "2", features = [] }
 
 [dependencies]
 tauri = { version = "2", features = [] }
+tauri-plugin-dialog = "2"
 tauri-plugin-shell = "2"
 domain.workspace = true
+tauri-bridge = { path = "../../crates/tauri-bridge" }
 serde.workspace = true
 serde_json.workspace = true

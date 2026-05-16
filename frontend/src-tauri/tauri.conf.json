@@ -1,6 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/nicedoc/tauri/a40fe7f6f8869d3c944c1915af2c0e18b617a580/crates/tauri-cli/schema.json",
-  "productName": "Capability Repo Manager",
+  "productName": "能力仓库管理器",
   "version": "0.1.0",
   "identifier": "com.capability-repo-manager.app",
   "build": {
@@ -10,11 +10,10 @@
     "beforeBuildCommand": "pnpm build"
   },
   "app": {
-    "title": "Capability Repo Manager",
     "windows": [
       {
         "label": "main",
-        "title": "Capability Repo Manager",
+        "title": "能力仓库管理器",
         "width": 1200,
         "height": 800,
         "minWidth": 900,
@@ -29,11 +28,9 @@
     "active": true,
     "targets": "all",
     "icon": [
-      "icons/32x32.png",
-      "icons/128x128.png",
-      "icons/128x128@2x.png",
-      "icons/icon.icns",
-      "icons/icon.ico"
+      "icons/icon_32.png",
+      "icons/icon_128.png",
+      "icons/icon_256.png"
     ]
   }
 }

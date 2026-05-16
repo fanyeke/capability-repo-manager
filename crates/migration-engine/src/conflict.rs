@@ -17,10 +17,7 @@ pub fn detect_conflicts(
     let mut target_by_path: HashMap<String, Vec<&CapabilityResource>> = HashMap::new();
     for res in target_resources {
         if let Some(ref path) = res.source_path {
-            target_by_path
-                .entry(path.clone())
-                .or_default()
-                .push(res);
+            target_by_path.entry(path.clone()).or_default().push(res);
         }
     }
 
@@ -41,11 +38,7 @@ pub fn detect_conflicts(
                         resource_name: pack_res.name.clone(),
                         resource_type: pack_res.r#type.clone(),
                         reason: "overwrite".to_string(),
-                        recommended_actions: vec![
-                            "skip".to_string(),
-                            "overwrite".to_string(),
-                            "rename".to_string(),
-                        ],
+                        recommended_actions: vec!["skip".to_string(), "overwrite".to_string()],
                     });
                 }
             } else {
@@ -53,11 +46,7 @@ pub fn detect_conflicts(
                     resource_name: pack_res.name.clone(),
                     resource_type: pack_res.r#type.clone(),
                     reason: "path_conflict".to_string(),
-                    recommended_actions: vec![
-                        "skip".to_string(),
-                        "overwrite".to_string(),
-                        "rename".to_string(),
-                    ],
+                    recommended_actions: vec!["skip".to_string(), "overwrite".to_string()],
                 });
             }
         } else if let Some(ref pack_path) = pack_res.source_path {
@@ -65,17 +54,13 @@ pub fn detect_conflicts(
             if let Some(occupants) = target_by_path.get(pack_path) {
                 for occupant in occupants {
                     // Avoid duplicate conflicts
-                    if !conflicts.iter().any(|c| {
-                        c.resource_name == occupant.name && c.resource_type == occupant.r#type
-                    }) {
+                    if !conflicts.iter().any(|c| c.resource_name == occupant.name && c.resource_type == occupant.r#type)
+                    {
                         conflicts.push(MigrationConflict {
                             resource_name: pack_res.name.clone(),
                             resource_type: pack_res.r#type.clone(),
                             reason: "path_conflict".to_string(),
-                            recommended_actions: vec![
-                                "skip".to_string(),
-                                "rename".to_string(),
-                            ],
+                            recommended_actions: vec!["skip".to_string()],
                         });
                     }
                 }

@@ -1,4 +1,48 @@
+use std::str::FromStr;
+
 use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub enum ConflictAction {
+    Skip,
+    Overwrite,
+}
+
+impl FromStr for ConflictAction {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "skip" => Ok(Self::Skip),
+            "overwrite" => Ok(Self::Overwrite),
+            _ => Err(()),
+        }
+    }
+}
+
+impl ConflictAction {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::Skip => "skip",
+            Self::Overwrite => "overwrite",
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct MigrationSnapshot {
+    pub id: String,
+    pub run_id: String,
+    pub created_at: String,
+    pub items: Vec<SnapshotItem>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct SnapshotItem {
+    pub target_path: String,
+    pub existed_before: bool,
+    pub backup_path: String,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct MigrationPlan {
@@ -30,6 +74,7 @@ pub struct MigrationConflict {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct ResourceDependency {
+    #[serde(rename = "type")]
     pub dep_type: String,
     pub name: String,
     pub required: bool,

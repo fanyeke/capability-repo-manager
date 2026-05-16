@@ -1,0 +1,8 @@
+/* Layout constants */
+:root {
+  --sidebar-width: 220px;
+  --sidebar-collapsed-width: 56px;
+  --header-height: 48px;
+  --content-max-width: 1400px;
+  --content-padding: var(--space-6);
+}
