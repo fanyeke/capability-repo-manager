@@ -5,6 +5,7 @@
   import Settings from '$lib/pages/Settings.svelte';
   import GuidedSetup from '$lib/pages/GuidedSetup.svelte';
   import BootError from '$lib/components/BootError.svelte';
+  import Toast from '$lib/components/Toast.svelte';
   import { currentPage } from '$lib/stores/uiStore';
   import { setupI18n, waitForI18n } from '$lib/i18n';
   import { onMount } from 'svelte';
@@ -100,6 +101,7 @@
   <div class="page-loading">Loading...</div>
 {:else}
   <AppShell>
+    <Toast />
     {#if $currentPage === 'guidedsetup'}
       <GuidedSetup />
     {:else if $currentPage === 'dashboard'}

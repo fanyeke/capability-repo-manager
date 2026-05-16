@@ -1,6 +1,9 @@
 <script lang="ts">
   import { currentPage, navigateTo } from '$lib/stores/uiStore';
   import { _ } from 'svelte-i18n';
+  import { showToast } from '$lib/stores/toastStore';
+  import Button from '$lib/components/Button.svelte';
+  import Card from '$lib/components/Card.svelte';
 
   let scanRoots = $state('');
   let scanDepth = $state('5');
@@ -49,8 +52,9 @@
           log_level: logLevel,
         },
       });
+      showToast($_('settings.saved'), 'success');
     } catch (e) {
-      console.error('Failed to save settings:', e);
+      showToast($_('settings.save_error') + ': ' + String(e), 'error');
     } finally {
       isLoading = false;
     }

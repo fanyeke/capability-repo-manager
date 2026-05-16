@@ -93,7 +93,9 @@
     "log_level_hint": "Verbosity of log output (restart required for file output)",
     "open_log_dir": "Open Log Directory",
     "redact_paths": "Redact Paths",
-    "redact_paths_hint": "Replace home directory paths with ~ in exports"
+    "redact_paths_hint": "Replace home directory paths with ~ in exports",
+    "saved": "Settings saved",
+    "save_error": "Failed to save settings"
   },
   "repo": {
     "detail_title": "Repository Details",
