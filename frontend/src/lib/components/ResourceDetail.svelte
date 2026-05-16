@@ -1,153 +1,209 @@
 <script lang="ts">
   import { _ } from 'svelte-i18n';
-  import type { CapabilityResource } from '$lib/types';
+  import type { CapabilityResource, ResourceContent } from '$lib/types';
+  import { FileText, Code, Archive } from 'lucide-svelte';
+  import Badge from './Badge.svelte';
+  import StatusPill from './StatusPill.svelte';
+  import ResourceIcon from './ResourceIcon.svelte';
+  import Tabs from './Tabs.svelte';
+  import CodeViewer from './CodeViewer.svelte';
+  import Banner from './Banner.svelte';
+  import Skeleton from './Skeleton.svelte';
 
   let {
     resource,
   }: {
     resource: CapabilityResource | null;
   } = $props();
+
+  let activeTab = $state<'overview' | 'content' | 'metadata'>('overview');
+  let content = $state<ResourceContent | null>(null);
+  let contentLoading = $state(false);
+  let contentError = $state<string | null>(null);
+
+  $effect(() => {
+    if (resource && activeTab === 'content') {
+      loadContent();
+    }
+  });
+
+  async function loadContent() {
+    if (!resource || content) return;
+    contentLoading = true;
+    contentError = null;
+    try {
+      const { invoke } = await import('@tauri-apps/api/core');
+      const result = await invoke<ResourceContent>('get_resource_content', {
+        resourceId: resource.id,
+      });
+      content = result;
+    } catch (e: any) {
+      contentError = e?.message ?? String(e);
+    } finally {
+      contentLoading = false;
+    }
+  }
+
+  const tabs = [
+    { id: 'overview', label: $_('resource.tab_overview') },
+    { id: 'content', label: $_('resource.tab_content') },
+    { id: 'metadata', label: $_('resource.tab_metadata') },
+  ];
+
+  function formatBytes(bytes: number): string {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB'];
+    const i = Math.min(Math.floor(Math.log(bytes) / Math.log(k)), sizes.length - 1);
+    return `${(bytes / Math.pow(k, i)).toFixed(i > 0 ? 1 : 0)} ${sizes[i]}`;
+  }
+
+  function formatMetadata(json: string): string {
+    try {
+      return JSON.stringify(JSON.parse(json), null, 2);
+    } catch {
+      return json;
+    }
+  }
 </script>
 
 {#if !resource}
-  <div class="resource-empty">
-    <p>{$_('resource.select_hint')}</p>
-  </div>
+  <div class="resource-empty">{$_('resource.select_hint')}</div>
 {:else}
-  <div class="resource-detail">
-    <div class="detail-header">
-      <h3>{resource.name}</h3>
-      <span class="type-badge type-{resource.type}">{resource.type}</span>
+  <Tabs tabs={tabs} active={activeTab} onChange={(id) => activeTab = id as any} />
+
+  {#if activeTab === 'overview'}
+    <div class="overview-section">
+      <div class="overview-header">
+        <ResourceIcon type={resource.type} size={20} />
+        <h3>{resource.name}</h3>
+        <Badge variant="info">{resource.type}</Badge>
+      </div>
+      <dl class="overview-fields">
+        <div class="field-row"><dt>{$_('resource.scope')}</dt><dd><StatusPill status={resource.scope === 'project' ? 'info' : resource.scope === 'local' ? 'warning' : 'info'} label={resource.scope} /></dd></div>
+        <div class="field-row"><dt>{$_('resource.source_path')}</dt><dd class="mono">{resource.source_path ?? '—'}</dd></div>
+        <div class="field-row"><dt>{$_('resource.git_tracked')}</dt><dd>{resource.tracked_by_git ? $_('resource.yes') : $_('resource.no')}</dd></div>
+        <div class="field-row"><dt>Hash</dt><dd class="mono hash">{resource.content_hash ?? '—'}</dd></div>
+        {#if content}
+          <div class="field-row"><dt>{$_('resource.size')}</dt><dd>{formatBytes(content.size_bytes)}</dd></div>
+        {/if}
+      </dl>
+      {#if resource.error_message}
+        <Banner type="error" dismissible={false}>
+          {resource.error_message}
+        </Banner>
+      {/if}
     </div>
 
-    <div class="detail-fields">
-      <div class="field">
-        <label>{$_('resource.scope')}</label>
-        <span class="scope-badge scope-{resource.scope}">{resource.scope}</span>
-      </div>
-
-      {#if resource.source_path}
-        <div class="field">
-          <label>{$_('resource.source_path')}</label>
-          <code>{resource.source_path}</code>
+  {:else if activeTab === 'content'}
+    <div class="content-section">
+      {#if contentLoading}
+        <Skeleton variant="card" />
+        <Skeleton variant="text" />
+        <Skeleton variant="text" />
+      {:else if contentError}
+        <Banner type="error" dismissible={false}>{contentError}</Banner>
+      {:else if content}
+        {#if content.is_binary}
+          <Banner type="info" dismissible={false}>
+            <Archive size={14} /> {$_('resource.binary_file')} ({formatBytes(content.size_bytes)})
+          </Banner>
+        {:else if content.content}
+          <CodeViewer code={content.content} language={content.language} maxHeight="500px" />
+        {:else if content.error}
+          <Banner type="warning" dismissible={false}>{content.error}</Banner>
+        {/if}
+      {:else}
+        <div class="content-placeholder">
+          <Code size={32} />
+          <p>{$_('resource.load_content')}</p>
         </div>
       {/if}
+    </div>
 
-      <div class="field">
-        <label>{$_('resource.git_tracked')}</label>
-        <span>{resource.tracked_by_git ? $_('resource.yes') : $_('resource.no')}</span>
-      </div>
-
-      {#if resource.content_hash}
-        <div class="field">
-          <label>{$_('resource.content_hash')}</label>
-          <code class="hash">{resource.content_hash}</code>
-        </div>
-      {/if}
-
+  {:else if activeTab === 'metadata'}
+    <div class="metadata-section">
       {#if resource.metadata_json}
-        <div class="field">
-          <label>{$_('resource.metadata')}</label>
-          <pre class="metadata">{resource.metadata_json}</pre>
-        </div>
+        <CodeViewer code={formatMetadata(resource.metadata_json)} language="json" maxHeight="400px" />
+      {:else}
+        <p class="empty-meta">{$_('resource.no_metadata')}</p>
       {/if}
     </div>
-
-    {#if resource.error_message}
-      <div class="error-box">
-        <strong>{$_('resource.parse_error')}</strong>
-        <p>{resource.error_message}</p>
-      </div>
-    {/if}
-  </div>
+  {/if}
 {/if}
 
 <style>
   .resource-empty {
     text-align: center;
     color: var(--text-muted);
-    padding: var(--space-8) 0;
+    padding: var(--space-8);
   }
-  .resource-detail {
-    padding: var(--space-4);
-  }
-  .detail-header {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-    margin-bottom: var(--space-4);
-  }
-  .detail-header h3 {
-    margin: 0;
-    font-size: var(--font-size-md);
-  }
-  .type-badge {
-    padding: 2px 8px;
-    border-radius: var(--radius-full);
-    font-size: var(--font-size-xs);
-    text-transform: uppercase;
-    background: var(--color-info-bg);
-    color: var(--color-info);
-  }
-  .detail-fields {
+  .overview-section {
     display: flex;
     flex-direction: column;
     gap: var(--space-3);
+    padding: var(--space-3) 0;
   }
-  .field label {
-    display: block;
-    font-size: var(--font-size-xs);
+  .overview-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  .overview-header h3 {
+    margin: 0;
+    font-size: var(--font-size-md);
+    flex: 1;
+  }
+  .overview-fields {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin: 0;
+  }
+  .field-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: var(--font-size-sm);
+    padding: var(--space-1) 0;
+    border-bottom: 1px solid var(--border-default);
+  }
+  .field-row dt {
     color: var(--text-muted);
-    margin-bottom: 2px;
+    font-size: var(--font-size-xs);
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
-  .field code {
-    background: var(--bg-elevated);
-    padding: 2px 6px;
-    border-radius: var(--radius-sm);
-    font-size: var(--font-size-sm);
+  .field-row dd {
+    margin: 0;
     color: var(--text-secondary);
   }
-  .field code.hash {
+  .field-row .mono {
+    font-family: var(--font-mono);
     font-size: var(--font-size-xs);
-    word-break: break-all;
   }
-  .scope-badge {
-    padding: 2px 8px;
-    border-radius: var(--radius-sm);
-    font-size: var(--font-size-sm);
+  .field-row .hash {
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
-  .scope-project { background: var(--color-info-bg); color: var(--color-info); }
-  .scope-local { background: var(--color-warning-bg); color: var(--color-warning); }
-  .scope-user { background: var(--color-primary-bg); color: var(--color-primary-text); }
-  .scope-inherited { background: var(--color-danger-bg); color: var(--color-danger); }
-  .scope-unknown { background: var(--bg-elevated); color: var(--text-muted); }
-  .metadata {
-    background: var(--bg-elevated);
-    padding: var(--space-2);
-    border-radius: var(--radius-sm);
-    font-size: var(--font-size-xs);
-    max-height: 200px;
-    overflow: auto;
-    white-space: pre-wrap;
-    word-break: break-all;
-    color: var(--text-secondary);
+  .content-section {
+    padding: var(--space-2) 0;
   }
-  .error-box {
-    margin-top: var(--space-4);
-    padding: var(--space-3);
-    background: var(--color-danger-bg);
-    border: 1px solid var(--color-danger);
-    border-radius: var(--radius-md);
+  .content-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-8);
+    color: var(--text-muted);
   }
-  .error-box strong {
-    color: var(--color-danger);
-    font-size: var(--font-size-sm);
+  .metadata-section {
+    padding: var(--space-2) 0;
   }
-  .error-box p {
-    color: var(--color-danger);
-    font-size: var(--font-size-sm);
-    margin: var(--space-1) 0 0 0;
+  .empty-meta {
+    text-align: center;
+    color: var(--text-muted);
+    padding: var(--space-4);
   }
 </style>

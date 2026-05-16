@@ -270,7 +270,14 @@
     "no": "否",
     "content_hash": "内容哈希",
     "metadata": "元数据",
-    "parse_error": "解析错误"
+    "parse_error": "解析错误",
+    "tab_overview": "概览",
+    "tab_content": "内容",
+    "tab_metadata": "元数据",
+    "size": "大小",
+    "load_content": "点击「内容」标签加载文件内容",
+    "binary_file": "二进制文件 — 无法预览",
+    "no_metadata": "无元数据"
   },
   "migration": {
     "no_plan": "暂无迁移计划，请选择一个包和目标仓库进行构建。",

@@ -35,6 +35,7 @@ pub fn run() {
             tauri_bridge::commands::repo_commands::update_settings,
             tauri_bridge::commands::capability_commands::get_capability_inventory,
             tauri_bridge::commands::capability_commands::get_resource_detail,
+            tauri_bridge::commands::capability_commands::get_resource_content,
             tauri_bridge::commands::pack_commands::export_capability_pack,
             tauri_bridge::commands::pack_commands::list_packs,
             tauri_bridge::commands::pack_commands::get_pack_detail,

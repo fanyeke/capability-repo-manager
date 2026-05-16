@@ -270,7 +270,14 @@
     "no": "No",
     "content_hash": "Content Hash",
     "metadata": "Metadata",
-    "parse_error": "Parse Error"
+    "parse_error": "Parse Error",
+    "tab_overview": "Overview",
+    "tab_content": "Content",
+    "tab_metadata": "Metadata",
+    "size": "Size",
+    "load_content": "Click Content tab to load file contents",
+    "binary_file": "Binary file — preview not available",
+    "no_metadata": "No metadata available"
   },
   "migration": {
     "no_plan": "No migration plan. Select a pack and target repo to build one.",

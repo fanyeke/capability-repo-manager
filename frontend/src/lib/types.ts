@@ -227,6 +227,15 @@ export interface MigrationConflict {
   recommended_actions: string[];
 }
 
+export interface ResourceContent {
+  content: string | null;
+  language: string;
+  size_bytes: number;
+  exists: boolean;
+  is_binary: boolean;
+  error: string | null;
+}
+
 export interface Dependency {
   type: string;
   name: string;
