@@ -17,6 +17,10 @@
     "something_went_wrong": "出现了问题"
   },
   "nav": {
+    "overview": "概览",
+    "repositories": "仓库",
+    "packs": "包管理",
+    "migration": "迁移",
     "dashboard": "仪表盘",
     "settings": "设置",
     "export": "导出包",
@@ -24,7 +28,8 @@
     "doctor": "诊断",
     "compare": "比较",
     "back": "返回仪表盘",
-    "activity": "活动记录"
+    "activity": "活动记录",
+    "engine_ready": "引擎就绪"
   },
   "dashboard": {
     "title": "能力仓库管理器",

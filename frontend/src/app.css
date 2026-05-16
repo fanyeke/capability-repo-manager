@@ -1,18 +1,5 @@
-:root {
-  --bg-primary: #1a1a2e;
-  --bg-secondary: #16213e;
-  --bg-card: #1f2b47;
-  --text-primary: #e4e6eb;
-  --text-secondary: #b0b3b8;
-  --accent: #6c63ff;
-  --accent-hover: #5a52d5;
-  --success: #4caf50;
-  --warning: #ff9800;
-  --critical: #f44336;
-  --info: #2196f3;
-  --border: #2a3a5c;
-  --radius: 8px;
-}
+@import './lib/styles/tokens.css';
+@import './lib/styles/layout.css';
 
 * {
   margin: 0;
@@ -21,102 +8,32 @@
 }
 
 body {
-  background: var(--bg-primary);
+  background: var(--bg-app);
   color: var(--text-primary);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  font-size: 14px;
+  font-family: var(--font-sans);
+  font-size: var(--font-size-md);
   line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
 }
 
-h1 {
-  font-size: 1.5rem;
+h1, h2, h3, h4, h5, h6 {
   font-weight: 600;
-}
-h2 {
-  font-size: 1.25rem;
-  font-weight: 600;
-}
-h3 {
-  font-size: 1rem;
-  font-weight: 600;
+  line-height: 1.3;
 }
 
-button {
-  cursor: pointer;
-  border: none;
-  border-radius: var(--radius);
-  padding: 0.5rem 1rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  transition: background 0.2s;
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+a:hover {
+  color: var(--color-primary-hover);
 }
 
-button.primary {
-  background: var(--accent);
-  color: white;
-}
-button.primary:hover {
-  background: var(--accent-hover);
-}
-
-button.secondary {
-  background: var(--bg-card);
-  color: var(--text-primary);
-  border: 1px solid var(--border);
-}
-
-input,
-select {
-  background: var(--bg-secondary);
-  color: var(--text-primary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 0.5rem 0.75rem;
-  font-size: 0.875rem;
-}
-
-input:focus,
-select:focus {
-  outline: none;
-  border-color: var(--accent);
-}
-
+/* Placeholder badge classes until base components are built */
 .badge {
   display: inline-block;
-  padding: 0.125rem 0.5rem;
-  border-radius: 12px;
+  padding: 2px 8px;
+  border-radius: 4px;
   font-size: 0.75rem;
   font-weight: 500;
-}
-.badge-skill {
-  background: #3b82f6;
-  color: white;
-}
-.badge-mcp {
-  background: #8b5cf6;
-  color: white;
-}
-.badge-hook {
-  background: #ef4444;
-  color: white;
-}
-.badge-rule {
-  background: #f59e0b;
-  color: white;
-}
-.badge-agent {
-  background: #10b981;
-  color: white;
-}
-.badge-command {
-  background: #ec4899;
-  color: white;
-}
-.badge-plugin {
-  background: #6366f1;
-  color: white;
-}
-.badge-settings {
-  background: #6b7280;
-  color: white;
 }

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import AppShell from '$lib/components/AppShell.svelte';
   import Dashboard from '$lib/pages/Dashboard.svelte';
   import RepoDetail from '$lib/pages/RepoDetail.svelte';
   import Settings from '$lib/pages/Settings.svelte';
@@ -72,72 +73,88 @@
     const page = $currentPage;
     loadPage(page);
   });
+
+  function renderPage() {
+    if (bootError) {
+      return BootError;
+    }
+    if (!$locale) return null;
+
+    const page = $currentPage;
+    if (page === 'guidedsetup') return GuidedSetup;
+    if (page === 'dashboard') return Dashboard;
+    if (page === 'settings') return Settings;
+    if (page === 'packexport') return PackExport;
+    if (page === 'packapply') return PackApply;
+    if (page === 'doctor') return Doctor;
+    if (page === 'compare') return Compare;
+    if (page === 'activity') return Activity;
+    if (page.startsWith('repo:')) return null; // Handled inline
+    return null;
+  }
 </script>
 
-<main>
-  {#if bootError}
-    <BootError title={bootError.title} message={bootError.message} detail={bootError.detail} />
-  {:else if !$locale}
-    <div class="page-loading">Loading...</div>
-  {:else if $currentPage === 'guidedsetup'}
-    <GuidedSetup />
-  {:else if $currentPage === 'dashboard'}
-    <Dashboard />
-  {:else if $currentPage === 'settings'}
-    <Settings />
-  {:else if $currentPage === 'packexport'}
-    {#if PackExport}
-      <PackExport />
+{#if bootError}
+  <BootError title={bootError.title} message={bootError.message} detail={bootError.detail} />
+{:else if !$locale}
+  <div class="page-loading">Loading...</div>
+{:else}
+  <AppShell>
+    {#if $currentPage === 'guidedsetup'}
+      <GuidedSetup />
+    {:else if $currentPage === 'dashboard'}
+      <Dashboard />
+    {:else if $currentPage === 'settings'}
+      <Settings />
+    {:else if $currentPage === 'packexport'}
+      {#if PackExport}
+        <PackExport />
+      {:else}
+        <div class="page-loading">{$_('app.loading')}</div>
+      {/if}
+    {:else if $currentPage === 'packapply'}
+      {#if PackApply}
+        <PackApply />
+      {:else}
+        <div class="page-loading">{$_('app.loading')}</div>
+      {/if}
+    {:else if $currentPage === 'doctor'}
+      {#if Doctor}
+        <Doctor />
+      {:else}
+        <div class="page-loading">{$_('app.loading')}</div>
+      {/if}
+    {:else if $currentPage === 'compare'}
+      {#if Compare}
+        <Compare />
+      {:else}
+        <div class="page-loading">{$_('app.loading')}</div>
+      {/if}
+    {:else if $currentPage === 'activity'}
+      {#if Activity}
+        <Activity />
+      {:else}
+        <div class="page-loading">{$_('app.loading')}</div>
+      {/if}
+    {:else if $currentPage.startsWith('repo:')}
+      <RepoDetail repoId={$currentPage.slice(5)} />
     {:else}
-      <div class="page-loading">{$_('app.loading')}</div>
+      <BootError
+        title={$_('app.unknown_page_title')}
+        message={$_('app.unknown_page_message')}
+        detail={$currentPage}
+      />
     {/if}
-  {:else if $currentPage === 'packapply'}
-    {#if PackApply}
-      <PackApply />
-    {:else}
-      <div class="page-loading">{$_('app.loading')}</div>
-    {/if}
-  {:else if $currentPage === 'doctor'}
-    {#if Doctor}
-      <Doctor />
-    {:else}
-      <div class="page-loading">{$_('app.loading')}</div>
-    {/if}
-  {:else if $currentPage === 'compare'}
-    {#if Compare}
-      <Compare />
-    {:else}
-      <div class="page-loading">{$_('app.loading')}</div>
-    {/if}
-  {:else if $currentPage === 'activity'}
-    {#if Activity}
-      <Activity />
-    {:else}
-      <div class="page-loading">{$_('app.loading')}</div>
-    {/if}
-  {:else if $currentPage.startsWith('repo:')}
-    <RepoDetail repoId={$currentPage.slice(5)} />
-  {:else}
-    <BootError
-      title={$_('app.unknown_page_title')}
-      message={$_('app.unknown_page_message')}
-      detail={$currentPage}
-    />
-  {/if}
-</main>
+  </AppShell>
+{/if}
 
 <style>
-  main {
-    min-height: 100vh;
-    background: var(--bg-primary, #f8fafc);
-    color: var(--text-primary, #0f172a);
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  }
   .page-loading {
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 60vh;
-    color: #64748b;
+    color: var(--text-muted);
+    font-size: var(--font-size-sm);
   }
 </style>

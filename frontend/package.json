@@ -18,6 +18,8 @@
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-dialog": "^2.7.1",
     "@tauri-apps/plugin-shell": "^2",
+    "bits-ui": "^2.18.1",
+    "lucide-svelte": "^1.0.1",
     "svelte-i18n": "^4"
   },
   "devDependencies": {
@@ -35,5 +37,11 @@
     "typescript": "^5",
     "vite": "^6",
     "vitest": "^2"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "es5-ext"
+    ]
   }
 }

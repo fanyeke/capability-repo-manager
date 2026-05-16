@@ -17,6 +17,10 @@
     "something_went_wrong": "Something went wrong"
   },
   "nav": {
+    "overview": "Overview",
+    "repositories": "Repositories",
+    "packs": "Packs",
+    "migration": "Migration",
     "dashboard": "Dashboard",
     "settings": "Settings",
     "export": "Export Pack",
@@ -24,7 +28,8 @@
     "doctor": "Doctor",
     "compare": "Compare",
     "back": "Back to Dashboard",
-    "activity": "Activity"
+    "activity": "Activity",
+    "engine_ready": "Engine Ready"
   },
   "dashboard": {
     "title": "Capability Repo Manager",
