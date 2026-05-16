@@ -6,6 +6,7 @@
     title,
     actions,
     children,
+    onclick,
   }: {
     padding?: 'none' | 'sm' | 'md' | 'lg';
     hoverable?: boolean;
@@ -13,10 +14,11 @@
     title?: import('svelte').Snippet;
     actions?: import('svelte').Snippet;
     children?: import('svelte').Snippet;
+    onclick?: (e: MouseEvent) => void;
   } = $props();
 </script>
 
-<div class="card card-pad-{padding} {hoverable ? 'card-hoverable' : ''} {className}">
+<div class="card card-pad-{padding} {hoverable ? 'card-hoverable' : ''} {className}" role={onclick ? 'button' : undefined} tabindex={onclick ? 0 : undefined} {onclick}>
   {#if title || actions}
     <div class="card-header">
       {#if title}

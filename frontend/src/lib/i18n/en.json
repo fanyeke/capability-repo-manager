@@ -35,8 +35,14 @@
     "title": "Capability Repo Manager",
     "loading": "Loading repositories...",
     "no_repos": "No repositories found",
-    "scan": "Scan Repos",
-    "scanning": "Scanning..."
+    "no_repos_hint": "Add scan directories to discover Git repositories with Claude Code configurations.",
+    "add_repos": "Add Repositories",
+    "scan": "Scan",
+    "scanning": "Scanning...",
+    "total_repos": "Total",
+    "modified": "Modified",
+    "needs_scan": "Needs Scan",
+    "avg_doctor": "Doctor Score"
   },
   "guided_setup": {
     "title": "Welcome to Capability Repo Manager",
@@ -290,6 +296,9 @@
     "sort": "Sort",
     "add": "Add",
     "next": "Next",
-    "back": "Back"
+    "back": "Back",
+    "sort_name": "Name",
+    "sort_date": "Last Indexed",
+    "sort_state": "State"
   }
 }

@@ -35,8 +35,14 @@
     "title": "能力仓库管理器",
     "loading": "正在加载仓库列表...",
     "no_repos": "未发现仓库",
-    "scan": "扫描仓库",
-    "scanning": "正在扫描..."
+    "no_repos_hint": "添加扫描目录以发现包含 Claude Code 配置的 Git 仓库。",
+    "add_repos": "添加仓库",
+    "scan": "扫描",
+    "scanning": "正在扫描...",
+    "total_repos": "仓库总数",
+    "modified": "已修改",
+    "needs_scan": "待扫描",
+    "avg_doctor": "健康评分"
   },
   "guided_setup": {
     "title": "欢迎使用能力仓库管理器",
@@ -290,6 +296,9 @@
     "sort": "排序",
     "add": "添加",
     "next": "下一步",
-    "back": "返回"
+    "back": "返回",
+    "sort_name": "名称",
+    "sort_date": "索引时间",
+    "sort_state": "状态"
   }
 }
