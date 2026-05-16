@@ -48,13 +48,13 @@
     justify-content: center;
     flex-shrink: 0;
   }
-  .resource-icon-skill { color: #3b82f6; }
-  .resource-icon-mcp { color: #8b5cf6; }
-  .resource-icon-hook { color: #ef4444; }
-  .resource-icon-rule { color: #f59e0b; }
-  .resource-icon-agent { color: #10b981; }
-  .resource-icon-command { color: #ec4899; }
-  .resource-icon-plugin { color: #6366f1; }
-  .resource-icon-settings { color: #6b7280; }
-  .resource-icon-contextDoc { color: #6b7280; }
+  .resource-icon-skill { color: var(--capability-skill); }
+  .resource-icon-mcp { color: var(--capability-mcp); }
+  .resource-icon-hook { color: var(--capability-hook); }
+  .resource-icon-rule { color: var(--capability-rule); }
+  .resource-icon-agent { color: var(--capability-agent); }
+  .resource-icon-command { color: var(--capability-command); }
+  .resource-icon-plugin { color: var(--capability-plugin); }
+  .resource-icon-settings { color: var(--capability-settings); }
+  .resource-icon-contextDoc { color: var(--capability-settings); }
 </style>
