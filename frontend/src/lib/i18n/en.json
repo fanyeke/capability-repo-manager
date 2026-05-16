@@ -44,7 +44,15 @@
     "needs_scan": "Needs Scan",
     "avg_doctor": "Doctor Score",
     "card_view": "Card View",
-    "compact_view": "Compact View"
+    "compact_view": "Compact View",
+    "total_caps": "Capabilities",
+    "pinned": "Pinned",
+    "needs_attention": "Needs Attention",
+    "recently_modified": "Recently Modified",
+    "health_overview": "Health Overview",
+    "doctor_avg": "Avg Doctor",
+    "with_issues": "With Issues",
+    "all_repos": "All Repositories"
   },
   "guided_setup": {
     "title": "Welcome to Capability Repo Manager",

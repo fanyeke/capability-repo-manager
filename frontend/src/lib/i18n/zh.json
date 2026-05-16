@@ -44,7 +44,15 @@
     "needs_scan": "待扫描",
     "avg_doctor": "健康评分",
     "card_view": "卡片视图",
-    "compact_view": "紧凑视图"
+    "compact_view": "紧凑视图",
+    "total_caps": "能力总数",
+    "pinned": "关注",
+    "needs_attention": "需关注",
+    "recently_modified": "最近修改",
+    "health_overview": "健康概览",
+    "doctor_avg": "平均分",
+    "with_issues": "有问题",
+    "all_repos": "全部仓库"
   },
   "guided_setup": {
     "title": "欢迎使用能力仓库管理器",
