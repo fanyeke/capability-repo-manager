@@ -42,7 +42,9 @@
     "total_repos": "Total",
     "modified": "Modified",
     "needs_scan": "Needs Scan",
-    "avg_doctor": "Doctor Score"
+    "avg_doctor": "Doctor Score",
+    "card_view": "Card View",
+    "compact_view": "Compact View"
   },
   "guided_setup": {
     "title": "Welcome to Capability Repo Manager",
@@ -134,7 +136,9 @@
     "hooks_count": "Hooks: {n}",
     "rules_count": "Rules: {n}",
     "agents_count": "Agents: {n}",
-    "total_capabilities": "Capabilities"
+    "total_capabilities": "Capabilities",
+    "confirm_delete_title": "Remove Repository",
+    "confirm_delete_message": "Remove {name} from the repository list? This will not delete the repository on disk."
   },
   "pack": {
     "export_title": "Export Pack",

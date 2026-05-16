@@ -42,7 +42,9 @@
     "total_repos": "仓库总数",
     "modified": "已修改",
     "needs_scan": "待扫描",
-    "avg_doctor": "健康评分"
+    "avg_doctor": "健康评分",
+    "card_view": "卡片视图",
+    "compact_view": "紧凑视图"
   },
   "guided_setup": {
     "title": "欢迎使用能力仓库管理器",
@@ -134,7 +136,9 @@
     "hooks_count": "钩子：{n}",
     "rules_count": "规则：{n}",
     "agents_count": "Agent：{n}",
-    "total_capabilities": "能力总数"
+    "total_capabilities": "能力总数",
+    "confirm_delete_title": "移除仓库",
+    "confirm_delete_message": "从仓库列表中移除 {name}？不会删除磁盘上的仓库。"
   },
   "pack": {
     "export_title": "导出包",

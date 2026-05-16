@@ -5,6 +5,7 @@
   import { resources, typeGroups, selectedType, filteredResources, loadCapabilityInventory, setTypeFilter } from '$lib/stores/capabilityStore';
   import { ArrowLeft, RefreshCw, Trash2, Package, Stethoscope } from 'lucide-svelte';
   import Button from '$lib/components/Button.svelte';
+  import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
   import Card from '$lib/components/Card.svelte';
   import MetricCard from '$lib/components/MetricCard.svelte';
   import Tabs from '$lib/components/Tabs.svelte';
@@ -18,6 +19,7 @@
 
   let activeTab = $state<'overview' | 'capabilities'>('overview');
   let selectedResourceId = $state<string | null>(null);
+  let showDeleteConfirm = $state(false);
   let detail = $derived($selectedRepoDetail);
 
   $effect(() => {
@@ -83,7 +85,7 @@
             <Stethoscope size={14} />
             {$_('repo.run_doctor')}
           </Button>
-          <Button variant="danger" size="sm" onclick={() => removeRepository(repoId)} disabled={$isLoading}>
+          <Button variant="danger" size="sm" onclick={() => showDeleteConfirm = true} disabled={$isLoading}>
             <Trash2 size={14} />
             {$_('repo.remove')}
           </Button>
@@ -189,6 +191,16 @@
     {/if}
   {/if}
 </div>
+
+<ConfirmDialog
+  open={showDeleteConfirm}
+  title={$_('repo.confirm_delete_title')}
+  message={$_('repo.confirm_delete_message', { values: { name: detail?.repo.name ?? '' } })}
+  confirmLabel={$_('repo.remove')}
+  variant="danger"
+  onConfirm={() => { showDeleteConfirm = false; removeRepository(repoId); }}
+  onCancel={() => showDeleteConfirm = false}
+/>
 
 <style>
   .repo-detail {

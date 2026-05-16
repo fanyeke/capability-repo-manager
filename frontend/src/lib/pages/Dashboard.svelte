@@ -3,8 +3,9 @@
   import { repos, filteredRepos, scanRepositories, loadRepos, selectRepo, isLoading, repoFilter } from '$lib/stores/repoStore';
   import { _ } from 'svelte-i18n';
   import { onMount } from 'svelte';
-  import { RefreshCw, Search as SearchIcon, GitBranch, AlertTriangle, Shield } from 'lucide-svelte';
+  import { RefreshCw, Search as SearchIcon, GitBranch, AlertTriangle, Shield, LayoutGrid, List } from 'lucide-svelte';
   import Button from '$lib/components/Button.svelte';
+  import IconButton from '$lib/components/IconButton.svelte';
   import Card from '$lib/components/Card.svelte';
   import MetricCard from '$lib/components/MetricCard.svelte';
   import SearchInput from '$lib/components/SearchInput.svelte';
@@ -13,6 +14,7 @@
   import StatusPill from '$lib/components/StatusPill.svelte';
   import Skeleton from '$lib/components/Skeleton.svelte';
   import EmptyState from '$lib/components/EmptyState.svelte';
+  import ResourceIcon from '$lib/components/ResourceIcon.svelte';
 
   onMount(() => {
     isLoading.set(false);
@@ -40,6 +42,12 @@
 
   function setSearch(val: string) {
     handleFilterChange({ ...$repoFilter, search: val || undefined });
+  }
+
+  let compactView = $state(false);
+
+  function toggleView() {
+    compactView = !compactView;
   }
 
   const sortOptions = [
@@ -75,6 +83,7 @@
       />
     </div>
     <div class="toolbar-right">
+      <IconButton icon={compactView ? LayoutGrid : List} label={compactView ? $_('dashboard.card_view') : $_('dashboard.compact_view')} variant="secondary" size="sm" onclick={toggleView} />
       <Button variant="secondary" size="sm" onclick={handleScan} loading={$isLoading}>
         <RefreshCw size={14} />
         {$_('dashboard.scan')}
@@ -82,7 +91,7 @@
     </div>
   </div>
 
-  <div class="repo-list">
+  <div class="repo-list" class:compact={compactView}>
     {#if $isLoading}
       {#each Array(4) as _, i (i)}
         <Skeleton variant="card" />
@@ -96,34 +105,42 @@
       />
     {:else}
       {#each $filteredRepos as repo (repo.id)}
-        <Card hoverable padding="md" class="repo-card" onclick={() => handleSelectRepo(repo.id)}>
-          {#snippet title()}
-            <div class="repo-card-header">
-              <span class="repo-name">{repo.name}</span>
-              <StatusPill status={repo.dirty_state === 'clean' ? 'clean' : 'modified'} label={repo.dirty_state} />
+        {#if compactView}
+          <Card hoverable padding="sm" class="compact-card" onclick={() => handleSelectRepo(repo.id)}>
+            <div class="compact-row">
+              <span class="compact-name">{repo.name}</span>
+              <span class="compact-path">{repo.path}</span>
+              <div class="compact-meta">
+                <StatusPill status={repo.dirty_state === 'clean' ? 'clean' : 'modified'} label={repo.dirty_state} />
+                {#if repo.capability_counts.skill}<Badge variant="default">{repo.capability_counts.skill}</Badge>{/if}
+                {#if repo.capability_counts.mcp}<Badge variant="default">{repo.capability_counts.mcp}</Badge>{/if}
+              </div>
             </div>
-          {/snippet}
-          <div class="repo-card-body">
-            <p class="repo-path" title={repo.path}>{repo.path}</p>
-            <div class="repo-meta">
-              {#if repo.branch}
-                <Badge variant="info">{repo.branch}</Badge>
-              {/if}
-              {#if repo.capability_counts.skill}
-                <Badge variant="default">{$_('repo.skills_count', { values: { n: repo.capability_counts.skill } })}</Badge>
-              {/if}
-              {#if repo.capability_counts.mcp}
-                <Badge variant="default">{$_('repo.mcp_count', { values: { n: repo.capability_counts.mcp } })}</Badge>
-              {/if}
-              {#if repo.capability_counts.hook}
-                <Badge variant="default">{repo.capability_counts.hook} hooks</Badge>
-              {/if}
-              {#if repo.capability_counts.rule}
-                <Badge variant="default">{repo.capability_counts.rule} rules</Badge>
-              {/if}
+          </Card>
+        {:else}
+          <Card hoverable padding="md" class="repo-card" onclick={() => handleSelectRepo(repo.id)}>
+            {#snippet title()}
+              <div class="repo-card-header">
+                <span class="repo-name">{repo.name}</span>
+                <StatusPill status={repo.dirty_state === 'clean' ? 'clean' : 'modified'} label={repo.dirty_state} />
+              </div>
+            {/snippet}
+            <div class="repo-card-body">
+              <p class="repo-path" title={repo.path}>{repo.path}</p>
+              <div class="repo-meta">
+                {#if repo.branch}
+                  <Badge variant="info">{repo.branch}</Badge>
+                {/if}
+                {#if repo.capability_counts.skill}
+                  <Badge variant="default">{$_('repo.skills_count', { values: { n: repo.capability_counts.skill } })}</Badge>
+                {/if}
+                {#if repo.capability_counts.mcp}
+                  <Badge variant="default">{$_('repo.mcp_count', { values: { n: repo.capability_counts.mcp } })}</Badge>
+                {/if}
+              </div>
             </div>
-          </div>
-        </Card>
+          </Card>
+        {/if}
       {/each}
     {/if}
   </div>
@@ -160,6 +177,36 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-2);
+  }
+  .repo-list.compact {
+    gap: 1px;
+  }
+  .compact-card { cursor: pointer; }
+  .compact-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    font-size: var(--font-size-sm);
+  }
+  .compact-name {
+    font-weight: 500;
+    color: var(--text-primary);
+    min-width: 150px;
+  }
+  .compact-path {
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: var(--font-size-xs);
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .compact-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-shrink: 0;
   }
   .repo-card {
     cursor: pointer;
