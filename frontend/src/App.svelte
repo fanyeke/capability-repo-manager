@@ -6,7 +6,8 @@
   import GuidedSetup from '$lib/pages/GuidedSetup.svelte';
   import BootError from '$lib/components/BootError.svelte';
   import Toast from '$lib/components/Toast.svelte';
-  import { currentPage } from '$lib/stores/uiStore';
+  import { currentPage, theme, reducedMotion } from '$lib/stores/uiStore';
+  import { zoomIn, zoomOut, resetZoom } from '$lib/stores/zoomStore';
   import { setupI18n, waitForI18n } from '$lib/i18n';
   import { onMount } from 'svelte';
   import { locale, _ } from 'svelte-i18n';
@@ -23,8 +24,24 @@
   onMount(async () => {
     setupI18n();
     await waitForI18n();
+
+    // Zoom keyboard shortcuts: Ctrl/Cmd +/-
+    function handleKeydown(e: KeyboardEvent) {
+      if (!(e.ctrlKey || e.metaKey)) return;
+      if (e.key === '=' || e.key === '+') { e.preventDefault(); zoomIn(); }
+      else if (e.key === '-') { e.preventDefault(); zoomOut(); }
+      else if (e.key === '0') { e.preventDefault(); resetZoom(); }
+    }
+    document.addEventListener('keydown', handleKeydown);
+
     try {
       const { invoke } = await import('@tauri-apps/api/core');
+      // Load theme & motion settings
+      try {
+        const settings = await invoke<{ theme?: string; reduced_motion?: boolean }>('get_settings');
+        if (settings.theme) theme.set(settings.theme as 'dark' | 'light' | 'system');
+        if (settings.reduced_motion !== undefined) reducedMotion.set(settings.reduced_motion);
+      } catch { /* settings may not have these fields yet */ }
       const repos = await invoke<any[]>('list_repositories', { filter: {} });
       if (repos.length === 0) {
         currentPage.set('guidedsetup');

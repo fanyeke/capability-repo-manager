@@ -19,6 +19,8 @@ pub struct AppSettings {
     pub pack_storage_dir: String,
     pub file_watch_enabled: bool,
     pub log_level: String,
+    pub theme: Option<String>,
+    pub reduced_motion: Option<bool>,
 }
 
 impl Default for AppSettings {
@@ -36,6 +38,8 @@ impl Default for AppSettings {
             pack_storage_dir: default_pack_dir(),
             file_watch_enabled: false,
             log_level: "info".to_string(),
+            theme: Some("dark".to_string()),
+            reduced_motion: Some(false),
         }
     }
 }

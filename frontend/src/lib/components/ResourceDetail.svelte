@@ -21,6 +21,18 @@
   let contentLoading = $state(false);
   let contentError = $state<string | null>(null);
 
+  // Default tab based on resource type
+  $effect(() => {
+    if (resource) {
+      const textTypes = ['skill', 'rule', 'hook', 'command', 'agent'];
+      activeTab = textTypes.includes(resource.type) ? 'content' : 'overview';
+      // Reset content cache on resource change
+      content = null;
+      contentError = null;
+      contentLoading = false;
+    }
+  });
+
   $effect(() => {
     if (resource && activeTab === 'content') {
       loadContent();
@@ -28,9 +40,10 @@
   });
 
   async function loadContent() {
-    if (!resource || content) return;
+    if (!resource) return;
     contentLoading = true;
     contentError = null;
+    content = null;
     try {
       const { invoke } = await import('@tauri-apps/api/core');
       const result = await invoke<ResourceContent>('get_resource_content', {
@@ -43,6 +56,8 @@
       contentLoading = false;
     }
   }
+
+  const textContentTypes = ['skill', 'rule', 'hook', 'command', 'agent'];
 
   const tabs = [
     { id: 'overview', label: $_('resource.tab_overview') },
@@ -65,6 +80,11 @@
       return json;
     }
   }
+
+  function contentPreview(): string | null {
+    if (!content?.content) return null;
+    return content.content.slice(0, 200) + (content.content.length > 200 ? '...' : '');
+  }
 </script>
 
 {#if !resource}
@@ -83,9 +103,11 @@
         <div class="field-row"><dt>{$_('resource.scope')}</dt><dd><StatusPill status={resource.scope === 'project' ? 'info' : resource.scope === 'local' ? 'warning' : 'info'} label={resource.scope} /></dd></div>
         <div class="field-row"><dt>{$_('resource.source_path')}</dt><dd class="mono">{resource.source_path ?? '—'}</dd></div>
         <div class="field-row"><dt>{$_('resource.git_tracked')}</dt><dd>{resource.tracked_by_git ? $_('resource.yes') : $_('resource.no')}</dd></div>
-        <div class="field-row"><dt>Hash</dt><dd class="mono hash">{resource.content_hash ?? '—'}</dd></div>
-        {#if content}
-          <div class="field-row"><dt>{$_('resource.size')}</dt><dd>{formatBytes(content.size_bytes)}</dd></div>
+        {#if content?.content}
+          <div class="field-row preview-row">
+            <dt>{$_('resource.preview')}</dt>
+            <dd class="preview-text">{contentPreview()}</dd>
+          </div>
         {/if}
       </dl>
       {#if resource.error_message}
@@ -186,6 +208,18 @@
     max-width: 200px;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+  .preview-row { align-items: flex-start; }
+  .preview-text {
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    line-height: 1.5;
+    max-height: 80px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-width: 300px;
   }
   .content-section {
     padding: var(--space-2) 0;

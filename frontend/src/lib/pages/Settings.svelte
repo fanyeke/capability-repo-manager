@@ -1,11 +1,12 @@
 <script lang="ts">
-  import { currentPage, navigateTo } from '$lib/stores/uiStore';
+  import { currentPage, navigateTo, theme, reducedMotion } from '$lib/stores/uiStore';
   import { _ } from 'svelte-i18n';
   import { showToast } from '$lib/stores/toastStore';
   import { ArrowLeft } from 'lucide-svelte';
   import Button from '$lib/components/Button.svelte';
   import Card from '$lib/components/Card.svelte';
   import Field from '$lib/components/Field.svelte';
+  import DirectoryPicker from '$lib/components/DirectoryPicker.svelte';
   import { onMount } from 'svelte';
 
   interface SettingsData {
@@ -71,8 +72,13 @@
           pack_storage_dir: data.pack_storage_dir.trim() || '~/.capability-repo-manager/packs',
           file_watch_enabled: false,
           log_level: data.log_level,
+          theme: data.theme,
+          reduced_motion: data.reduced_motion,
         },
       });
+      // Apply theme/motion immediately
+      theme.set(data.theme as 'dark' | 'light' | 'system');
+      reducedMotion.set(data.reduced_motion);
       showToast($_('settings.saved'), 'success');
     } catch (e) {
       showToast($_('settings.save_error') + ': ' + String(e), 'error');
@@ -96,7 +102,13 @@
   async function exportDebugBundle() {
     try {
       const { invoke } = await import('@tauri-apps/api/core');
-      await invoke('export_debug_bundle', { destinationPath: '', redactPaths: true });
+      const { save } = await import('@tauri-apps/plugin-dialog');
+      const dest = await save({
+        defaultPath: 'debug-bundle.zip',
+        filters: [{ name: 'ZIP Archive', extensions: ['zip'] }],
+      });
+      if (!dest) return; // user cancelled
+      await invoke('export_debug_bundle', { destinationPath: dest, redactPaths: true });
       showToast($_('settings.debug_exported'), 'success');
     } catch (e) {
       showToast($_('settings.debug_export_failed') + ': ' + String(e), 'error');
@@ -127,15 +139,7 @@
         {#if activeGroup === 'scan'}
           <h2>{$_('settings.group_scan')}</h2>
           <Field label={$_('settings.scan_roots')} hint={$_('settings.scan_roots_hint')}>
-            <div class="chips">
-              {#each data.scan_roots as root (root)}
-                <span class="chip">{root}<button class="chip-remove" onclick={() => removeRoot(root)}>×</button></span>
-              {/each}
-            </div>
-            <div class="add-row">
-              <input type="text" bind:value={newRoot} placeholder={$_('settings.scan_roots_placeholder')} class="form-input" onkeydown={(e) => e.key === 'Enter' && (e.preventDefault(), addRoot())} />
-              <Button variant="secondary" size="sm" onclick={addRoot} disabled={!newRoot.trim()}>{$_('common.add')}</Button>
-            </div>
+            <DirectoryPicker directories={data.scan_roots} onChange={(dirs) => data.scan_roots = dirs} />
           </Field>
           <Field label={$_('settings.scan_depth')} hint={$_('settings.scan_depth_hint')}>
             <div class="depth-row">
