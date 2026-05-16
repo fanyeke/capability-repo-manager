@@ -86,9 +86,10 @@ fn hooks_with_null_command_handled() {
 
     let resources = claude_parser::hook_parser::parse_hooks(dir.path().to_str().unwrap());
 
-    // Should still create a resource, but with no command in metadata
-    assert_eq!(resources.len(), 1);
-    let meta: serde_json::Value = serde_json::from_str(resources[0].metadata_json.as_ref().unwrap()).unwrap();
+    // Should still create a hook and a settings resource
+    assert_eq!(resources.len(), 2);
+    let hook = resources.iter().find(|r| r.r#type == "hook").unwrap();
+    let meta: serde_json::Value = serde_json::from_str(hook.metadata_json.as_ref().unwrap()).unwrap();
     assert!(meta["command"].is_null());
 }
 

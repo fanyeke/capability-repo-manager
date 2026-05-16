@@ -2,6 +2,7 @@ pub mod agent_parser;
 pub mod commands_parser;
 pub mod hook_parser;
 pub mod mcp_parser;
+pub mod plugins_parser;
 pub mod rule_parser;
 pub mod skill_parser;
 
@@ -30,7 +31,7 @@ pub fn parse_repo(repo_path: &str) -> Result<CapabilityInventory, domain::AppErr
         rules: rule_parser::parse_rules(repo_path),
         agents: agent_parser::parse_agents(repo_path),
         commands: commands_parser::parse_commands(repo_path),
-        plugins: Vec::new(),  // TODO: implement plugins_parser
+        plugins: plugins_parser::parse_plugins(repo_path),
         settings: Vec::new(), // TODO: implement settings_parser
     })
 }

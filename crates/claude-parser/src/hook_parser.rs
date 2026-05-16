@@ -39,6 +39,24 @@ pub fn parse_hooks(repo_path: &str) -> Vec<CapabilityResource> {
                         }
                     }
                 }
+                // Also emit a settings resource for this file
+                if *scope == "project" {
+                    let prefix = format!("{}/", CLAUDE_DIR);
+                    let name = rel_path.trim_start_matches(&prefix).trim_end_matches(".json").to_string();
+                    resources.push(CapabilityResource {
+                        id: uuid::Uuid::new_v4().to_string(),
+                        repo_id: None,
+                        pack_id: None,
+                        r#type: "settings".to_string(),
+                        name,
+                        source_path: Some(rel_path.to_string()),
+                        scope: scope.to_string(),
+                        tracked_by_git: *scope == "project",
+                        content_hash: Some(file_hash.clone()),
+                        metadata_json: None,
+                        error_message: None,
+                    });
+                }
             }
             Err(e) => {
                 resources.push(CapabilityResource {

@@ -34,9 +34,11 @@ fn parses_hooks_from_settings_json() {
 
     let resources = claude_parser::hook_parser::parse_hooks(dir.path().to_str().unwrap());
 
-    assert_eq!(resources.len(), 2);
+    // 2 hooks + 1 settings resource
+    assert_eq!(resources.len(), 3);
     let types: Vec<&str> = resources.iter().map(|r| r.r#type.as_str()).collect();
-    assert!(types.iter().all(|t| *t == "hook"));
+    assert!(types.iter().any(|t| *t == "hook"));
+    assert!(types.iter().any(|t| *t == "settings"));
 
     let names: Vec<&str> = resources.iter().map(|r| r.name.as_str()).collect();
     assert!(names.contains(&"tmux-reminder"));
@@ -71,7 +73,9 @@ fn settings_without_hooks_key_returns_empty() {
 
     let resources = claude_parser::hook_parser::parse_hooks(dir.path().to_str().unwrap());
 
-    assert_eq!(resources.len(), 0);
+    // No hooks but still emit 1 settings resource
+    assert_eq!(resources.len(), 1);
+    assert_eq!(resources[0].r#type, "settings");
 }
 
 #[test]
@@ -103,7 +107,8 @@ fn hook_with_multiple_hook_types() {
 
     let resources = claude_parser::hook_parser::parse_hooks(dir.path().to_str().unwrap());
 
-    assert_eq!(resources.len(), 4);
+    // 4 hooks + 1 settings resource
+    assert_eq!(resources.len(), 5);
 
     let pre1 = resources.iter().find(|r| r.name == "pre-hook-1").unwrap();
     let meta1: serde_json::Value = serde_json::from_str(pre1.metadata_json.as_ref().unwrap()).unwrap();
@@ -125,6 +130,8 @@ fn hook_without_name_uses_command_as_name() {
 
     let resources = claude_parser::hook_parser::parse_hooks(dir.path().to_str().unwrap());
 
-    assert_eq!(resources.len(), 1);
-    assert_eq!(resources[0].name, "mytool");
+    // 1 hook + 1 settings resource
+    assert_eq!(resources.len(), 2);
+    assert!(resources.iter().any(|r| r.r#type == "hook" && r.name == "mytool"));
+    assert!(resources.iter().any(|r| r.r#type == "settings"));
 }
