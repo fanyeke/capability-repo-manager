@@ -3,7 +3,7 @@
   import { currentPage, navigateTo } from '$lib/stores/uiStore';
   import { selectedRepoDetail } from '$lib/stores/repoStore';
   import { resources, loadCapabilityInventory, typeGroups } from '$lib/stores/capabilityStore';
-  import { exportPack, isLoading } from '$lib/stores/packStore';
+  import { exportPack, isLoading, error } from '$lib/stores/packStore';
 
   let packName = $state('');
   let packVersion = $state('1.0.0');
@@ -11,6 +11,7 @@
   let packType = $state('project');
   let detail = $derived($selectedRepoDetail);
   let selectedIds = $state<Set<string>>(new Set());
+  let exportError = $state<string | null>(null);
 
   function getResourcesByType(inv: any, resourceType: string): any[] {
     if (!inv) return [];
@@ -33,6 +34,7 @@
 
   async function handleExport() {
     if (!detail?.repo.id || selectedIds.size === 0) return;
+    exportError = null;
 
     const result = await exportPack(
       detail.repo.id,
@@ -47,6 +49,8 @@
 
     if (result) {
       currentPage.set('packapply');
+    } else {
+      exportError = $error;
     }
   }
 </script>
@@ -60,6 +64,13 @@
   {#if !detail}
     <p class="empty-text">{$_('pack_export.no_repo')}</p>
   {:else}
+    {#if exportError}
+      <div class="error-banner">
+        <span class="error-icon">!</span>
+        <span>{exportError}</span>
+        <button class="error-dismiss" onclick={() => (exportError = null)}>×</button>
+      </div>
+    {/if}
     <div class="export-content">
       <section class="resource-selection">
         <h2>{$_('pack_export.select_resources', { values: { name: detail.repo.name } })}</h2>
@@ -270,5 +281,39 @@
     text-align: center;
     color: #64748b;
     padding: 40px 0;
+  }
+  .error-banner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 24px;
+    padding: 12px 16px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    color: #991b1b;
+    font-size: 0.85rem;
+  }
+  .error-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #dc2626;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.75rem;
+    flex-shrink: 0;
+  }
+  .error-dismiss {
+    margin-left: auto;
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: #991b1b;
+    padding: 0 4px;
   }
 </style>

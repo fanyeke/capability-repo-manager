@@ -13,6 +13,7 @@ export const history = writable<MigrationRunSummary[]>([]);
 export const strategies = writable<ConflictStrategy[]>([]);
 export const isLoading = writable(false);
 export const error = writable<string | null>(null);
+export const executionStatus = writable<'idle' | 'running' | 'success' | 'failed' | 'partial'>('idle');
 
 type StrategyAction = 'skip' | 'overwrite';
 
@@ -60,6 +61,7 @@ export async function buildMigrationPlan(packId: string, targetRepoId: string): 
 
 export async function applyMigrationPlan(): Promise<void> {
   isLoading.set(true);
+  executionStatus.set('running');
   error.set(null);
   try {
     const { invoke } = await import('@tauri-apps/api/core');
@@ -72,8 +74,16 @@ export async function applyMigrationPlan(): Promise<void> {
       strategies: s,
     });
     report.set(result);
+    if (result.status === 'success') {
+      executionStatus.set('success');
+    } else if (result.summary.failed > 0 && result.summary.added + result.summary.overwritten > 0) {
+      executionStatus.set('partial');
+    } else {
+      executionStatus.set('failed');
+    }
   } catch (e: any) {
     error.set(e?.message ?? String(e));
+    executionStatus.set('failed');
   } finally {
     isLoading.set(false);
   }
@@ -112,6 +122,7 @@ export function clearPlan(): void {
   plan.set(null);
   report.set(null);
   strategies.set([]);
+  executionStatus.set('idle');
 }
 
 export function clearError(): void {
