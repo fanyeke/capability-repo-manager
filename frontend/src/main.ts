@@ -1,5 +1,6 @@
 import { mount } from 'svelte';
 import App from './App.svelte';
+import './app.css';
 
 function renderBootFailure(error: unknown) {
   const root = document.getElementById('app');
