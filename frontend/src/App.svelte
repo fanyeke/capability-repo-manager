@@ -104,8 +104,14 @@
     <Toast />
     {#if $currentPage === 'guidedsetup'}
       <GuidedSetup />
-    {:else if $currentPage === 'dashboard'}
+    {:else if $currentPage === 'dashboard' || $currentPage === 'repositories'}
       <Dashboard />
+    {:else if $currentPage === 'migration' || $currentPage === 'packapply'}
+      {#if PackApply}
+        <PackApply />
+      {:else}
+        <div class="page-loading">{$_('app.loading')}</div>
+      {/if}
     {:else if $currentPage === 'settings'}
       <Settings />
     {:else if $currentPage === 'packexport'}

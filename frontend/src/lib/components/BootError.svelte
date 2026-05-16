@@ -49,14 +49,14 @@
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    background: #f8fafc;
+    background: var(--bg-elevated);
     padding: 24px;
   }
   .error-card {
     max-width: 560px;
     width: 100%;
-    background: #fff;
-    border: 1px solid #e2e8f0;
+    background: var(--bg-card);
+    border: 1px solid var(--border-default);
     border-radius: 12px;
     padding: 32px;
     box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
@@ -67,7 +67,7 @@
     color: #dc2626;
   }
   .error-message {
-    color: #64748b;
+    color: var(--text-muted);
     margin: 0 0 16px 0;
     line-height: 1.5;
   }
@@ -96,9 +96,9 @@
   }
   .btn-secondary {
     padding: 10px 20px;
-    background: #fff;
+    background: var(--bg-card);
     color: #0f172a;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--border-default);
     border-radius: 8px;
     cursor: pointer;
   }

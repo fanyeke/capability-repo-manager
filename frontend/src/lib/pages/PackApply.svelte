@@ -8,15 +8,21 @@
     report,
     buildMigrationPlan,
     applyMigrationPlan,
+    executionStatus,
     strategies,
     setStrategy,
   } from '$lib/stores/migrationStore';
+  import { CheckCircle, AlertTriangle, AlertCircle, ArrowLeft } from 'lucide-svelte';
+  import Button from '$lib/components/Button.svelte';
+  import Card from '$lib/components/Card.svelte';
+  import Banner from '$lib/components/Banner.svelte';
+  import StatusPill from '$lib/components/StatusPill.svelte';
   import MigrationPlanComp from '$lib/components/MigrationPlan.svelte';
   import PackLibrary from '$lib/components/PackLibrary.svelte';
 
   let selectedPack = $state<string | null>(null);
   let selectedTarget = $state<string | null>(null);
-  let step = $state<'select' | 'plan' | 'execute' | 'done'>('select');
+  let step = $state<'select' | 'plan' | 'executing' | 'report'>('select');
 
   async function handleBuildPlan() {
     if (!selectedPack || !selectedTarget) return;
@@ -25,8 +31,9 @@
   }
 
   async function handleExecute() {
+    step = 'executing';
     await applyMigrationPlan();
-    step = 'done';
+    step = 'report';
   }
 
   function handleReset() {
@@ -34,6 +41,17 @@
     selectedTarget = null;
     step = 'select';
   }
+
+  const hasUnresolvedConflicts = $derived(
+    $plan?.conflicts.some((c) => {
+      const strategy = $strategies.find((s) => c.resource_name === s.resource_id.split('-')[0]);
+      return !strategy;
+    }) ?? false,
+  );
+
+  const hasMissingDeps = $derived(
+    ($plan?.missing_dependencies.length ?? 0) > 0,
+  );
 
   loadRepos();
   loadPacks();
@@ -67,7 +85,6 @@
             </select>
           {/if}
         </div>
-
         <div class="select-panel">
           <h2>{$_('pack_apply.select_target')}</h2>
           {#if $isLoading}
@@ -81,13 +98,9 @@
             </select>
           {/if}
         </div>
-
         <div class="select-actions">
-          <button
-            class="primary-btn"
-            onclick={handleBuildPlan}
-            disabled={!selectedPack || !selectedTarget || $isLoading}
-          >
+          <button class="primary-btn" onclick={handleBuildPlan}
+            disabled={!selectedPack || !selectedTarget || $isLoading}>
             {$_('pack_apply.build_plan')}
           </button>
         </div>
@@ -95,12 +108,8 @@
     {:else if step === 'plan'}
       <div class="plan-section">
         <h2>{$_('pack_apply.plan_title')}</h2>
-        <p class="plan-desc">
-          {$_('pack_apply.plan_desc')}
-        </p>
-
+        <p class="plan-desc">{$_('pack_apply.plan_desc')}</p>
         <MigrationPlanComp plan={$plan} strategies={$strategies} onSetStrategy={setStrategy} />
-
         <div class="plan-actions">
           <button class="back-btn" onclick={handleReset}>{$_('pack_apply.back')}</button>
           <button class="execute-btn" onclick={handleExecute} disabled={$isLoading}>
@@ -108,41 +117,33 @@
           </button>
         </div>
       </div>
-    {:else if step === 'done'}
-      <div class="done-section">
+    {:else if step === 'executing'}
+      <Card padding="lg">
+        <StatusPill status="info" label={$_('pack_apply.executing')} />
+        <p>{$_('pack_apply.executing_desc')}</p>
+      </Card>
+    {:else if step === 'report'}
+      <div class="report-section">
+        <Banner type={$executionStatus === 'success' ? 'success' : $executionStatus === 'partial' ? 'warning' : 'error'} dismissible={false}>
+          {$_('pack_apply.report_title', { values: { status: $executionStatus } })}
+        </Banner>
         {#if $report}
-          <h2>{$_('pack_apply.complete_title')}</h2>
-          <div class="report-summary">
-            <p><strong>{$_('pack_apply.status')}</strong> {$report.status}</p>
+          <Card padding="md">
+            {#snippet title()}{$_('pack_apply.report_summary')}{/snippet}
             <div class="report-stats">
-              <span class="stat stat-added">{$_('pack_apply.added')} {$report.summary.added}</span>
-              <span class="stat stat-overwritten"
-                >{$_('pack_apply.overwritten')} {$report.summary.overwritten}</span
-              >
-              <span class="stat stat-skipped"
-                >{$_('pack_apply.skipped')} {$report.summary.skipped}</span
-              >
-              <span class="stat stat-failed"
-                >{$_('pack_apply.failed')} {$report.summary.failed}</span
-              >
+              <span class="stat">+{$report.summary.added}</span>
+              <span class="stat">~{$report.summary.overwritten}</span>
+              <span class="stat">−{$report.summary.skipped}</span>
+              <span class="stat">!{$report.summary.failed}</span>
             </div>
-          </div>
-
-          {#if $report.status === 'failed'}
-            <div class="error-list">
-              {#each $report.items.filter((i) => i.status === 'failed') as item (item.resource_name)}
-                <p class="error-item">{item.resource_name}: {item.error}</p>
-              {/each}
-            </div>
-          {/if}
+          </Card>
         {/if}
-
-        <div class="done-actions">
-          <button class="primary-btn" onclick={handleReset}>{$_('pack_apply.apply_another')}</button
-          >
-          <button class="nav-btn" onclick={() => currentPage.set('doctor')}
-            >{$_('doctor.run')}</button
-          >
+        <div class="report-actions">
+          <Button variant="primary" onclick={handleReset}>{$_('pack_apply.apply_another')}</Button>
+          <Button variant="ghost" onclick={() => currentPage.set('doctor')}>{$_('doctor.run')}</Button>
+          {#if $executionStatus === 'failed' || $executionStatus === 'partial'}
+            <Button variant="secondary" onclick={() => step = 'plan'}><ArrowLeft size={14} /> {$_('pack_apply.back_to_plan')}</Button>
+          {/if}
         </div>
       </div>
     {/if}

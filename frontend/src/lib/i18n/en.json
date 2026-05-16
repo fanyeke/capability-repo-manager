@@ -295,6 +295,12 @@
     "all": "All",
     "no_resources": "No resources"
   },
+  "directory_picker": {
+    "title": "Select Directories",
+    "browse": "Browse",
+    "or": "or",
+    "placeholder": "Type a path and press Enter"
+  },
   "common": {
     "save": "Save",
     "cancel": "Cancel",

@@ -134,7 +134,7 @@
     padding: 6px 14px;
     border: 1px solid var(--border-color, #e2e8f0);
     border-radius: 6px;
-    background: #fff;
+    background: var(--bg-card);
     font-size: 0.85rem;
     cursor: pointer;
   }
@@ -164,7 +164,7 @@
     font-size: 0.85rem;
   }
   .sort-label {
-    color: #64748b;
+    color: var(--text-muted);
   }
   .sort-arrow {
     font-size: 0.75rem;
@@ -177,7 +177,7 @@
   .loading-text,
   .empty-text {
     text-align: center;
-    color: #64748b;
+    color: var(--text-muted);
     padding: 40px 0;
   }
 </style>

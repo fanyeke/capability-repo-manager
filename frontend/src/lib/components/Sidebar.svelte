@@ -15,19 +15,29 @@
   const navItems: NavItem[] = [
     { id: 'dashboard', label: $_('nav.overview'), icon: LayoutDashboard },
     { id: 'repositories', label: $_('nav.repositories'), icon: GitBranch },
-    { id: 'packapply', label: $_('nav.packs'), icon: Package },
+    { id: 'packs', label: $_('nav.packs'), icon: Package },
     { id: 'migration', label: $_('nav.migration'), icon: ArrowRightLeft },
     { id: 'doctor', label: $_('nav.doctor'), icon: Stethoscope },
     { id: 'compare', label: $_('nav.compare'), icon: GitCompare },
     { id: 'settings', label: $_('nav.settings'), icon: Settings },
   ];
 
+  // Map sidebar nav IDs to their corresponding page route
+  const navRouteMap: Record<string, string> = {
+    dashboard: 'dashboard',
+    repositories: 'repositories',
+    packs: 'packapply',
+    migration: 'migration',
+    doctor: 'doctor',
+    compare: 'compare',
+    settings: 'settings',
+  };
+
   function isActive(id: string): boolean {
     const page = $currentPage;
-    if (id === 'dashboard') return page === 'dashboard';
-    if (id === 'repositories') return page === 'dashboard'; // Also maps to dashboard for now
-    if (id === 'migration') return page === 'packapply';
-    return page === id;
+    // Exact match or route prefix match (e.g. repo:xxx starts with repo)
+    if (id === 'repositories') return page.startsWith('repo:') || page === 'repositories';
+    return page === navRouteMap[id] || page.startsWith(id + ':');
   }
 </script>
 
@@ -42,7 +52,7 @@
       <button
         class="nav-item"
         class:active={isActive(item.id)}
-        onclick={() => navigateTo(item.id === 'repositories' ? 'dashboard' : item.id === 'migration' ? 'packapply' : item.id)}
+        onclick={() => navigateTo(navRouteMap[item.id] || item.id)}
       >
         <svelte:component this={item.icon} size={16} />
         <span class="nav-label">{item.label}</span>

@@ -143,8 +143,8 @@
     font-size: 0.7rem;
     padding: 1px 6px;
     border-radius: 50%;
-    background: #fee2e2;
-    color: #991b1b;
+    background: var(--color-danger-bg);
+    color: var(--color-danger);
     font-weight: bold;
   }
   .empty-resources {

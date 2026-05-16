@@ -295,6 +295,12 @@
     "all": "全部",
     "no_resources": "无资源"
   },
+  "directory_picker": {
+    "title": "选择目录",
+    "browse": "浏览",
+    "or": "或",
+    "placeholder": "输入路径后按回车"
+  },
   "common": {
     "save": "保存",
     "cancel": "取消",
