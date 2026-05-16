@@ -11,11 +11,8 @@
   let packStorageDir = $state('');
   let isLoading = $state(false);
   let logLevel = $state('info');
-  let redactPaths = $state(false);
-  let isExporting = $state(false);
 
   async function loadSettings() {
-    isLoading = true;
     try {
       const { invoke } = await import('@tauri-apps/api/core');
       const settings = await invoke<{
@@ -23,18 +20,36 @@
         scan_depth: number;
         ignore_patterns: string[];
         pack_storage_dir: string;
-        file_watch_enabled: boolean;
         log_level: string;
       }>('get_settings');
       scanRoots = settings.scan_roots.join(', ');
       scanDepth = String(settings.scan_depth);
       ignorePatterns = settings.ignore_patterns.join(', ');
       packStorageDir = settings.pack_storage_dir;
-      logLevel = settings.log_level || 'info';
+      logLevel = settings.log_level;
     } catch (e) {
       console.error('Failed to load settings:', e);
-    } finally {
-      isLoading = false;
+    }
+  }
+
+  async function exportDebugBundle() {
+    try {
+      const { invoke } = await import('@tauri-apps/api/core');
+      await invoke('export_debug_bundle', { destinationPath: '', redactPaths: true });
+      showToast($_('settings.debug_exported'), 'success');
+    } catch (e) {
+      showToast($_('settings.debug_export_failed') + ': ' + String(e), 'error');
+    }
+  }
+
+  async function openLogDir() {
+    try {
+      const { invoke } = await import('@tauri-apps/api/core');
+      const { open } = await import('@tauri-apps/plugin-shell');
+      const logDir = await invoke<string>('get_log_directory');
+      await open(logDir);
+    } catch (e) {
+      console.error('Failed to open log dir:', e);
     }
   }
 
@@ -60,46 +75,13 @@
     }
   }
 
-  async function setLogLevel(level: string) {
-    logLevel = level;
-    try {
-      const { invoke } = await import('@tauri-apps/api/core');
-      await invoke('set_log_level', { level });
-    } catch (e) {
-      console.error('Failed to set log level:', e);
-    }
-  }
-
-  async function exportDebugBundle() {
-    const { save } = await import('@tauri-apps/plugin-dialog');
-    const path = await save({
-      defaultPath: 'debug-bundle.zip',
-      filters: [{ name: 'ZIP Archive', extensions: ['zip'] }],
-    });
-    if (!path) return;
-
-    isExporting = true;
-    try {
-      const { invoke } = await import('@tauri-apps/api/core');
-      await invoke('export_debug_bundle', {
-        destinationPath: path,
-        redactPaths,
-      });
-    } catch (e) {
-      console.error('Failed to export debug bundle:', e);
-    } finally {
-      isExporting = false;
-    }
-  }
-
-  async function openLogDir() {
-    try {
-      const { open } = await import('@tauri-apps/plugin-shell');
-      await open('~/.capability-repo-manager/logs/');
-    } catch (e) {
-      console.error('Failed to open log directory:', e);
-    }
-  }
+  const logLevels = [
+    { value: 'error', label: 'Error' },
+    { value: 'warn', label: 'Warn' },
+    { value: 'info', label: 'Info' },
+    { value: 'debug', label: 'Debug' },
+    { value: 'trace', label: 'Trace' },
+  ];
 
   loadSettings();
 </script>
@@ -110,196 +92,163 @@
     <button class="back-btn" onclick={() => navigateTo('dashboard')}>{$_('nav.back')}</button>
   </header>
 
-  {#if isLoading}
-    <p class="loading">{$_('settings.loading')}</p>
-  {:else}
-    <form
-      class="settings-form"
-      onsubmit={(e) => {
-        e.preventDefault();
-        saveSettings();
-      }}
-    >
-      <div class="form-group">
-        <label>{$_('settings.scan_roots')}</label>
-        <textarea
-          bind:value={scanRoots}
-          placeholder={$_('settings.scan_roots_placeholder')}
-          rows={2}
-        ></textarea>
-        <span class="hint">{$_('settings.scan_roots_hint')}</span>
-      </div>
+  <form class="settings-form" onsubmit={(e) => { e.preventDefault(); saveSettings(); }}>
+    <div class="form-group">
+      <label>{$_('settings.scan_roots')}</label>
+      <input type="text" bind:value={scanRoots} placeholder={$_('settings.scan_roots_placeholder')} />
+      <span class="hint">{$_('settings.scan_roots_hint')}</span>
+    </div>
 
-      <div class="form-group">
-        <label>{$_('settings.scan_depth')}</label>
-        <input type="number" bind:value={scanDepth} min="1" max="20" />
-        <span class="hint">{$_('settings.scan_depth_hint')}</span>
-      </div>
+    <div class="form-group">
+      <label>{$_('settings.scan_depth')}</label>
+      <input type="number" bind:value={scanDepth} min="1" max="20" />
+      <span class="hint">{$_('settings.scan_depth_hint')}</span>
+    </div>
 
-      <div class="form-group">
-        <label>{$_('settings.ignore_patterns')}</label>
-        <textarea bind:value={ignorePatterns} rows={2}></textarea>
-        <span class="hint">{$_('settings.ignore_patterns_hint')}</span>
-      </div>
+    <div class="form-group">
+      <label>{$_('settings.ignore_patterns')}</label>
+      <input type="text" bind:value={ignorePatterns} placeholder="node_modules, .venv, target" />
+      <span class="hint">{$_('settings.ignore_patterns_hint')}</span>
+    </div>
 
-      <div class="form-group">
-        <label>{$_('settings.pack_storage')}</label>
-        <input
-          type="text"
-          bind:value={packStorageDir}
-          placeholder={$_('settings.pack_storage_placeholder')}
-        />
-        <span class="hint">{$_('settings.pack_storage_hint')}</span>
-      </div>
+    <div class="form-group">
+      <label>{$_('settings.pack_storage')}</label>
+      <input type="text" bind:value={packStorageDir} placeholder="~/.capability-repo-manager/packs" />
+      <span class="hint">{$_('settings.pack_storage_hint')}</span>
+    </div>
 
-      <hr class="section-divider" />
+    <div class="form-group">
+      <label>{$_('settings.log_level')}</label>
+      <select bind:value={logLevel} class="log-level-select">
+        {#each logLevels as lvl (lvl.value)}
+          <option value={lvl.value}>{lvl.label}</option>
+        {/each}
+      </select>
+      <span class="hint">{$_('settings.log_level_hint')}</span>
+    </div>
 
-      <div class="form-group">
-        <label>{$_('settings.log_level')}</label>
-        <select
-          class="log-level-select"
-          value={logLevel}
-          onchange={(e) => setLogLevel((e.target as HTMLSelectElement).value)}
-        >
-          <option value="info">INFO</option>
-          <option value="debug">DEBUG</option>
-          <option value="trace">TRACE</option>
-        </select>
-        <span class="hint">{$_('settings.log_level_hint')}</span>
-      </div>
+    <hr class="section-divider" />
 
-      <div class="form-group">
-        <label class="checkbox-label">
-          <input type="checkbox" bind:checked={redactPaths} />
-          {$_('settings.redact_paths')}
-        </label>
-        <span class="hint">{$_('settings.redact_paths_hint')}</span>
-      </div>
-
+    <div class="form-group">
+      <label>{$_('settings.debug_title')}</label>
       <div class="button-group">
-        <button type="button" class="action-btn" onclick={exportDebugBundle} disabled={isExporting}>
-          {isExporting ? $_('settings.exporting_bundle') : $_('settings.export_debug_bundle')}
+        <button type="button" class="action-btn" onclick={exportDebugBundle}>
+          {$_('settings.export_debug')}
         </button>
         <button type="button" class="action-btn" onclick={openLogDir}>
           {$_('settings.open_log_dir')}
         </button>
       </div>
+    </div>
 
-      <div class="form-actions">
-        <button type="submit" class="save-btn" disabled={isLoading}>{$_('settings.save')}</button>
-      </div>
-    </form>
-  {/if}
+    <div class="form-actions">
+      <button type="submit" class="save-btn" disabled={isLoading}>
+        {isLoading ? $_('common.saving') : $_('common.save')}
+      </button>
+    </div>
+  </form>
 </div>
 
 <style>
   .settings-page {
     max-width: 600px;
     margin: 0 auto;
-    padding: 24px;
+    padding: var(--space-6);
   }
   .settings-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 24px;
+    margin-bottom: var(--space-6);
   }
-  .settings-header h1 {
-    margin: 0;
-  }
+  .settings-header h1 { margin: 0; }
   .back-btn {
-    padding: 8px 16px;
-    background: #fff;
-    border: 1px solid #e2e8f0;
-    border-radius: 6px;
+    padding: var(--space-2) var(--space-4);
+    background: var(--bg-card);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
     cursor: pointer;
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
   }
   .settings-form {
     display: flex;
     flex-direction: column;
-    gap: 20px;
-    background: #fff;
-    padding: 24px;
-    border-radius: 12px;
-    border: 1px solid #e2e8f0;
+    gap: var(--space-5);
+    background: var(--bg-card);
+    padding: var(--space-6);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-default);
   }
   .form-group label {
     display: block;
-    font-weight: 600;
-    margin-bottom: 8px;
+    font-weight: 500;
+    margin-bottom: var(--space-2);
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
   }
   .form-group input,
   .form-group textarea,
   .form-group select {
     width: 100%;
-    padding: 10px;
-    border: 1px solid #e2e8f0;
-    border-radius: 6px;
-    font-size: 0.95rem;
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    background: var(--bg-panel);
+    color: var(--text-primary);
+    outline: none;
     box-sizing: border-box;
   }
-  .log-level-select {
-    max-width: 200px;
+  .form-group input:focus,
+  .form-group select:focus {
+    border-color: var(--color-primary);
   }
-  .checkbox-label {
-    display: flex !important;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-  }
-  .checkbox-label input[type='checkbox'] {
-    width: auto;
-  }
+  .log-level-select { max-width: 200px; }
   .hint {
     display: block;
-    font-size: 0.8rem;
-    color: #64748b;
-    margin-top: 4px;
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    margin-top: var(--space-1);
   }
   .section-divider {
     border: none;
-    border-top: 1px solid #e2e8f0;
-    margin: 4px 0;
+    border-top: 1px solid var(--border-default);
+    margin: var(--space-1) 0;
   }
   .button-group {
     display: flex;
-    gap: 12px;
+    gap: var(--space-3);
     flex-wrap: wrap;
   }
   .action-btn {
-    padding: 10px 20px;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    font-size: 0.9rem;
+    padding: var(--space-2) var(--space-4);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
     cursor: pointer;
-    transition: background 0.15s;
+    transition: background var(--transition-fast);
   }
   .action-btn:hover {
-    background: #f1f5f9;
+    background: var(--bg-hover);
   }
   .action-btn:disabled {
     opacity: 0.6;
     cursor: not-allowed;
   }
-  .form-actions {
-    margin-top: 8px;
-  }
+  .form-actions { margin-top: var(--space-2); }
   .save-btn {
-    padding: 12px 24px;
-    background: var(--primary, #3b82f6);
+    padding: var(--space-3) var(--space-6);
+    background: var(--color-primary);
     color: #fff;
     border: none;
-    border-radius: 8px;
+    border-radius: var(--radius-md);
     font-weight: 600;
     cursor: pointer;
+    font-size: var(--font-size-sm);
   }
-  .save-btn:disabled {
-    opacity: 0.6;
-  }
-  .loading {
-    text-align: center;
-    color: #64748b;
-    padding: 40px 0;
-  }
+  .save-btn:hover { background: var(--color-primary-hover); }
+  .save-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 </style>

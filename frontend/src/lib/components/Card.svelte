@@ -18,7 +18,7 @@
   } = $props();
 </script>
 
-<div class="card card-pad-{padding} {hoverable ? 'card-hoverable' : ''} {className}" role={onclick ? 'button' : undefined} tabindex={onclick ? 0 : undefined} {onclick}>
+<div class="card card-pad-{padding} {hoverable ? 'card-hoverable' : ''} {className}" role={onclick ? 'button' : undefined} tabindex={onclick ? 0 : undefined} {onclick} onkeydown={onclick ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onclick(e as any); } } : undefined}>
   {#if title || actions}
     <div class="card-header">
       {#if title}
