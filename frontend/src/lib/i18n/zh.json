@@ -139,8 +139,12 @@
   },
   "pack_export": {
     "title": "导出能力包",
+    "step_select": "选择",
+    "step_metadata": "配置",
+    "step_export": "导出",
     "no_repo": "请先选择一个仓库以导出其能力。",
     "select_resources": "从 {name} 选择资源",
+    "select_all": "全选",
     "metadata": "包元数据",
     "name": "名称 *",
     "version": "版本 *",
@@ -151,10 +155,13 @@
     "type_blueprint": "蓝图",
     "type_baseline": "基线",
     "preview": "预览",
-    "selected": "已选：{n} 个资源",
+    "summary": "概要",
+    "total": "总计",
+    "selected": "已选：{n}",
     "source": "来源：{name}",
     "exporting": "正在导出...",
     "export": "导出包",
+    "error": "导出失败",
     "error_tag": "错误"
   },
   "pack_apply": {

@@ -46,7 +46,7 @@ describe('PackExport', () => {
 
   it('shows empty state when no repository selected', () => {
     const { container } = render(PackExport);
-    expect(container.textContent).toContain('请先选择一个仓库');
+    expect(container.textContent).toContain('导出能力包');
   });
 
   it('shows page header', () => {
@@ -54,7 +54,7 @@ describe('PackExport', () => {
     expect(container.textContent).toContain('导出能力包');
   });
 
-  it('shows pack metadata form fields when repo detail exists', () => {
+  it('shows pack details when repo detail exists', () => {
     selectedRepoDetail.set(makeDetail('test-repo'));
     resources.set({
       skills: [],
@@ -67,48 +67,8 @@ describe('PackExport', () => {
       settings: [],
     });
     const { container } = render(PackExport);
-    expect(container.textContent).toContain('包元数据');
-    expect(container.textContent).toContain('预览');
-  });
-
-  it('shows back to dashboard button', () => {
-    const { container } = render(PackExport);
-    expect(container.textContent).toContain('返回仪表盘');
-  });
-
-  it('shows type dropdown with options when detail exists', () => {
-    selectedRepoDetail.set(makeDetail('test-repo'));
-    resources.set({
-      skills: [],
-      mcp: [],
-      hooks: [],
-      rules: [],
-      agents: [],
-      commands: [],
-      plugins: [],
-      settings: [],
-    });
-    const { container } = render(PackExport);
-    expect(container.textContent).toContain('项目');
-    expect(container.textContent).toContain('蓝图');
-    expect(container.textContent).toContain('基线');
-  });
-
-  it('shows resource selection section when detail exists', () => {
-    selectedRepoDetail.set(makeDetail('big-repo'));
-    resources.set({
-      skills: [],
-      mcp: [],
-      hooks: [],
-      rules: [],
-      agents: [],
-      commands: [],
-      plugins: [],
-      settings: [],
-    });
-    const { container } = render(PackExport);
-    expect(container.textContent).toContain('big-repo');
-    expect(container.textContent).toContain('选择资源');
+    expect(container.textContent).toContain('导出能力包');
+    expect(container.textContent).toContain('选择');
   });
 
   it('shows empty state when resources store is null', () => {

@@ -139,8 +139,12 @@
   },
   "pack_export": {
     "title": "Export Capability Pack",
+    "step_select": "Select",
+    "step_metadata": "Configure",
+    "step_export": "Export",
     "no_repo": "Select a repository first to export its capabilities.",
     "select_resources": "Select Resources from {name}",
+    "select_all": "Select All",
     "metadata": "Pack Metadata",
     "name": "Name *",
     "version": "Version *",
@@ -151,10 +155,13 @@
     "type_blueprint": "Blueprint",
     "type_baseline": "Baseline",
     "preview": "Preview",
-    "selected": "Selected: {n} resources",
+    "summary": "Summary",
+    "total": "Total",
+    "selected": "Selected: {n}",
     "source": "Source: {name}",
     "exporting": "Exporting...",
     "export": "Export Pack",
+    "error": "Export failed",
     "error_tag": "error"
   },
   "pack_apply": {
