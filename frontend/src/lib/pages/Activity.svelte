@@ -23,15 +23,6 @@
     }
   }
 
-  function getStatusLabel(status: string): string {
-    switch (status) {
-      case "success": return "Success";
-      case "failure": return "Failed";
-      case "partial_failure": return "Partial";
-      default: return status;
-    }
-  }
-
   function getTypeIcon(opType: string): string {
     switch (opType) {
       case "scan_repositories": return "🔍";
@@ -61,7 +52,7 @@
     <button class="back-btn" onclick={() => currentPage.set("dashboard")}>
       &larr; {$_('nav.back')}
     </button>
-    <h1>Activity History</h1>
+    <h1>{$_('activity.title')}</h1>
   </header>
 
   <div class="filter-bar">
@@ -70,32 +61,32 @@
       onchange={handleFilterChange}
       class="type-filter"
     >
-      <option value="">All Types</option>
-      <option value="scan_repositories">Scan</option>
-      <option value="refresh_repository">Refresh</option>
-      <option value="export_pack">Export Pack</option>
-      <option value="delete_pack">Delete Pack</option>
-      <option value="build_migration_plan">Migration Plan</option>
-      <option value="apply_migration">Apply Migration</option>
-      <option value="rollback_migration">Rollback</option>
-      <option value="run_doctor">Doctor</option>
+      <option value="">{$_('activity.all_types')}</option>
+      <option value="scan_repositories">{$_('activity.scan')}</option>
+      <option value="refresh_repository">{$_('activity.refresh')}</option>
+      <option value="export_pack">{$_('activity.export_pack')}</option>
+      <option value="delete_pack">{$_('activity.delete_pack')}</option>
+      <option value="build_migration_plan">{$_('activity.migration_plan')}</option>
+      <option value="apply_migration">{$_('activity.apply_migration')}</option>
+      <option value="rollback_migration">{$_('activity.rollback')}</option>
+      <option value="run_doctor">{$_('activity.doctor')}</option>
     </select>
     <button class="refresh-btn" onclick={() => loadEvents(typeFilter || undefined)}>
-      Refresh
+      {$_('activity.refresh')}
     </button>
   </div>
 
   <main class="activity-content">
     {#if $isLoading}
-      <p class="loading">Loading...</p>
+      <p class="loading">{$_('activity.loading')}</p>
     {:else if $error}
       <div class="error-box">
         <p>Error: {$error}</p>
-        <button class="retry-btn" onclick={() => loadEvents(typeFilter || undefined)}>Retry</button>
+        <button class="retry-btn" onclick={() => loadEvents(typeFilter || undefined)}>{$_('activity.retry')}</button>
       </div>
     {:else if $events.length === 0}
       <div class="empty-state">
-        <p>No activity recorded yet. Run a scan or other operation to see events here.</p>
+        <p>{$_('activity.empty')}</p>
       </div>
     {:else}
       <div class="event-list">
@@ -105,7 +96,7 @@
             <div class="event-body">
               <div class="event-header">
                 <span class="event-type">{event.operation_type.replace(/_/g, " ")}</span>
-                <span class="event-status {getStatusClass(event.status)}">{getStatusLabel(event.status)}</span>
+                <span class="event-status {getStatusClass(event.status)}">{#if event.status === "success"}{$_('activity.status_success')}{:else if event.status === "failure"}{$_('activity.status_failed')}{:else if event.status === "partial_failure"}{$_('activity.status_partial')}{:else}{event.status}{/if}</span>
               </div>
               {#if event.summary}
                 <p class="event-summary">{event.summary}</p>

@@ -16,7 +16,7 @@ function makeReport(score: number, issues: DoctorIssue[]): DoctorReportType {
 describe("DoctorReport", () => {
   it("shows empty state when no report", () => {
     const { container } = render(DoctorReport, { props: { report: null } });
-    expect(container.textContent).toContain("No health report");
+    expect(container.textContent).toContain("暂无健康报告");
   });
 
   it("shows score value", () => {
@@ -28,25 +28,25 @@ describe("DoctorReport", () => {
   it("shows Healthy label for high score", () => {
     const report = makeReport(85, []);
     const { container } = render(DoctorReport, { props: { report } });
-    expect(container.textContent).toContain("Healthy");
+    expect(container.textContent).toContain("健康");
   });
 
   it("shows Needs Attention label for medium score", () => {
     const report = makeReport(60, []);
     const { container } = render(DoctorReport, { props: { report } });
-    expect(container.textContent).toContain("Needs Attention");
+    expect(container.textContent).toContain("需要注意");
   });
 
   it("shows Critical label for low score", () => {
     const report = makeReport(30, []);
     const { container } = render(DoctorReport, { props: { report } });
-    expect(container.textContent).toContain("Critical");
+    expect(container.textContent).toContain("严重");
   });
 
   it("shows No Issues when report has empty issues", () => {
     const report = makeReport(100, []);
     const { container } = render(DoctorReport, { props: { report } });
-    expect(container.textContent).toContain("No issues found");
+    expect(container.textContent).toContain("未发现问题");
   });
 
   it("shows issue count per severity", () => {
@@ -57,8 +57,8 @@ describe("DoctorReport", () => {
     ];
     const report = makeReport(70, issues);
     const { container } = render(DoctorReport, { props: { report } });
-    expect(container.textContent).toContain("CRITICAL");
-    expect(container.textContent).toContain("WARNING");
+    expect(container.textContent).toContain("严重");
+    expect(container.textContent).toContain("警告");
   });
 
   it("shows issue message", () => {
@@ -91,7 +91,7 @@ describe("DoctorReport", () => {
   it("shows diagnosed date indicator", () => {
     const report = makeReport(90, []);
     const { container } = render(DoctorReport, { props: { report } });
-    expect(container.textContent).toContain("Diagnosed");
+    expect(container.textContent).toContain("诊断时间");
   });
 
   it("does not show critical group when no critical issues", () => {
@@ -100,6 +100,6 @@ describe("DoctorReport", () => {
     ];
     const report = makeReport(99, issues);
     const { container } = render(DoctorReport, { props: { report } });
-    expect(container.textContent).toContain("INFO");
+    expect(container.textContent).toContain("信息");
   });
 });

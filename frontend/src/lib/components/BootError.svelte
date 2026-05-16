@@ -1,5 +1,6 @@
 <script lang="ts">
-  let { title = "Something went wrong", message = "", detail = "" }: {
+  import { _ } from "svelte-i18n";
+  let { title = "出现了问题", message = "", detail = "" }: {
     title?: string;
     message?: string;
     detail?: string;
@@ -28,10 +29,10 @@
       <pre class="error-detail">{detail}</pre>
     {/if}
     <div class="error-actions">
-      <button class="btn-primary" onclick={handleRetry}>Retry</button>
+      <button class="btn-primary" onclick={handleRetry}>{$_('app.retry')}</button>
       {#if detail}
         <button class="btn-secondary" onclick={copyError}>
-          {copied ? "Copied!" : "Copy Error"}
+          {copied ? $_('app.copied') : $_('app.copy_error')}
         </button>
       {/if}
     </div>

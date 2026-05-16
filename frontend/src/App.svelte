@@ -32,14 +32,14 @@
       // Categorize error
       if (msg.includes("not found") || msg.includes("No function") || msg.includes("not registered")) {
         bootError = {
-          title: "Backend Unavailable",
-          message: "The Tauri backend commands are not responding. This may be a build or configuration issue.",
+          title: $_('app.backend_unavailable_title'),
+          message: $_('app.backend_unavailable_message'),
           detail: msg,
         };
       } else if (msg.includes("no such table") || msg.includes("database")) {
         bootError = {
-          title: "Database Error",
-          message: "The application database could not be accessed.",
+          title: $_('app.database_error_title'),
+          message: $_('app.database_error_message'),
           detail: msg,
         };
       } else {
@@ -74,7 +74,7 @@
   {#if bootError}
     <BootError title={bootError.title} message={bootError.message} detail={bootError.detail} />
   {:else if !$locale}
-    <div class="page-loading">Loading...</div>
+    <div class="page-loading">{$_('app.loading')}</div>
   {:else if $currentPage === "guidedsetup"}
     <GuidedSetup />
   {:else if $currentPage === "dashboard"}
@@ -85,38 +85,38 @@
     {#if PackExport}
       <PackExport />
     {:else}
-      <div class="page-loading">Loading...</div>
+      <div class="page-loading">{$_('app.loading')}</div>
     {/if}
   {:else if $currentPage === "packapply"}
     {#if PackApply}
       <PackApply />
     {:else}
-      <div class="page-loading">Loading...</div>
+      <div class="page-loading">{$_('app.loading')}</div>
     {/if}
   {:else if $currentPage === "doctor"}
     {#if Doctor}
       <Doctor />
     {:else}
-      <div class="page-loading">Loading...</div>
+      <div class="page-loading">{$_('app.loading')}</div>
     {/if}
   {:else if $currentPage === "compare"}
     {#if Compare}
       <Compare />
     {:else}
-      <div class="page-loading">Loading...</div>
+      <div class="page-loading">{$_('app.loading')}</div>
     {/if}
   {:else if $currentPage === "activity"}
     {#if Activity}
       <Activity />
     {:else}
-      <div class="page-loading">Loading...</div>
+      <div class="page-loading">{$_('app.loading')}</div>
     {/if}
   {:else if $currentPage.startsWith("repo:")}
     <RepoDetail repoId={$currentPage.slice(5)} />
   {:else}
     <BootError
-      title="Unknown Page"
-      message="The application tried to navigate to an unrecognized page."
+      title={$_('app.unknown_page_title')}
+      message={$_('app.unknown_page_message')}
       detail={$currentPage}
     />
   {/if}

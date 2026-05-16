@@ -45,7 +45,7 @@ describe("CompareView", () => {
 
   it("shows empty state when no result", () => {
     const { container } = render(CompareView, { props: defaultProps });
-    expect(container.textContent).toContain("No comparison result");
+    expect(container.textContent).toContain("暂无比较结果");
   });
 
   it("shows all category tabs", () => {
@@ -53,10 +53,10 @@ describe("CompareView", () => {
     const { container } = render(CompareView, {
       props: { ...defaultProps, result },
     });
-    expect(container.textContent).toContain("Missing");
-    expect(container.textContent).toContain("Extra");
-    expect(container.textContent).toContain("Modified");
-    expect(container.textContent).toContain("Same");
+    expect(container.textContent).toContain("缺失");
+    expect(container.textContent).toContain("多余");
+    expect(container.textContent).toContain("已修改");
+    expect(container.textContent).toContain("相同");
   });
 
   it("renders missing items by default", () => {
@@ -96,6 +96,6 @@ describe("CompareView", () => {
     const { container } = render(CompareView, {
       props: { ...defaultProps, result },
     });
-    expect(container.textContent).toContain("Select an item to view details");
+    expect(container.textContent).toContain("选择一个项目以查看详情");
   });
 });

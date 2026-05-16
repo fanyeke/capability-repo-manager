@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { _ } from "svelte-i18n";
   import type { MigrationPlan, MigrationPlanItem, MigrationConflict } from "$lib/types";
 
   let {
@@ -22,24 +23,24 @@
 </script>
 
 {#if !plan}
-  <p class="empty-text">No migration plan. Select a pack and target repo to build one.</p>
+  <p class="empty-text">{$_('migration.no_plan')}</p>
 {:else}
   <div class="plan-container">
     <div class="plan-summary">
       <div class="summary-item">
-        <span class="label">Source</span>
+        <span class="label">{$_('migration.source')}</span>
         <span>{plan.source_type}: {plan.source_id}</span>
       </div>
       <div class="summary-item">
-        <span class="label">Target Repo</span>
+        <span class="label">{$_('migration.target_repo')}</span>
         <span>{plan.target_repo_id}</span>
       </div>
       <div class="summary-item">
-        <span class="label">Items</span>
+        <span class="label">{$_('migration.items')}</span>
         <span>{plan.items.length}</span>
       </div>
       <div class="summary-item">
-        <span class="label">Conflicts</span>
+        <span class="label">{$_('migration.conflicts')}</span>
         <span class:has-conflicts={plan.conflicts.length > 0}>
           {plan.conflicts.length}
         </span>
@@ -48,7 +49,7 @@
 
     {#if plan.conflicts.length > 0}
       <div class="conflicts-section">
-        <h4>Conflicts</h4>
+        <h4>{$_('migration.conflicts')}</h4>
         {#each plan.conflicts as conflict (conflict.resource_name + conflict.resource_type)}
           <div class="conflict-item">
             <span class="conflict-name">{conflict.resource_name}</span>
@@ -62,10 +63,10 @@
     <table class="plan-table">
       <thead>
         <tr>
-          <th>Resource</th>
-          <th>Type</th>
-          <th>Action</th>
-          <th>Strategy</th>
+          <th>{$_('migration.resource')}</th>
+          <th>{$_('migration.type')}</th>
+          <th>{$_('migration.action')}</th>
+          <th>{$_('migration.strategy')}</th>
         </tr>
       </thead>
       <tbody>
@@ -86,10 +87,10 @@
                   value={getStrategy(item.resource_id)}
                   onchange={(e) => onSetStrategy(item.resource_id, (e.target as HTMLSelectElement).value)}
                 >
-                  <option value="skip">Skip</option>
-                  <option value="overwrite">Overwrite</option>
-                  <option value="rename">Rename</option>
-                  <option value="merge">Merge</option>
+                  <option value="skip">{$_('migration.skip')}</option>
+                  <option value="overwrite">{$_('migration.overwrite')}</option>
+                  <option value="rename">{$_('migration.rename')}</option>
+                  <option value="merge">{$_('migration.merge')}</option>
                 </select>
               {:else}
                 <span class="strategy-auto">{item.action}</span>

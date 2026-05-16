@@ -31,12 +31,12 @@ describe("RepoList", () => {
 
   it("renders loading state", () => {
     const { container } = render(RepoList, { props: { ...defaultProps, isLoading: true } });
-    expect(container.textContent).toContain("Loading repositories");
+    expect(container.textContent).toContain("正在加载仓库列表");
   });
 
   it("renders empty state when no repos", () => {
     const { container } = render(RepoList, { props: { ...defaultProps, repos: [] } });
-    expect(container.textContent).toContain("No repositories found");
+    expect(container.textContent).toContain("未发现仓库");
   });
 
   it("renders repo grid with repos", () => {
@@ -57,6 +57,6 @@ describe("RepoList", () => {
 
   it("shows scan button with default text when not loading", () => {
     const { container } = render(RepoList, { props: defaultProps });
-    expect(container.textContent).toContain("Scan Repos");
+    expect(container.textContent).toContain("扫描仓库");
   });
 });

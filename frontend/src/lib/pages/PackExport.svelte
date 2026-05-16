@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { _ } from "svelte-i18n";
   import { currentPage, navigateTo } from "$lib/stores/uiStore";
   import { selectedRepoDetail } from "$lib/stores/repoStore";
   import { resources, loadCapabilityInventory, typeGroups } from "$lib/stores/capabilityStore";
@@ -39,16 +40,16 @@
 
 <div class="pack-export-page">
   <header class="page-header">
-    <h1>Export Capability Pack</h1>
-    <button class="back-btn" onclick={() => navigateTo("dashboard")}>Back to Dashboard</button>
+    <h1>{$_('pack_export.title')}</h1>
+    <button class="back-btn" onclick={() => navigateTo("dashboard")}>{$_('nav.back')}</button>
   </header>
 
   {#if !detail}
-    <p class="empty-text">Select a repository first to export its capabilities.</p>
+    <p class="empty-text">{$_('pack_export.no_repo')}</p>
   {:else}
     <div class="export-content">
       <section class="resource-selection">
-        <h2>Select Resources from {detail.repo.name}</h2>
+        <h2>{$_('pack_export.select_resources', { values: { name: detail.repo.name } })}</h2>
 
         <div class="resource-groups">
           {#each $typeGroups as group (group.type)}
@@ -66,7 +67,7 @@
                         />
                         {resource.name}
                         {#if resource.error_message}
-                          <span class="error-tag">error</span>
+                          <span class="error-tag">{$_('pack_export.error_tag')}</span>
                         {/if}
                       </label>
                     </li>
@@ -79,36 +80,36 @@
       </section>
 
       <section class="pack-metadata">
-        <h2>Pack Metadata</h2>
+        <h2>{$_('pack_export.metadata')}</h2>
 
         <div class="form-group">
-          <label>Name *</label>
+          <label>{$_('pack_export.name')}</label>
           <input type="text" bind:value={packName} required />
         </div>
 
         <div class="form-group">
-          <label>Version *</label>
-          <input type="text" bind:value={packVersion} placeholder="1.0.0" required />
+          <label>{$_('pack_export.version')}</label>
+          <input type="text" bind:value={packVersion} placeholder={$_('pack_export.version_placeholder')} required />
         </div>
 
         <div class="form-group">
-          <label>Description</label>
+          <label>{$_('pack_export.description')}</label>
           <textarea bind:value={packDescription} rows={2}></textarea>
         </div>
 
         <div class="form-group">
-          <label>Type</label>
+          <label>{$_('pack_export.type')}</label>
           <select bind:value={packType}>
-            <option value="project">Project</option>
-            <option value="blueprint">Blueprint</option>
-            <option value="baseline">Baseline</option>
+            <option value="project">{$_('pack_export.type_project')}</option>
+            <option value="blueprint">{$_('pack_export.type_blueprint')}</option>
+            <option value="baseline">{$_('pack_export.type_baseline')}</option>
           </select>
         </div>
 
         <div class="preview-section">
-          <h3>Preview</h3>
-          <p><strong>Selected:</strong> {selectedIds.size} resources</p>
-          <p><strong>Source:</strong> {detail.repo.name}</p>
+          <h3>{$_('pack_export.preview')}</h3>
+          <p><strong>{$_('pack_export.selected', { values: { n: selectedIds.size } })}</strong></p>
+          <p><strong>{$_('pack_export.source', { values: { name: detail.repo.name } })}</strong></p>
         </div>
 
         <div class="form-actions">
@@ -118,9 +119,9 @@
             disabled={$isLoading || !packName || selectedIds.size === 0}
           >
             {#if $isLoading}
-              Exporting...
+              {$_('pack_export.exporting')}
             {:else}
-              Export Pack
+              {$_('pack_export.export')}
             {/if}
           </button>
         </div>

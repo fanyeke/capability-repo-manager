@@ -8,7 +8,6 @@ import {
   clearError,
   groupIssuesBySeverity,
   getScoreColor,
-  getScoreLabel,
 } from "$lib/stores/doctorStore";
 import type { DoctorIssue } from "$lib/types";
 
@@ -65,23 +64,7 @@ describe("doctorStore", () => {
     });
   });
 
-  describe("getScoreLabel", () => {
-    it("returns Healthy for good scores", () => {
-      expect(getScoreLabel(100)).toBe("Healthy");
-      expect(getScoreLabel(80)).toBe("Healthy");
-    });
-
-    it("returns Needs Attention for medium scores", () => {
-      expect(getScoreLabel(70)).toBe("Needs Attention");
-      expect(getScoreLabel(50)).toBe("Needs Attention");
-    });
-
-    it("returns Critical for poor scores", () => {
-      expect(getScoreLabel(49)).toBe("Critical");
-      expect(getScoreLabel(0)).toBe("Critical");
-    });
-  });
-
+  
   describe("clearReport", () => {
     it("resets report to null", () => {
       report.set({} as any);

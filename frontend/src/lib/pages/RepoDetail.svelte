@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { _ } from "svelte-i18n";
   import { currentPage, navigateTo } from "$lib/stores/uiStore";
   import { selectedRepoDetail, refreshRepository, removeRepository, isLoading } from "$lib/stores/repoStore";
   import { resources, typeGroups, selectedType, loadCapabilityInventory, setTypeFilter } from "$lib/stores/capabilityStore";
@@ -21,7 +22,7 @@
 <div class="repo-detail-page">
   <header class="repo-header">
     <div class="header-top">
-      <button class="back-btn" onclick={() => navigateTo("dashboard")}>Back</button>
+      <button class="back-btn" onclick={() => navigateTo("dashboard")}>{$_('repo.back')}</button>
     </div>
     {#if detail}
       <div class="header-info">
@@ -38,57 +39,57 @@
       </div>
       <div class="header-actions">
         <button class="action-btn" onclick={() => refreshRepository(repoId)} disabled={$isLoading}>
-          Refresh
+          {$_('repo.refresh')}
         </button>
         <button class="action-btn danger" onclick={() => removeRepository(repoId)} disabled={$isLoading}>
-          Remove
+          {$_('repo.remove')}
         </button>
         <button class="action-btn" onclick={() => currentPage.set("packexport")}>
-          Export Pack
+          {$_('repo.export_pack')}
         </button>
         <button class="action-btn" onclick={() => currentPage.set("doctor")}>
-          Run Doctor
+          {$_('repo.run_doctor')}
         </button>
       </div>
     {:else}
-      <p class="loading">Loading repository...</p>
+      <p class="loading">{$_('repo.loading')}</p>
     {/if}
   </header>
 
   <div class="tabs">
     <button class="tab-btn" class:active={activeTab === "overview"} onclick={() => activeTab = "overview"}>
-      Overview
+      {$_('repo.overview')}
     </button>
     <button class="tab-btn" class:active={activeTab === "capabilities"} onclick={() => activeTab = "capabilities"}>
-      Capabilities
+      {$_('repo.capabilities_tab')}
     </button>
   </div>
 
   <main class="repo-content">
     {#if $isLoading}
-      <p class="loading">Loading...</p>
+      <p class="loading">{$_('app.loading')}</p>
     {:else if activeTab === "overview"}
       {#if detail}
         <div class="overview-grid">
           <div class="overview-card">
-            <h3>Repository Info</h3>
+            <h3>{$_('repo.repo_info')}</h3>
             <dl class="info-list">
-              <dt>Name</dt>
+              <dt>{$_('repo.name')}</dt>
               <dd>{detail.repo.name}</dd>
-              <dt>Path</dt>
+              <dt>{$_('repo.path')}</dt>
               <dd>{detail.repo.path}</dd>
-              <dt>Remote</dt>
+              <dt>{$_('repo.remote')}</dt>
               <dd>{detail.repo.remote_url ?? "N/A"}</dd>
-              <dt>Branch</dt>
+              <dt>{$_('repo.branch')}</dt>
               <dd>{detail.repo.current_branch ?? "N/A"}</dd>
-              <dt>HEAD</dt>
+              <dt>{$_('repo.head')}</dt>
               <dd>{detail.repo.head_commit ?? "N/A"}</dd>
-              <dt>Last Indexed</dt>
+              <dt>{$_('repo.last_indexed')}</dt>
               <dd>{new Date(detail.repo.last_indexed_at).toLocaleString()}</dd>
             </dl>
           </div>
           <div class="overview-card">
-            <h3>Capability Summary</h3>
+            <h3>{$_('repo.capability_summary')}</h3>
             <dl class="info-list">
               {#each Object.entries(detail.capabilities) as [type, items]}
                 {#if (items as any[]).length > 0}
@@ -115,7 +116,7 @@
             {@const resource = allResources.find(r => r.id === selectedResourceId)}
             <ResourceDetail resource={resource ?? null} />
           {:else}
-            <p class="select-hint">Select a capability to view details</p>
+            <p class="select-hint">{$_('repo.select_capability')}</p>
           {/if}
         </div>
       </div>

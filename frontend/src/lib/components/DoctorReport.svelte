@@ -1,6 +1,13 @@
 <script lang="ts">
+  import { _ } from "svelte-i18n";
   import type { DoctorReport as DoctorReportType, DoctorIssue } from "$lib/types";
-  import { groupIssuesBySeverity, getScoreColor, getScoreLabel } from "$lib/stores/doctorStore";
+  import { groupIssuesBySeverity, getScoreColor } from "$lib/stores/doctorStore";
+
+  function getScoreLabel(score: number): string {
+    if (score >= 80) return "doctor.healthy";
+    if (score >= 50) return "doctor.needs_attention";
+    return "doctor.critical";
+  }
 
   let {
     report,
@@ -10,19 +17,19 @@
 
   let grouped = $derived(report ? groupIssuesBySeverity(report.issues) : null);
   let scoreColor = $derived(report ? getScoreColor(report.score) : "#94a3b8");
-  let scoreLabel = $derived(report ? getScoreLabel(report.score) : "N/A");
+  let scoreLabel = $derived(report ? getScoreLabel(report.score) : "");
 </script>
 
 {#if !report}
-  <p class="empty-text">No health report. Run doctor to diagnose repository health.</p>
+  <p class="empty-text">{$_('doctor.no_health_report')}</p>
 {:else}
   <div class="doctor-report">
     <div class="score-section">
       <div class="score-circle" style="border-color: {scoreColor}; color: {scoreColor}">
         <span class="score-value">{report.score}</span>
-        <span class="score-label">{scoreLabel}</span>
+        <span class="score-label">{scoreLabel ? $_(scoreLabel) : ""}</span>
       </div>
-      <p class="score-date">Diagnosed: {new Date(report.created_at).toLocaleString()}</p>
+      <p class="score-date">{$_('doctor.diagnosed_at', { values: { date: new Date(report.created_at).toLocaleString() } })}</p>
     </div>
 
     <div class="issues-section">
@@ -30,7 +37,7 @@
         {#if grouped?.[severity]?.length}
           <div class="severity-group">
             <h4 class="severity-{severity}">
-              {severity.toUpperCase()} ({grouped[severity].length})
+              {$_(severity === "critical" ? 'doctor.critical' : severity === "warning" ? 'doctor.warning' : 'doctor.info')} ({grouped[severity].length})
             </h4>
             <ul class="issue-list">
               {#each grouped[severity] as issue (issue.code)}
@@ -43,7 +50,7 @@
                     <p class="issue-recommendation">{issue.recommendation}</p>
                   {/if}
                   {#if issue.resource_ref}
-                    <span class="issue-resource">Resource: {issue.resource_ref}</span>
+                    <span class="issue-resource">{$_('doctor.resource_ref', { values: { ref: issue.resource_ref } })}</span>
                   {/if}
                 </li>
               {/each}
@@ -53,7 +60,7 @@
       {/each}
 
       {#if report.issues.length === 0}
-        <p class="no-issues">No issues found. Repository is healthy!</p>
+        <p class="no-issues">{$_('doctor.no_issues_found')}</p>
       {/if}
     </div>
   </div>

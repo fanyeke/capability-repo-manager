@@ -49,7 +49,7 @@ describe("MigrationPlan", () => {
 
   it("shows empty state when no plan", () => {
     const { container } = render(MigrationPlan, { props: defaultProps });
-    expect(container.textContent).toContain("No migration plan");
+    expect(container.textContent).toContain("暂无迁移计划");
   });
 
   it("shows plan summary with source and target", () => {
@@ -57,8 +57,8 @@ describe("MigrationPlan", () => {
     const { container } = render(MigrationPlan, {
       props: { ...defaultProps, plan },
     });
-    expect(container.textContent).toContain("test-pack");
-    expect(container.textContent).toContain("target-repo");
+    expect(container.textContent).toContain("pack-1");
+    expect(container.textContent).toContain("repo-1");
   });
 
   it("shows item count in summary", () => {
@@ -74,7 +74,7 @@ describe("MigrationPlan", () => {
     const { container } = render(MigrationPlan, {
       props: { ...defaultProps, plan },
     });
-    expect(container.textContent).toContain("Conflicts");
+    expect(container.textContent).toContain("冲突");
     expect(container.textContent).toContain("my-hook");
   });
 
@@ -91,8 +91,8 @@ describe("MigrationPlan", () => {
     const { container } = render(MigrationPlan, {
       props: { ...defaultProps, plan },
     });
-    expect(container.textContent).toContain("Resource");
-    expect(container.textContent).toContain("Strategy");
+    expect(container.textContent).toContain("资源");
+    expect(container.textContent).toContain("策略");
   });
 
   it("renders strategy select for overwrite items", () => {

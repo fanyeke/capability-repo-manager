@@ -1,6 +1,7 @@
 <script lang="ts">
   import { scanRepositories, loadRepos, repos } from "$lib/stores/repoStore";
   import { currentPage } from "$lib/stores/uiStore";
+  import { _ } from "svelte-i18n";
 
   let scanPaths = $state("");
   let isScanning = $state(false);
@@ -26,44 +27,44 @@
 </script>
 
 <div class="guided-setup">
-  <h1>Welcome to Capability Repo Manager</h1>
+  <h1>{$_('guided_setup.title')}</h1>
   <p class="intro">
-    Discover and manage Claude Code capabilities across your local Git repositories.
+    {$_('guided_setup.intro')}
   </p>
 
   <div class="setup-step">
-    <h2>Add Scan Directories</h2>
+    <h2>{$_('guided_setup.add_scan_dirs')}</h2>
     <p class="step-desc">
-      Enter the paths to directories containing your Git repositories. Separate multiple paths with commas or spaces.
+      {$_('guided_setup.scan_desc')}
     </p>
 
     <textarea
       bind:value={scanPaths}
-      placeholder="e.g. /home/user/projects, /home/user/work"
+      placeholder={$_('guided_setup.scan_placeholder')}
       rows={3}
     ></textarea>
 
     <div class="setup-actions">
       <button class="primary-btn" onclick={handleScan} disabled={isScanning}>
-        {isScanning ? "Scanning..." : "Scan Repositories"}
+        {isScanning ? $_('guided_setup.scanning') : $_('guided_setup.scan')}
       </button>
       {#if isScanning}
-        <button class="skip-btn" onclick={() => { isScanning = false; currentPage.set("dashboard"); }}>Cancel</button>
+        <button class="skip-btn" onclick={() => { isScanning = false; currentPage.set("dashboard"); }}>{$_('guided_setup.cancel')}</button>
       {:else if showSkip || !scanPaths.trim()}
-        <button class="skip-btn" onclick={handleSkip}>Skip for now</button>
+        <button class="skip-btn" onclick={handleSkip}>{$_('guided_setup.skip')}</button>
       {/if}
     </div>
   </div>
 
   <div class="setup-info">
-    <h3>What will be discovered?</h3>
+    <h3>{$_('guided_setup.what_discovered')}</h3>
     <ul>
-      <li><strong>Skills</strong> — Custom slash commands and agent skills</li>
-      <li><strong>MCP Servers</strong> — Model Context Protocol servers</li>
-      <li><strong>Hooks</strong> — Pre/post execution hooks</li>
-      <li><strong>Rules</strong> — Project-specific rules and guidelines</li>
-      <li><strong>Agents</strong> — Custom agent definitions</li>
-      <li><strong>Commands</strong> — Custom Claude Code commands</li>
+      <li><strong>Skills</strong> — {$_('guided_setup.skills')}</li>
+      <li><strong>MCP Servers</strong> — {$_('guided_setup.mcp')}</li>
+      <li><strong>Hooks</strong> — {$_('guided_setup.hooks')}</li>
+      <li><strong>Rules</strong> — {$_('guided_setup.rules')}</li>
+      <li><strong>Agents</strong> — {$_('guided_setup.agents')}</li>
+      <li><strong>Commands</strong> — {$_('guided_setup.commands')}</li>
     </ul>
   </div>
 </div>

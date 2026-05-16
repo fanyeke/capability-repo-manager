@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { _ } from "svelte-i18n";
   import type { CapabilityResource } from "$lib/types";
 
   let {
@@ -10,7 +11,7 @@
 
 {#if !resource}
   <div class="resource-empty">
-    <p>Select a resource to view details</p>
+    <p>{$_('resource.select_hint')}</p>
   </div>
 {:else}
   <div class="resource-detail">
@@ -21,32 +22,32 @@
 
     <div class="detail-fields">
       <div class="field">
-        <label>Scope</label>
+        <label>{$_('resource.scope')}</label>
         <span class="scope-badge scope-{resource.scope}">{resource.scope}</span>
       </div>
 
       {#if resource.source_path}
         <div class="field">
-          <label>Source Path</label>
+          <label>{$_('resource.source_path')}</label>
           <code>{resource.source_path}</code>
         </div>
       {/if}
 
       <div class="field">
-        <label>Git Tracked</label>
-        <span>{resource.tracked_by_git ? "Yes" : "No"}</span>
+        <label>{$_('resource.git_tracked')}</label>
+        <span>{resource.tracked_by_git ? $_('resource.yes') : $_('resource.no')}</span>
       </div>
 
       {#if resource.content_hash}
         <div class="field">
-          <label>Content Hash</label>
+          <label>{$_('resource.content_hash')}</label>
           <code class="hash">{resource.content_hash}</code>
         </div>
       {/if}
 
       {#if resource.metadata_json}
         <div class="field">
-          <label>Metadata</label>
+          <label>{$_('resource.metadata')}</label>
           <pre class="metadata">{resource.metadata_json}</pre>
         </div>
       {/if}
@@ -54,7 +55,7 @@
 
     {#if resource.error_message}
       <div class="error-box">
-        <strong>Parse Error</strong>
+        <strong>{$_('resource.parse_error')}</strong>
         <p>{resource.error_message}</p>
       </div>
     {/if}

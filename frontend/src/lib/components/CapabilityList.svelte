@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { _ } from "svelte-i18n";
   import type { CapabilityResource } from "$lib/types";
 
   let {
@@ -24,7 +25,7 @@
         class:active={selectedType === null}
         onclick={() => onSelectType(null)}
       >
-        All
+        {$_('capability.all')}
         <span class="count">{resources.reduce((s, g) => s + g.count, 0)}</span>
       </button>
     </li>

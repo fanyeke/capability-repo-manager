@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { _ } from "svelte-i18n";
   import { currentPage, navigateTo } from "$lib/stores/uiStore";
   import { repos, loadRepos } from "$lib/stores/repoStore";
   import { packs, loadPacks, selectedPackId, isLoading } from "$lib/stores/packStore";
@@ -33,36 +34,36 @@
 
 <div class="pack-apply-page">
   <header class="page-header">
-    <h1>Apply Capability Pack</h1>
-    <button class="back-btn" onclick={() => navigateTo("dashboard")}>Back to Dashboard</button>
+    <h1>{$_('pack_apply.title')}</h1>
+    <button class="back-btn" onclick={() => navigateTo("dashboard")}>{$_('nav.back')}</button>
   </header>
 
   <main class="apply-content">
     {#if step === "select"}
       <div class="selection-section">
         <div class="select-panel">
-          <h2>Select Pack</h2>
+          <h2>{$_('pack_apply.select_pack')}</h2>
           {#if $isLoading}
-            <p class="loading">Loading packs...</p>
+            <p class="loading">{$_('pack_apply.loading_packs')}</p>
           {:else if $packs.length === 0}
-            <p class="empty-text">No packs available. Export one first.</p>
+            <p class="empty-text">{$_('pack_apply.no_packs')}</p>
           {:else}
             <select bind:value={selectedPack}>
-              <option value="">Choose a pack...</option>
+              <option value="">{$_('pack_apply.choose_pack')}</option>
               {#each $packs as pack (pack.id)}
-                <option value={pack.id}>{pack.name} v{pack.version} ({pack.resource_count} resources)</option>
+                <option value={pack.id}>{pack.name} v{pack.version} ({$_('pack.resources_count', { values: { n: pack.resource_count } })})</option>
               {/each}
             </select>
           {/if}
         </div>
 
         <div class="select-panel">
-          <h2>Select Target Repository</h2>
+          <h2>{$_('pack_apply.select_target')}</h2>
           {#if $isLoading}
-            <p class="loading">Loading repos...</p>
+            <p class="loading">{$_('pack_apply.loading_repos')}</p>
           {:else}
             <select bind:value={selectedTarget}>
-              <option value="">Choose a repository...</option>
+              <option value="">{$_('pack_apply.choose_repo')}</option>
               {#each $repos as repo (repo.id)}
                 <option value={repo.id}>{repo.name} — {repo.path}</option>
               {/each}
@@ -76,16 +77,16 @@
             onclick={handleBuildPlan}
             disabled={!selectedPack || !selectedTarget || $isLoading}
           >
-            Build Migration Plan
+            {$_('pack_apply.build_plan')}
           </button>
         </div>
       </div>
 
     {:else if step === "plan"}
       <div class="plan-section">
-        <h2>Dry-Run Migration Plan</h2>
+        <h2>{$_('pack_apply.plan_title')}</h2>
         <p class="plan-desc">
-          Review the plan and adjust conflict strategies before executing.
+          {$_('pack_apply.plan_desc')}
         </p>
 
         <MigrationPlanComp
@@ -95,9 +96,9 @@
         />
 
         <div class="plan-actions">
-          <button class="back-btn" onclick={handleReset}>Back</button>
+          <button class="back-btn" onclick={handleReset}>{$_('pack_apply.back')}</button>
           <button class="execute-btn" onclick={handleExecute} disabled={$isLoading}>
-            {#if $isLoading}Executing...{:else}Execute Migration{/if}
+            {#if $isLoading}{$_('pack_apply.executing')}{:else}{$_('pack_apply.execute')}{/if}
           </button>
         </div>
       </div>
@@ -105,14 +106,14 @@
     {:else if step === "done"}
       <div class="done-section">
         {#if $report}
-          <h2>Migration Complete</h2>
+          <h2>{$_('pack_apply.complete_title')}</h2>
           <div class="report-summary">
-            <p><strong>Status:</strong> {$report.status}</p>
+            <p><strong>{$_('pack_apply.status')}</strong> {$report.status}</p>
             <div class="report-stats">
-              <span class="stat stat-added">Added: {$report.summary.added}</span>
-              <span class="stat stat-overwritten">Overwritten: {$report.summary.overwritten}</span>
-              <span class="stat stat-skipped">Skipped: {$report.summary.skipped}</span>
-              <span class="stat stat-failed">Failed: {$report.summary.failed}</span>
+              <span class="stat stat-added">{$_('pack_apply.added')} {$report.summary.added}</span>
+              <span class="stat stat-overwritten">{$_('pack_apply.overwritten')} {$report.summary.overwritten}</span>
+              <span class="stat stat-skipped">{$_('pack_apply.skipped')} {$report.summary.skipped}</span>
+              <span class="stat stat-failed">{$_('pack_apply.failed')} {$report.summary.failed}</span>
             </div>
           </div>
 
@@ -126,8 +127,8 @@
         {/if}
 
         <div class="done-actions">
-          <button class="primary-btn" onclick={handleReset}>Apply Another Pack</button>
-          <button class="nav-btn" onclick={() => currentPage.set("doctor")}>Run Doctor</button>
+          <button class="primary-btn" onclick={handleReset}>{$_('pack_apply.apply_another')}</button>
+          <button class="nav-btn" onclick={() => currentPage.set("doctor")}>{$_('doctor.run')}</button>
         </div>
       </div>
     {/if}

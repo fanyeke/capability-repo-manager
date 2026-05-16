@@ -47,8 +47,3 @@ export function getScoreColor(score: number): string {
   return "#ef4444"; // red
 }
 
-export function getScoreLabel(score: number): string {
-  if (score >= 80) return "Healthy";
-  if (score >= 50) return "Needs Attention";
-  return "Critical";
-}

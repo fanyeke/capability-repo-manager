@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { _ } from "svelte-i18n";
   import type {
     CompareResult,
     CapabilityResource,
@@ -20,15 +21,15 @@
 
   let currentItems = $derived(result ? result[selectedCategory] : []);
   let categories = $derived([
-    { key: "missing" as const, label: "Missing", count: result?.missing.length ?? 0, color: "#dc2626" },
-    { key: "extra" as const, label: "Extra", count: result?.extra.length ?? 0, color: "#d97706" },
-    { key: "modified" as const, label: "Modified", count: result?.modified.length ?? 0, color: "#2563eb" },
-    { key: "same" as const, label: "Same", count: result?.same.length ?? 0, color: "#16a34a" },
+    { key: "missing" as const, labelKey: "compare.missing" as const, count: result?.missing.length ?? 0, color: "#dc2626" },
+    { key: "extra" as const, labelKey: "compare.extra" as const, count: result?.extra.length ?? 0, color: "#d97706" },
+    { key: "modified" as const, labelKey: "compare.modified" as const, count: result?.modified.length ?? 0, color: "#2563eb" },
+    { key: "same" as const, labelKey: "compare.same" as const, count: result?.same.length ?? 0, color: "#16a34a" },
   ]);
 </script>
 
 {#if !result}
-  <p class="empty-text">No comparison result. Select repositories or a pack to compare.</p>
+  <p class="empty-text">{$_('compare.no_result')}</p>
 {:else}
   <div class="compare-view">
     <div class="category-tabs">
@@ -39,7 +40,7 @@
           style="--cat-color: {cat.color}"
           onclick={() => onSelectCategory(cat.key)}
         >
-          {cat.label}
+          {$_(cat.labelKey)}
           <span class="cat-count">{cat.count}</span>
         </button>
       {/each}
@@ -82,12 +83,12 @@
               (i) => (i as DiffItem).source_resource.id === selectedResource?.id
             )}
             {#if diff}
-              <div class="diff-divider">vs Target</div>
+              <div class="diff-divider">{$_('compare.vs_target')}</div>
               <ResourceDetail resource={(diff as DiffItem).target_resource} />
             {/if}
           {/if}
         {:else}
-          <p class="select-hint">Select an item to view details</p>
+          <p class="select-hint">{$_('compare.select_item')}</p>
         {/if}
       </div>
     </div>

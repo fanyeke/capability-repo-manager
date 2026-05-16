@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { _ } from "svelte-i18n";
   import { currentPage, navigateTo } from "$lib/stores/uiStore";
   import { repos, loadRepos } from "$lib/stores/repoStore";
   import { packs, loadPacks } from "$lib/stores/packStore";
@@ -25,17 +26,17 @@
 
 <div class="compare-page">
   <header class="page-header">
-    <h1>Compare Repositories</h1>
-    <button class="back-btn" onclick={() => navigateTo("dashboard")}>Back to Dashboard</button>
+    <h1>{$_('compare.title')}</h1>
+    <button class="back-btn" onclick={() => navigateTo("dashboard")}>{$_('nav.back')}</button>
   </header>
 
   <main class="compare-content">
     <div class="mode-tabs">
       <button class="mode-btn" class:active={mode === "repo-repo"} onclick={() => mode = "repo-repo"}>
-        Compare Two Repos
+        {$_('compare.mode_repo_repo')}
       </button>
       <button class="mode-btn" class:active={mode === "repo-pack"} onclick={() => mode = "repo-pack"}>
-        Compare Repo vs Pack
+        {$_('compare.mode_repo_pack')}
       </button>
     </div>
 
@@ -43,18 +44,18 @@
       {#if mode === "repo-repo"}
         <div class="select-row">
           <div class="select-panel">
-            <label>Source Repository</label>
+            <label>{$_('compare.source_repo')}</label>
             <select bind:value={sourceRepo}>
-              <option value="">Choose source...</option>
+              <option value="">{$_('compare.choose_source')}</option>
               {#each $repos as repo (repo.id)}
                 <option value={repo.id}>{repo.name}</option>
               {/each}
             </select>
           </div>
           <div class="select-panel">
-            <label>Target Repository</label>
+            <label>{$_('compare.target_repo')}</label>
             <select bind:value={targetRepo}>
-              <option value="">Choose target...</option>
+              <option value="">{$_('compare.choose_target')}</option>
               {#each $repos as repo (repo.id)}
                 <option value={repo.id}>{repo.name}</option>
               {/each}
@@ -64,18 +65,18 @@
       {:else}
         <div class="select-row">
           <div class="select-panel">
-            <label>Pack (Source)</label>
+            <label>{$_('compare.pack_source')}</label>
             <select bind:value={sourcePack}>
-              <option value="">Choose pack...</option>
+              <option value="">{$_('compare.choose_pack')}</option>
               {#each $packs as pack (pack.id)}
                 <option value={pack.id}>{pack.name} v{pack.version}</option>
               {/each}
             </select>
           </div>
           <div class="select-panel">
-            <label>Repository (Target)</label>
+            <label>{$_('compare.repo_target')}</label>
             <select bind:value={targetRepoForPack}>
-              <option value="">Choose repo...</option>
+              <option value="">{$_('compare.choose_repo')}</option>
               {#each $repos as repo (repo.id)}
                 <option value={repo.id}>{repo.name}</option>
               {/each}
@@ -90,7 +91,7 @@
         disabled={(mode === "repo-repo" && (!sourceRepo || !targetRepo)) ||
                   (mode === "repo-pack" && (!sourcePack || !targetRepoForPack))}
       >
-        Compare
+        {$_('compare.action')}
       </button>
     </div>
 
@@ -104,11 +105,11 @@
       </div>
     {:else}
       <div class="compare-info">
-        <p>Compare capabilities between repositories or against a baseline pack.</p>
-        <p><strong>Missing</strong> — Resources in source but not in target</p>
-        <p><strong>Extra</strong> — Resources in target but not in source</p>
-        <p><strong>Modified</strong> — Same name but different content</p>
-        <p><strong>Same</strong> — Identical in both</p>
+        <p>{$_('compare.empty_info')}</p>
+        <p><strong>{$_('compare.missing')}</strong> — {$_('compare.missing_desc')}</p>
+        <p><strong>{$_('compare.extra')}</strong> — {$_('compare.extra_desc')}</p>
+        <p><strong>{$_('compare.modified')}</strong> — {$_('compare.modified_desc')}</p>
+        <p><strong>{$_('compare.same')}</strong> — {$_('compare.same_desc')}</p>
       </div>
     {/if}
   </main>

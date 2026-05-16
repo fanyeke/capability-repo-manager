@@ -30,6 +30,7 @@
   }
 
   function handleSelectRepo(repoId: string) {
+    selectRepo(repoId);
     navigateToRepo(repoId);
   }
 

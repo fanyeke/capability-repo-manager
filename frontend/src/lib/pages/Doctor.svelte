@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { _ } from "svelte-i18n";
   import { currentPage, navigateTo } from "$lib/stores/uiStore";
   import { repos, loadRepos, selectedRepoId } from "$lib/stores/repoStore";
   import { runDoctor, report, isLoading, error, clearReport } from "$lib/stores/doctorStore";
@@ -16,15 +17,15 @@
 
 <div class="doctor-page">
   <header class="page-header">
-    <h1>Repository Doctor</h1>
-    <button class="back-btn" onclick={() => navigateTo("dashboard")}>Back to Dashboard</button>
+    <h1>{$_('doctor.title')}</h1>
+    <button class="back-btn" onclick={() => navigateTo("dashboard")}>{$_('nav.back')}</button>
   </header>
 
   <main class="doctor-content">
     <div class="select-section">
-      <h2>Select Repository to Diagnose</h2>
+      <h2>{$_('doctor.select_repo')}</h2>
       <select bind:value={selectedRepo}>
-        <option value="">Choose a repository...</option>
+        <option value="">{$_('doctor.choose_repo')}</option>
         {#each $repos as repo (repo.id)}
           <option value={repo.id}>{repo.name}</option>
         {/each}
@@ -34,37 +35,37 @@
         onclick={handleRunDoctor}
         disabled={!selectedRepo || $isLoading}
       >
-        {#if $isLoading}Running...{:else}Run Doctor{/if}
+        {#if $isLoading}{$_('doctor.running')}{:else}{$_('doctor.run')}{/if}
       </button>
     </div>
 
     {#if $error}
       <div class="error-box">
         <p>{$error}</p>
-        <button onclick={() => error.set(null)}>Dismiss</button>
+        <button onclick={() => error.set(null)}>{$_('doctor.dismiss')}</button>
       </div>
     {/if}
 
     {#if $report}
       <div class="report-section">
-        <h2>Health Report for {selectedRepo}</h2>
+        <h2>{$_('doctor.health_report', { values: { name: selectedRepo } })}</h2>
         <DoctorReportComp report={$report} />
         <div class="report-actions">
-          <button class="nav-btn" onclick={() => currentPage.set("repo:" + selectedRepo)}>View Repository</button>
-          <button class="nav-btn" onclick={clearReport}>Run Again</button>
+          <button class="nav-btn" onclick={() => currentPage.set("repo:" + selectedRepo)}>{$_('doctor.view_repo')}</button>
+          <button class="nav-btn" onclick={clearReport}>{$_('doctor.run_again')}</button>
         </div>
       </div>
     {:else}
       <div class="doctor-info">
         <h3>What does Doctor check?</h3>
         <ul>
-          <li><strong>Skill Structure</strong> — Validates skill directory and SKILL.md presence</li>
-          <li><strong>Hook Targets</strong> — Checks referenced scripts exist</li>
-          <li><strong>Env Placeholders</strong> — Detects unresolved <code>${'{VAR}'}</code> placeholders</li>
-          <li><strong>MCP Config</strong> — Validates MCP server configuration</li>
+          <li><strong>Skill Structure</strong> — {$_('doctor.check_skill_structure')}</li>
+          <li><strong>Hook Targets</strong> — {$_('doctor.check_hook_targets')}</li>
+          <li><strong>Env Placeholders</strong> — {$_('doctor.check_env_placeholders')}</li>
+          <li><strong>MCP Config</strong> — {$_('doctor.check_mcp_config')}</li>
         </ul>
         <p class="score-explanation">
-          <strong>Scoring:</strong> Start at 100. Critical issues: -20 each, Warning: -5 each, Info: -1 each.
+          {$_('doctor.score_explanation')}
         </p>
       </div>
     {/if}

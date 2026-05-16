@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { _ } from "svelte-i18n";
   import type { MigrationConflict } from "$lib/types";
 
   let {
@@ -9,20 +10,20 @@
 </script>
 
 {#if conflicts.length === 0}
-  <p class="no-conflicts">No conflicts detected.</p>
+  <p class="no-conflicts">{$_('migration.no_conflicts')}</p>
 {:else}
   <div class="conflict-list">
-    <h4>Conflicts ({conflicts.length})</h4>
+    <h4>{$_('migration.conflicts_title', { values: { n: conflicts.length } })}</h4>
     {#each conflicts as conflict (conflict.resource_name + conflict.resource_type)}
       <div class="conflict-card">
         <div class="conflict-header">
           <strong>{conflict.resource_name}</strong>
           <span class="type-tag">{conflict.resource_type}</span>
         </div>
-        <p class="conflict-reason">Reason: {conflict.reason}</p>
+        <p class="conflict-reason">{$_('migration.reason', { values: { reason: conflict.reason } })}</p>
         {#if conflict.recommended_actions.length > 0}
           <div class="recommended">
-            <span class="rec-label">Recommended:</span>
+            <span class="rec-label">{$_('migration.recommended')}</span>
             {#each conflict.recommended_actions as action}
               <span class="rec-action">{action}</span>
             {/each}

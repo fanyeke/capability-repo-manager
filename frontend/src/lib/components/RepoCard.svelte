@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { _ } from "svelte-i18n";
   import type { RepositorySummary } from "$lib/types";
 
   let { repo, onSelect }: {
@@ -23,24 +24,24 @@
 
   <div class="capability-counts">
     {#if repo.capability_counts.skills}
-      <span class="count-badge skill">Skills: {repo.capability_counts.skills}</span>
+      <span class="count-badge skill">{$_('repo.skills_count', { values: { n: repo.capability_counts.skills } })}</span>
     {/if}
     {#if repo.capability_counts.mcp}
-      <span class="count-badge mcp">MCP: {repo.capability_counts.mcp}</span>
+      <span class="count-badge mcp">{$_('repo.mcp_count', { values: { n: repo.capability_counts.mcp } })}</span>
     {/if}
     {#if repo.capability_counts.hooks}
-      <span class="count-badge hook">Hooks: {repo.capability_counts.hooks}</span>
+      <span class="count-badge hook">{$_('repo.hooks_count', { values: { n: repo.capability_counts.hooks } })}</span>
     {/if}
     {#if repo.capability_counts.rules}
-      <span class="count-badge rule">Rules: {repo.capability_counts.rules}</span>
+      <span class="count-badge rule">{$_('repo.rules_count', { values: { n: repo.capability_counts.rules } })}</span>
     {/if}
     {#if repo.capability_counts.agents}
-      <span class="count-badge agent">Agents: {repo.capability_counts.agents}</span>
+      <span class="count-badge agent">{$_('repo.agents_count', { values: { n: repo.capability_counts.agents } })}</span>
     {/if}
   </div>
 
   <div class="card-footer">
-    <span class="indexed-at">Indexed: {new Date(repo.last_indexed_at).toLocaleDateString()}</span>
+    <span class="indexed-at">{$_('repo.indexed', { values: { date: new Date(repo.last_indexed_at).toLocaleDateString() } })}</span>
   </div>
 </article>
 

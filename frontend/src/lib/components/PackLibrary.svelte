@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { _ } from "svelte-i18n";
   import type { PackSummary } from "$lib/types";
 
   let {
@@ -16,9 +17,9 @@
 
 <div class="pack-library">
   {#if isLoading}
-    <p class="loading-text">Loading packs...</p>
+    <p class="loading-text">{$_('pack.loading')}</p>
   {:else if packs.length === 0}
-    <p class="empty-text">No packs in library. Export a capability pack to get started.</p>
+    <p class="empty-text">{$_('pack.no_packs_library')}</p>
   {:else}
     <div class="pack-grid">
       {#each packs as pack (pack.id)}
@@ -33,11 +34,11 @@
 
             <div class="pack-meta">
               <span class="type-badge type-{pack.pack_type}">{pack.pack_type}</span>
-              <span class="resource-count">{pack.resource_count} resources</span>
+              <span class="resource-count">{$_('pack.resources_count', { values: { n: pack.resource_count } })}</span>
             </div>
 
             {#if pack.source_repo_name}
-              <p class="source">From: {pack.source_repo_name}</p>
+              <p class="source">{$_('pack.from', { values: { name: pack.source_repo_name } })}</p>
             {/if}
           </div>
 
@@ -47,7 +48,7 @@
               class="delete-btn"
               onclick={(e) => { e.stopPropagation(); onDeletePack(pack.id); }}
             >
-              Delete
+              {$_('pack.delete')}
             </button>
           </div>
         </article>
