@@ -81,101 +81,101 @@
   .pack-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 16px;
+    gap: var(--space-4);
   }
   .pack-card {
-    background: var(--card-bg, #fff);
-    border: 1px solid var(--border-color, #e2e8f0);
-    border-radius: 8px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
     overflow: hidden;
   }
   .pack-header {
-    padding: 12px 16px;
+    padding: var(--space-3) var(--space-4);
     cursor: pointer;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid var(--bg-hover);
   }
   .pack-header h3 {
     margin: 0;
-    font-size: 1rem;
+    font-size: var(--font-size-lg);
     font-weight: 600;
   }
   .version-tag {
-    background: #e0e7ff;
-    color: #3730a3;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 0.75rem;
+    background: var(--color-primary-bg);
+    color: var(--color-primary-text);
+    padding: 2px var(--space-2);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-xs);
   }
   .pack-body {
-    padding: 12px 16px;
+    padding: var(--space-3) var(--space-4);
     cursor: pointer;
   }
   .description {
-    font-size: 0.85rem;
-    color: #475569;
-    margin: 0 0 8px 0;
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    margin: 0 0 var(--space-2) 0;
   }
   .pack-meta {
     display: flex;
-    gap: 8px;
+    gap: var(--space-2);
     align-items: center;
-    margin-bottom: 4px;
+    margin-bottom: var(--space-1);
   }
   .type-badge {
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 0.7rem;
+    padding: 2px var(--space-2);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-xs);
     text-transform: capitalize;
   }
   .type-project {
-    background: #dbeafe;
-    color: #1e40af;
+    background: var(--color-info-bg);
+    color: var(--color-info);
   }
   .type-blueprint {
-    background: #ede9fe;
-    color: #5b21b6;
+    background: var(--color-primary-bg);
+    color: var(--color-primary-text);
   }
   .type-baseline {
-    background: #fce7f3;
-    color: #831843;
+    background: var(--color-danger-bg);
+    color: var(--color-danger);
   }
   .resource-count {
-    font-size: 0.8rem;
-    color: #64748b;
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
   }
   .source {
-    font-size: 0.75rem;
-    color: #94a3b8;
-    margin: 4px 0 0 0;
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    margin: var(--space-1) 0 0 0;
   }
   .pack-footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 16px;
-    border-top: 1px solid #f1f5f9;
-    font-size: 0.75rem;
-    color: #94a3b8;
+    padding: var(--space-2) var(--space-4);
+    border-top: 1px solid var(--bg-hover);
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
   }
   .delete-btn {
     padding: 3px 10px;
-    border: 1px solid #fecaca;
-    background: #fff;
-    color: #dc2626;
-    border-radius: 4px;
-    font-size: 0.75rem;
+    border: 1px solid var(--color-danger-bg);
+    background: var(--bg-card);
+    color: var(--color-danger);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-xs);
     cursor: pointer;
   }
   .delete-btn:hover {
-    background: #fef2f2;
+    background: var(--color-danger-bg);
   }
   .loading-text,
   .empty-text {
     text-align: center;
-    color: #64748b;
+    color: var(--text-muted);
     padding: 40px 0;
   }
 </style>

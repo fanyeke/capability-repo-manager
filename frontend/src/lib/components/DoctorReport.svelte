@@ -82,11 +82,11 @@
   .doctor-report {
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: var(--space-6);
   }
   .score-section {
     text-align: center;
-    padding: 24px 0;
+    padding: var(--space-6) 0;
   }
   .score-circle {
     width: 120px;
@@ -103,32 +103,32 @@
     font-weight: 700;
   }
   .score-label {
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
   .score-date {
-    font-size: 0.8rem;
-    color: #64748b;
-    margin-top: 8px;
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+    margin-top: var(--space-2);
   }
   .issues-section {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: var(--space-4);
   }
   .severity-group h4 {
-    margin: 0 0 8px 0;
-    font-size: 0.85rem;
+    margin: 0 0 var(--space-2) 0;
+    font-size: var(--font-size-sm);
   }
   .severity-critical {
-    color: #dc2626;
+    color: var(--color-danger);
   }
   .severity-warning {
-    color: #d97706;
+    color: var(--color-warning);
   }
   .severity-info {
-    color: #2563eb;
+    color: var(--color-primary);
   }
   .issue-list {
     list-style: none;
@@ -136,62 +136,62 @@
     margin: 0;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: var(--space-2);
   }
   .issue-item {
     padding: 10px 14px;
-    border-radius: 6px;
+    border-radius: var(--radius-md);
     border-left: 4px solid;
   }
   .issue-item.severity-critical {
-    background: #fef2f2;
-    border-color: #fca5a5;
+    background: var(--color-danger-bg);
+    border-color: var(--color-danger);
   }
   .issue-item.severity-warning {
-    background: #fffbeb;
-    border-color: #fcd34d;
+    background: var(--color-warning-bg);
+    border-color: var(--color-warning);
   }
   .issue-item.severity-info {
-    background: #eff6ff;
-    border-color: #93c5fd;
+    background: var(--color-info-bg);
+    border-color: var(--color-info);
   }
   .issue-code {
-    font-size: 0.7rem;
+    font-size: var(--font-size-xs);
     font-weight: 600;
   }
   .severity-critical .issue-code {
-    color: #991b1b;
+    color: var(--color-danger);
   }
   .severity-warning .issue-code {
-    color: #92400e;
+    color: var(--color-warning);
   }
   .severity-info .issue-code {
-    color: #1e40af;
+    color: var(--color-primary);
   }
   .issue-message {
-    margin: 4px 0;
-    font-size: 0.85rem;
-    color: #334155;
+    margin: var(--space-1) 0;
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
   }
   .issue-recommendation {
     margin: 2px 0;
-    font-size: 0.8rem;
-    color: #475569;
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
     font-style: italic;
   }
   .issue-resource {
-    font-size: 0.7rem;
-    color: #94a3b8;
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
   }
   .no-issues {
-    color: #16a34a;
+    color: var(--color-success);
     text-align: center;
     font-size: 0.95rem;
-    padding: 16px 0;
+    padding: var(--space-4) 0;
   }
   .empty-text {
     text-align: center;
-    color: #64748b;
+    color: var(--text-muted);
     padding: 40px 0;
   }
 </style>

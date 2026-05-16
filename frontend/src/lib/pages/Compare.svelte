@@ -138,7 +138,7 @@
   .page-header {
     display: flex;
     justify-content: space-between;
-    padding: 16px 24px;
+    padding: var(--space-4) var(--space-6);
     border-bottom: 1px solid var(--border-default);
     background: var(--bg-card);
   }
@@ -146,67 +146,67 @@
     margin: 0;
   }
   .back-btn {
-    padding: 8px 16px;
+    padding: var(--space-2) var(--space-4);
     background: var(--bg-card);
     border: 1px solid var(--border-default);
-    border-radius: 6px;
+    border-radius: var(--radius-md);
     cursor: pointer;
   }
   .compare-content {
     flex: 1;
-    padding: 24px;
+    padding: var(--space-6);
     background: var(--bg-elevated);
   }
   .mode-tabs {
     display: flex;
-    gap: 8px;
-    margin-bottom: 24px;
+    gap: var(--space-2);
+    margin-bottom: var(--space-6);
   }
   .mode-btn {
     padding: 10px 20px;
     background: var(--bg-card);
     border: 1px solid var(--border-default);
-    border-radius: 6px;
+    border-radius: var(--radius-md);
     cursor: pointer;
   }
   .mode-btn.active {
-    background: var(--primary, #3b82f6);
-    color: var(--text-inverse);
-    border-color: var(--primary, #3b82f6);
+    background: var(--color-primary);
+    color: var(--text-primary);
+    border-color: var(--color-primary);
   }
   .select-section {
     background: var(--bg-card);
-    padding: 20px;
-    border-radius: 8px;
+    padding: var(--space-5);
+    border-radius: var(--radius-md);
     border: 1px solid var(--border-default);
-    margin-bottom: 24px;
+    margin-bottom: var(--space-6);
   }
   .select-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    margin-bottom: 16px;
+    gap: var(--space-4);
+    margin-bottom: var(--space-4);
   }
   .select-panel label {
     display: block;
     font-weight: 600;
     margin-bottom: 6px;
-    font-size: 0.85rem;
+    font-size: var(--font-size-sm);
   }
   .select-panel select {
     width: 100%;
     padding: 10px;
     border: 1px solid var(--border-default);
-    border-radius: 6px;
-    font-size: 0.9rem;
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-md);
     box-sizing: border-box;
   }
   .compare-btn {
-    padding: 12px 32px;
-    background: var(--primary, #3b82f6);
-    color: var(--text-inverse);
+    padding: var(--space-3) var(--space-8);
+    background: var(--color-primary);
+    color: var(--text-primary);
     border: none;
-    border-radius: 8px;
+    border-radius: var(--radius-md);
     font-weight: 600;
     cursor: pointer;
   }
@@ -215,19 +215,19 @@
   }
   .result-section {
     background: var(--bg-card);
-    padding: 20px;
-    border-radius: 8px;
+    padding: var(--space-5);
+    border-radius: var(--radius-md);
     border: 1px solid var(--border-default);
   }
   .compare-info {
     background: var(--bg-card);
-    padding: 20px;
-    border-radius: 8px;
+    padding: var(--space-5);
+    border-radius: var(--radius-md);
     border: 1px solid var(--border-default);
-    color: #64748b;
+    color: var(--text-muted);
   }
   .compare-info p {
-    font-size: 0.85rem;
-    margin: 8px 0;
+    font-size: var(--font-size-sm);
+    margin: var(--space-2) 0;
   }
 </style>
