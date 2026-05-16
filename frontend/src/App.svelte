@@ -121,7 +121,9 @@
     <Toast />
     {#if $currentPage === 'guidedsetup'}
       <GuidedSetup />
-    {:else if $currentPage === 'dashboard' || $currentPage === 'repositories'}
+    {:else if $currentPage === 'dashboard'}
+      <Dashboard />
+    {:else if $currentPage === 'repositories' || $currentPage === 'packs'}
       <Dashboard />
     {:else if $currentPage === 'packexport'}
       {#if PackExport}
