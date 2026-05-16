@@ -123,7 +123,8 @@
     "mcp_count": "MCP: {n}",
     "hooks_count": "Hooks: {n}",
     "rules_count": "Rules: {n}",
-    "agents_count": "Agents: {n}"
+    "agents_count": "Agents: {n}",
+    "total_capabilities": "Capabilities"
   },
   "pack": {
     "export_title": "Export Pack",

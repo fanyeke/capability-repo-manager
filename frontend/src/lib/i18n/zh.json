@@ -123,7 +123,8 @@
     "mcp_count": "MCP：{n}",
     "hooks_count": "钩子：{n}",
     "rules_count": "规则：{n}",
-    "agents_count": "Agent：{n}"
+    "agents_count": "Agent：{n}",
+    "total_capabilities": "能力总数"
   },
   "pack": {
     "export_title": "导出包",
