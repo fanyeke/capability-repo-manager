@@ -147,7 +147,8 @@
     "agents_count": "Agent：{n}",
     "total_capabilities": "能力总数",
     "confirm_delete_title": "移除仓库",
-    "confirm_delete_message": "从仓库列表中移除 {name}？不会删除磁盘上的仓库。"
+    "confirm_delete_message": "从仓库列表中移除 {name}？不会删除磁盘上的仓库。",
+    "doctor_low_score": "健康评分 ({score}) 较低。建议运行诊断。"
   },
   "pack": {
     "export_title": "导出包",
@@ -344,6 +345,8 @@
     "back": "返回",
     "sort_name": "名称",
     "sort_date": "索引时间",
-    "sort_state": "状态"
+    "sort_state": "状态",
+    "no_results": "无结果",
+    "help": "帮助"
   }
 }
