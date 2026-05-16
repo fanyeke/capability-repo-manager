@@ -23,8 +23,7 @@ fn init_git_repo(path: &PathBuf) {
     let tree_id = index.write_tree().unwrap();
     let tree = repo.find_tree(tree_id).unwrap();
     let sig = git2::Signature::now("test", "test@test.com").unwrap();
-    repo.commit(Some("HEAD"), &sig, &sig, "init", &tree, &[])
-        .unwrap();
+    repo.commit(Some("HEAD"), &sig, &sig, "init", &tree, &[]).unwrap();
 }
 
 /// Create Claude Code skill files in the repo.
@@ -59,11 +58,8 @@ fn full_scan_capability_pipeline() {
     init_git_repo(&repo_b);
 
     // Step 2: Scan to discover repos
-    let config = ScannerConfig {
-        root_paths: vec![base.to_string_lossy().to_string()],
-        max_depth: 3,
-        ignore_dirs: vec![],
-    };
+    let config =
+        ScannerConfig { root_paths: vec![base.to_string_lossy().to_string()], max_depth: 3, ignore_dirs: vec![] };
     let scan_result = scan_repositories(config).unwrap();
     assert_eq!(scan_result.len(), 2, "should find 2 git repos");
 
@@ -115,6 +111,8 @@ fn full_scan_capability_pipeline() {
                 repo.last_capability_error.as_ref().map(|s| s.len() > 0) != Some(true),
                 "repo-a has valid config, should not have error"
             );
+            // Assert actual resource count (2 skills were created in fixtures, plus settings.json produces hook resources)
+            assert!(resources.len() >= 2, "repo-a should have at least 2 resources (skills)");
         } else if repo.name == "repo-b" {
             // repo-b has no .claude dir - expect parse_failed or fresh (parser behavior varies)
             let has_no_claude_dir = repo.capability_index_status == "parse_failed"

@@ -62,10 +62,7 @@ pub struct ScanErrorOutput {
 
 impl From<ScanError> for ScanErrorOutput {
     fn from(e: ScanError) -> Self {
-        ScanErrorOutput {
-            path: e.repo_path,
-            message: e.message,
-        }
+        ScanErrorOutput { path: e.repo_path, message: e.message }
     }
 }
 
@@ -79,10 +76,7 @@ pub struct RepoFilter {
 }
 
 #[tauri::command]
-pub fn scan_repositories(
-    paths: Vec<String>,
-    state: State<AppState>,
-) -> Result<ScanResultOutput, String> {
+pub fn scan_repositories(paths: Vec<String>, state: State<AppState>) -> Result<ScanResultOutput, String> {
     let ctx = OperationContext::new("scan_repositories");
     let _span = tracing::info_span!(
         "scan_repositories",
@@ -138,9 +132,7 @@ pub fn scan_repositories(
     let mut stored_errors: Vec<ScanError> = Vec::new();
 
     for repo in &scan_result.repos {
-        let is_new = repo_store.get_by_canonical_path(&repo.canonical_path)
-            .unwrap_or(None)
-            .is_none();
+        let is_new = repo_store.get_by_canonical_path(&repo.canonical_path).unwrap_or(None).is_none();
 
         match repo_store.upsert_by_path(repo) {
             Ok(stored) => {
@@ -189,7 +181,8 @@ pub fn scan_repositories(
                     }
                     Err(e) => {
                         let err_msg = e.to_string();
-                        if let Err(db_err) = repo_store.update_index_status(&stored.id, "parse_failed", Some(&err_msg)) {
+                        if let Err(db_err) = repo_store.update_index_status(&stored.id, "parse_failed", Some(&err_msg))
+                        {
                             stored_errors.push(ScanError {
                                 repo_path: repo.path.clone(),
                                 message: format!("Failed to record parse error: {}", db_err),
@@ -207,10 +200,8 @@ pub fn scan_repositories(
                 }
             }
             Err(e) => {
-                stored_errors.push(ScanError {
-                    repo_path: repo.path.clone(),
-                    message: format!("Failed to upsert repo: {}", e),
-                });
+                stored_errors
+                    .push(ScanError { repo_path: repo.path.clone(), message: format!("Failed to upsert repo: {}", e) });
             }
         }
     }
@@ -233,11 +224,7 @@ pub fn scan_repositories(
     );
 
     // T010: Record OperationEvent to DB
-    let status = if repos_parse_failed > 0 {
-        "partial_failure"
-    } else {
-        "success"
-    };
+    let status = if repos_parse_failed > 0 { "partial_failure" } else { "success" };
     let summary = format!(
         "Scanned {} directories, found {} repos ({} added, {} updated, {} parsed, {} failed)",
         paths.len(),
@@ -262,21 +249,11 @@ pub fn scan_repositories(
         tracing::warn!(error = %e, "failed_to_record_operation_event");
     }
 
-    Ok(ScanResultOutput {
-        repos_found,
-        repos_added,
-        repos_updated,
-        repos_parsed,
-        repos_parse_failed,
-        errors,
-    })
+    Ok(ScanResultOutput { repos_found, repos_added, repos_updated, repos_parsed, repos_parse_failed, errors })
 }
 
 #[tauri::command]
-pub fn list_repositories(
-    filter: RepoFilter,
-    state: State<AppState>,
-) -> Result<Vec<RepositorySummary>, String> {
+pub fn list_repositories(filter: RepoFilter, state: State<AppState>) -> Result<Vec<RepositorySummary>, String> {
     let db = state.db.lock().map_err(|e| e.to_string())?;
     let repo_store = RepositoryStore::new(&db);
     let resource_store = ResourceStore::new(&db);
@@ -297,9 +274,7 @@ pub fn list_repositories(
             continue;
         }
 
-        let resources = resource_store
-            .get_by_repo(&repo.id)
-            .unwrap_or_default();
+        let resources = resource_store.get_by_repo(&repo.id).unwrap_or_default();
 
         if filter.has_capabilities.unwrap_or(false) && resources.is_empty() {
             continue;
@@ -310,10 +285,7 @@ pub fn list_repositories(
             *capability_counts.entry(r.r#type.clone()).or_insert(0) += 1;
         }
 
-        let doctor_score = doctor_commands::query_latest_report(&repo.id, &db)
-            .ok()
-            .flatten()
-            .map(|r| r.score);
+        let doctor_score = doctor_commands::query_latest_report(&repo.id, &db).ok().flatten().map(|r| r.score);
 
         summaries.push(RepositorySummary {
             id: repo.id,
@@ -332,17 +304,21 @@ pub fn list_repositories(
     if let Some(ref sort_by) = filter.sort_by {
         let desc = filter.sort_order.as_deref() == Some("desc");
         match sort_by.as_str() {
-            "name" => summaries.sort_by(|a, b| {
-                if desc { b.name.cmp(&a.name) } else { a.name.cmp(&b.name) }
-            }),
-            "path" => summaries.sort_by(|a, b| {
-                if desc { b.path.cmp(&a.path) } else { a.path.cmp(&b.path) }
-            }),
+            "name" => summaries.sort_by(|a, b| if desc { b.name.cmp(&a.name) } else { a.name.cmp(&b.name) }),
+            "path" => summaries.sort_by(|a, b| if desc { b.path.cmp(&a.path) } else { a.path.cmp(&b.path) }),
             "last_indexed_at" => summaries.sort_by(|a, b| {
-                if desc { b.last_indexed_at.cmp(&a.last_indexed_at) } else { a.last_indexed_at.cmp(&b.last_indexed_at) }
+                if desc {
+                    b.last_indexed_at.cmp(&a.last_indexed_at)
+                } else {
+                    a.last_indexed_at.cmp(&b.last_indexed_at)
+                }
             }),
             "dirty_state" => summaries.sort_by(|a, b| {
-                if desc { b.dirty_state.cmp(&a.dirty_state) } else { a.dirty_state.cmp(&b.dirty_state) }
+                if desc {
+                    b.dirty_state.cmp(&a.dirty_state)
+                } else {
+                    a.dirty_state.cmp(&b.dirty_state)
+                }
             }),
             _ => {}
         }
@@ -352,10 +328,7 @@ pub fn list_repositories(
 }
 
 #[tauri::command]
-pub fn refresh_repository(
-    repo_id: String,
-    state: State<AppState>,
-) -> Result<RepoDetail, String> {
+pub fn refresh_repository(repo_id: String, state: State<AppState>) -> Result<RepoDetail, String> {
     let db = state.db.lock().map_err(|e| e.to_string())?;
     let repo_store = RepositoryStore::new(&db);
 
@@ -365,8 +338,7 @@ pub fn refresh_repository(
         .ok_or_else(|| format!("Repository not found: {}", repo_id))?;
 
     // Re-extract Git metadata
-    git_service::git_cli::extract_metadata(&mut repo)
-        .map_err(|e| format!("Git metadata extraction failed: {}", e))?;
+    git_service::git_cli::extract_metadata(&mut repo).map_err(|e| format!("Git metadata extraction failed: {}", e))?;
 
     repo.last_indexed_at = chrono::Utc::now().to_rfc3339();
     repo_store.update(&repo).map_err(|e| format!("Failed to update repo: {}", e))?;
@@ -397,11 +369,7 @@ pub fn refresh_repository(
 
             let doctor_latest = doctor_commands::query_latest_report(&repo_id, &db).ok().flatten();
 
-            Ok(RepoDetail {
-                repo,
-                capabilities: inventory,
-                doctor_latest,
-            })
+            Ok(RepoDetail { repo, capabilities: inventory, doctor_latest })
         }
         Err(e) => {
             let err_msg = e.to_string();
@@ -416,33 +384,23 @@ pub fn refresh_repository(
                 .ok_or_else(|| format!("Repository not found after refresh: {}", repo_id))?;
 
             // Return existing (old) resources — NOT deleted
-            let existing_resources = resource_store
-                .get_by_repo(&repo_id)
-                .unwrap_or_default();
+            let existing_resources = resource_store.get_by_repo(&repo_id).unwrap_or_default();
             let inventory = group_resources(existing_resources);
             let doctor_latest = doctor_commands::query_latest_report(&repo_id, &db).ok().flatten();
 
-            Ok(RepoDetail {
-                repo: updated_repo,
-                capabilities: inventory,
-                doctor_latest,
-            })
+            Ok(RepoDetail { repo: updated_repo, capabilities: inventory, doctor_latest })
         }
     }
 }
 
 #[tauri::command]
-pub fn refresh_all_repositories(
-    state: State<AppState>,
-) -> Result<u32, String> {
+pub fn refresh_all_repositories(state: State<AppState>) -> Result<u32, String> {
     let ctx = OperationContext::new("refresh_all_repositories");
 
     let db = state.db.lock().map_err(|e| e.to_string())?;
     let repo_store = RepositoryStore::new(&db);
 
-    let mut repos = repo_store
-        .list_all()
-        .map_err(|e| format!("Database error: {}", e))?;
+    let mut repos = repo_store.list_all().map_err(|e| format!("Database error: {}", e))?;
 
     if repos.is_empty() {
         return Ok(0u32);
@@ -476,10 +434,7 @@ pub fn refresh_all_repositories(
 }
 
 #[tauri::command]
-pub fn get_repository_detail(
-    repo_id: String,
-    state: State<AppState>,
-) -> Result<RepoDetail, String> {
+pub fn get_repository_detail(repo_id: String, state: State<AppState>) -> Result<RepoDetail, String> {
     let db = state.db.lock().map_err(|e| e.to_string())?;
     let repo_store = RepositoryStore::new(&db);
     let resource_store = ResourceStore::new(&db);
@@ -489,25 +444,16 @@ pub fn get_repository_detail(
         .map_err(|e| format!("Database error: {}", e))?
         .ok_or_else(|| format!("Repository not found: {}", repo_id))?;
 
-    let resources = resource_store
-        .get_by_repo(&repo_id)
-        .unwrap_or_default();
+    let resources = resource_store.get_by_repo(&repo_id).unwrap_or_default();
 
     let inventory = group_resources(resources);
     let doctor_latest = doctor_commands::query_latest_report(&repo_id, &db).ok().flatten();
 
-    Ok(RepoDetail {
-        repo,
-        capabilities: inventory,
-        doctor_latest,
-    })
+    Ok(RepoDetail { repo, capabilities: inventory, doctor_latest })
 }
 
 #[tauri::command]
-pub fn remove_repository(
-    repo_id: String,
-    state: State<AppState>,
-) -> Result<(), String> {
+pub fn remove_repository(repo_id: String, state: State<AppState>) -> Result<(), String> {
     let db = state.db.lock().map_err(|e| e.to_string())?;
     let repo_store = RepositoryStore::new(&db);
 
@@ -516,9 +462,7 @@ pub fn remove_repository(
         .map_err(|e| format!("Database error: {}", e))?
         .ok_or_else(|| format!("Repository not found: {}", repo_id))?;
 
-    repo_store
-        .delete_cascade(&repo_id)
-        .map_err(|e| format!("Failed to remove repository: {}", e))?;
+    repo_store.delete_cascade(&repo_id).map_err(|e| format!("Failed to remove repository: {}", e))?;
 
     Ok(())
 }
@@ -536,10 +480,7 @@ pub fn get_settings(state: State<AppState>) -> Result<AppSettings, String> {
 }
 
 #[tauri::command]
-pub fn update_settings(
-    new_settings: AppSettings,
-    state: State<AppState>,
-) -> Result<(), String> {
+pub fn update_settings(new_settings: AppSettings, state: State<AppState>) -> Result<(), String> {
     // Persist to file
     settings_commands::save_to_file(&new_settings)?;
     // Update in-memory state
@@ -623,14 +564,5 @@ fn group_resources(resources: Vec<CapabilityResource>) -> CapabilityInventory {
         }
     }
 
-    CapabilityInventory {
-        skills,
-        mcp,
-        hooks,
-        rules,
-        agents,
-        commands,
-        plugins,
-        settings,
-    }
+    CapabilityInventory { skills, mcp, hooks, rules, agents, commands, plugins, settings }
 }

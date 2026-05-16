@@ -31,11 +31,7 @@ pub fn init_tracing(log_level: &str) -> Result<LogGuard, String> {
 
     // Try to ensure log directory exists; fall back to console-only on failure
     if let Err(e) = std::fs::create_dir_all(&log_dir) {
-        eprintln!(
-            "Warning: Could not create log directory {}: {}. Logging to console only.",
-            log_dir.display(),
-            e
-        );
+        eprintln!("Warning: Could not create log directory {}: {}. Logging to console only.", log_dir.display(), e);
         return init_console_only(log_level);
     }
 
@@ -47,20 +43,14 @@ pub fn init_tracing(log_level: &str) -> Result<LogGuard, String> {
     let (console_writer, console_guard) = tracing_appender::non_blocking(std::io::stderr());
 
     // File layer: structured JSON format for machine parsing
-    let file_layer = tracing_subscriber::fmt::layer()
-        .json()
-        .with_target(true)
-        .with_current_span(false)
-        .with_writer(file_writer);
+    let file_layer =
+        tracing_subscriber::fmt::layer().json().with_target(true).with_current_span(false).with_writer(file_writer);
 
     // Console layer: human-readable format
-    let console_layer = tracing_subscriber::fmt::layer()
-        .with_target(true)
-        .with_writer(console_writer);
+    let console_layer = tracing_subscriber::fmt::layer().with_target(true).with_writer(console_writer);
 
     // Filter: respect RUST_LOG env var, fall back to configured log_level
-    let filter = EnvFilter::try_from_default_env()
-        .unwrap_or_else(|_| EnvFilter::new(log_level));
+    let filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(log_level));
 
     tracing_subscriber::registry()
         .with(filter)
@@ -75,22 +65,16 @@ pub fn init_tracing(log_level: &str) -> Result<LogGuard, String> {
         "logging_initialized"
     );
 
-    Ok(LogGuard {
-        _file_guard: Some(file_guard),
-        _console_guard: Some(console_guard),
-    })
+    Ok(LogGuard { _file_guard: Some(file_guard), _console_guard: Some(console_guard) })
 }
 
 /// Set up console-only tracing when the log directory is not available.
 fn init_console_only(log_level: &str) -> Result<LogGuard, String> {
     let (console_writer, console_guard) = tracing_appender::non_blocking(std::io::stderr());
 
-    let console_layer = tracing_subscriber::fmt::layer()
-        .with_target(true)
-        .with_writer(console_writer);
+    let console_layer = tracing_subscriber::fmt::layer().with_target(true).with_writer(console_writer);
 
-    let filter = EnvFilter::try_from_default_env()
-        .unwrap_or_else(|_| EnvFilter::new(log_level));
+    let filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(log_level));
 
     tracing_subscriber::registry()
         .with(filter)
@@ -100,10 +84,7 @@ fn init_console_only(log_level: &str) -> Result<LogGuard, String> {
 
     eprintln!("Tracing initialized (console only)");
 
-    Ok(LogGuard {
-        _file_guard: None,
-        _console_guard: Some(console_guard),
-    })
+    Ok(LogGuard { _file_guard: None, _console_guard: Some(console_guard) })
 }
 
 /// Log the app_start event with environment metadata.
@@ -163,9 +144,7 @@ pub fn set_log_level(level: &str) {
 /// Get the log directory path.
 pub(crate) fn get_log_dir() -> PathBuf {
     let home = std::env::var("HOME").unwrap_or_else(|_| ".".into());
-    PathBuf::from(home)
-        .join(".capability-repo-manager")
-        .join("logs")
+    PathBuf::from(home).join(".capability-repo-manager").join("logs")
 }
 
 /// Guards returned by `init_tracing` / `init_console_only`.

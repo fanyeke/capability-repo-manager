@@ -1,16 +1,27 @@
 <script lang="ts">
-  import { _ } from "svelte-i18n";
-  import { currentPage, navigateTo } from "$lib/stores/uiStore";
-  import { selectedRepoDetail } from "$lib/stores/repoStore";
-  import { resources, loadCapabilityInventory, typeGroups } from "$lib/stores/capabilityStore";
-  import { exportPack, isLoading } from "$lib/stores/packStore";
+  import { _ } from 'svelte-i18n';
+  import { currentPage, navigateTo } from '$lib/stores/uiStore';
+  import { selectedRepoDetail } from '$lib/stores/repoStore';
+  import { resources, loadCapabilityInventory, typeGroups } from '$lib/stores/capabilityStore';
+  import { exportPack, isLoading } from '$lib/stores/packStore';
 
-  let packName = $state("");
-  let packVersion = $state("1.0.0");
-  let packDescription = $state("");
-  let packType = $state("project");
+  let packName = $state('');
+  let packVersion = $state('1.0.0');
+  let packDescription = $state('');
+  let packType = $state('project');
   let detail = $derived($selectedRepoDetail);
   let selectedIds = $state<Set<string>>(new Set());
+
+  function getResourcesByType(inv: any, resourceType: string): any[] {
+    if (!inv) return [];
+    for (const group of Object.values(inv)) {
+      const arr = group as any[];
+      if (arr.length > 0 && arr[0]?.type === resourceType) {
+        return arr;
+      }
+    }
+    return [];
+  }
 
   function toggleResource(id: string) {
     if (selectedIds.has(id)) {
@@ -23,7 +34,7 @@
   async function handleExport() {
     if (!detail?.repo.id || selectedIds.size === 0) return;
 
-    await exportPack(
+    const result = await exportPack(
       detail.repo.id,
       { resource_ids: Array.from(selectedIds) },
       {
@@ -34,14 +45,16 @@
       },
     );
 
-    currentPage.set("packapply");
+    if (result) {
+      currentPage.set('packapply');
+    }
   }
 </script>
 
 <div class="pack-export-page">
   <header class="page-header">
     <h1>{$_('pack_export.title')}</h1>
-    <button class="back-btn" onclick={() => navigateTo("dashboard")}>{$_('nav.back')}</button>
+    <button class="back-btn" onclick={() => navigateTo('dashboard')}>{$_('nav.back')}</button>
   </header>
 
   {#if !detail}
@@ -57,7 +70,7 @@
               <div class="resource-group">
                 <h3>{group.label} ({group.count})</h3>
                 <ul class="resource-list">
-                  {#each ($resources as any)[group.type] as resource (resource.id)}
+                  {#each getResourcesByType($resources, group.type) as resource (resource.id)}
                     <li>
                       <label>
                         <input
@@ -89,7 +102,12 @@
 
         <div class="form-group">
           <label>{$_('pack_export.version')}</label>
-          <input type="text" bind:value={packVersion} placeholder={$_('pack_export.version_placeholder')} required />
+          <input
+            type="text"
+            bind:value={packVersion}
+            placeholder={$_('pack_export.version_placeholder')}
+            required
+          />
         </div>
 
         <div class="form-group">
@@ -143,7 +161,9 @@
     border-bottom: 1px solid #e2e8f0;
     background: #fff;
   }
-  .page-header h1 { margin: 0; }
+  .page-header h1 {
+    margin: 0;
+  }
   .back-btn {
     padding: 8px 16px;
     background: #fff;
@@ -158,7 +178,8 @@
     padding: 24px;
     background: #f8fafc;
   }
-  .resource-selection h2, .pack-metadata h2 {
+  .resource-selection h2,
+  .pack-metadata h2 {
     margin: 0 0 16px 0;
     font-size: 1.1rem;
   }

@@ -16,7 +16,7 @@ fn setup_temp_repo(files: &[(&str, &str)]) -> tempfile::TempDir {
 fn parses_mcp_json_with_single_server() {
     let mcp_config = r#"[
         {
-            "serverName": "filesystem",
+            "name": "filesystem",
             "command": "npx",
             "args": ["-y", "@anthropic/mcp-filesystem"],
             "env": { "HOME": "/tmp" }
@@ -24,9 +24,7 @@ fn parses_mcp_json_with_single_server() {
     ]"#;
     let dir = setup_temp_repo(&[(".claude/mcp.json", mcp_config)]);
 
-    let resources = claude_parser::mcp_parser::parse_mcp(
-        dir.path().to_str().unwrap(),
-    );
+    let resources = claude_parser::mcp_parser::parse_mcp(dir.path().to_str().unwrap());
 
     assert_eq!(resources.len(), 1);
     let mcp = &resources[0];
@@ -35,8 +33,7 @@ fn parses_mcp_json_with_single_server() {
     assert_eq!(mcp.scope, "project");
     assert!(mcp.source_path.as_ref().unwrap().contains(".claude/mcp.json"));
 
-    let meta: serde_json::Value =
-        serde_json::from_str(mcp.metadata_json.as_ref().unwrap()).unwrap();
+    let meta: serde_json::Value = serde_json::from_str(mcp.metadata_json.as_ref().unwrap()).unwrap();
     assert_eq!(meta["command"], "npx");
     assert_eq!(meta["args"][0], "-y");
     assert_eq!(meta["env"]["HOME"], "/tmp");
@@ -45,14 +42,12 @@ fn parses_mcp_json_with_single_server() {
 #[test]
 fn parses_mcp_json_with_multiple_servers() {
     let mcp_config = r#"[
-        { "serverName": "server-a", "command": "python", "args": ["-m", "a"] },
-        { "serverName": "server-b", "command": "node", "args": ["b.js"] }
+        { "name": "server-a", "command": "python", "args": ["-m", "a"] },
+        { "name": "server-b", "command": "node", "args": ["b.js"] }
     ]"#;
     let dir = setup_temp_repo(&[(".claude/mcp.json", mcp_config)]);
 
-    let resources = claude_parser::mcp_parser::parse_mcp(
-        dir.path().to_str().unwrap(),
-    );
+    let resources = claude_parser::mcp_parser::parse_mcp(dir.path().to_str().unwrap());
 
     assert_eq!(resources.len(), 2);
     let names: Vec<&str> = resources.iter().map(|r| r.name.as_str()).collect();
@@ -62,12 +57,10 @@ fn parses_mcp_json_with_multiple_servers() {
 
 #[test]
 fn mcp_local_json_has_local_scope() {
-    let mcp_config = r#"[{"serverName": "local-server", "command": "echo"}]"#;
+    let mcp_config = r#"[{"name": "local-server", "command": "echo"}]"#;
     let dir = setup_temp_repo(&[(".claude/mcp.local.json", mcp_config)]);
 
-    let resources = claude_parser::mcp_parser::parse_mcp(
-        dir.path().to_str().unwrap(),
-    );
+    let resources = claude_parser::mcp_parser::parse_mcp(dir.path().to_str().unwrap());
 
     assert_eq!(resources.len(), 1);
     assert_eq!(resources[0].scope, "local");
@@ -77,9 +70,7 @@ fn mcp_local_json_has_local_scope() {
 fn mcp_json_with_empty_array_returns_empty() {
     let dir = setup_temp_repo(&[(".claude/mcp.json", "[]")]);
 
-    let resources = claude_parser::mcp_parser::parse_mcp(
-        dir.path().to_str().unwrap(),
-    );
+    let resources = claude_parser::mcp_parser::parse_mcp(dir.path().to_str().unwrap());
 
     assert_eq!(resources.len(), 0);
 }
@@ -88,9 +79,7 @@ fn mcp_json_with_empty_array_returns_empty() {
 fn no_mcp_config_returns_empty() {
     let dir = setup_temp_repo(&[("README.md", "# No MCP here")]);
 
-    let resources = claude_parser::mcp_parser::parse_mcp(
-        dir.path().to_str().unwrap(),
-    );
+    let resources = claude_parser::mcp_parser::parse_mcp(dir.path().to_str().unwrap());
 
     assert_eq!(resources.len(), 0);
 }
@@ -100,9 +89,7 @@ fn mcp_server_without_name_gets_unknown_name() {
     let mcp_config = r#"[{"command": "npx", "args": ["test"]}]"#;
     let dir = setup_temp_repo(&[(".claude/mcp.json", mcp_config)]);
 
-    let resources = claude_parser::mcp_parser::parse_mcp(
-        dir.path().to_str().unwrap(),
-    );
+    let resources = claude_parser::mcp_parser::parse_mcp(dir.path().to_str().unwrap());
 
     assert_eq!(resources.len(), 1);
     assert_eq!(resources[0].name, "unknown");
@@ -110,12 +97,10 @@ fn mcp_server_without_name_gets_unknown_name() {
 
 #[test]
 fn generates_content_hash_for_mcp_config() {
-    let mcp_config = r#"[{"serverName": "hash-test", "command": "echo"}]"#;
+    let mcp_config = r#"[{"name": "hash-test", "command": "echo"}]"#;
     let dir = setup_temp_repo(&[(".claude/mcp.json", mcp_config)]);
 
-    let resources = claude_parser::mcp_parser::parse_mcp(
-        dir.path().to_str().unwrap(),
-    );
+    let resources = claude_parser::mcp_parser::parse_mcp(dir.path().to_str().unwrap());
 
     assert_eq!(resources.len(), 1);
     assert!(resources[0].content_hash.is_some());

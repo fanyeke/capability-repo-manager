@@ -1,13 +1,13 @@
 <script lang="ts">
-  import Dashboard from "$lib/pages/Dashboard.svelte";
-  import RepoDetail from "$lib/pages/RepoDetail.svelte";
-  import Settings from "$lib/pages/Settings.svelte";
-  import GuidedSetup from "$lib/pages/GuidedSetup.svelte";
-  import BootError from "$lib/components/BootError.svelte";
-  import { currentPage } from "$lib/stores/uiStore";
-  import { setupI18n, waitForI18n } from "$lib/i18n";
-  import { onMount } from "svelte";
-  import { locale, _ } from "svelte-i18n";
+  import Dashboard from '$lib/pages/Dashboard.svelte';
+  import RepoDetail from '$lib/pages/RepoDetail.svelte';
+  import Settings from '$lib/pages/Settings.svelte';
+  import GuidedSetup from '$lib/pages/GuidedSetup.svelte';
+  import BootError from '$lib/components/BootError.svelte';
+  import { currentPage } from '$lib/stores/uiStore';
+  import { setupI18n, waitForI18n } from '$lib/i18n';
+  import { onMount } from 'svelte';
+  import { locale, _ } from 'svelte-i18n';
 
   // Lazy-loaded pages (loaded on demand)
   let PackExport: any = $state(null);
@@ -22,21 +22,25 @@
     setupI18n();
     await waitForI18n();
     try {
-      const { invoke } = await import("@tauri-apps/api/core");
-      const repos = await invoke<any[]>("list_repositories", { filter: {} });
+      const { invoke } = await import('@tauri-apps/api/core');
+      const repos = await invoke<any[]>('list_repositories', { filter: {} });
       if (repos.length === 0) {
-        currentPage.set("guidedsetup");
+        currentPage.set('guidedsetup');
       }
     } catch (e: any) {
       const msg = String(e?.message ?? e);
       // Categorize error
-      if (msg.includes("not found") || msg.includes("No function") || msg.includes("not registered")) {
+      if (
+        msg.includes('not found') ||
+        msg.includes('No function') ||
+        msg.includes('not registered')
+      ) {
         bootError = {
           title: $_('app.backend_unavailable_title'),
           message: $_('app.backend_unavailable_message'),
           detail: msg,
         };
-      } else if (msg.includes("no such table") || msg.includes("database")) {
+      } else if (msg.includes('no such table') || msg.includes('database')) {
         bootError = {
           title: $_('app.database_error_title'),
           message: $_('app.database_error_message'),
@@ -44,22 +48,22 @@
         };
       } else {
         // First launch or empty state
-        currentPage.set("guidedsetup");
+        currentPage.set('guidedsetup');
       }
     }
   });
 
   async function loadPage(name: string) {
-    if (name === "packexport" && !PackExport) {
-      PackExport = (await import("$lib/pages/PackExport.svelte")).default;
-    } else if (name === "packapply" && !PackApply) {
-      PackApply = (await import("$lib/pages/PackApply.svelte")).default;
-    } else if (name === "doctor" && !Doctor) {
-      Doctor = (await import("$lib/pages/Doctor.svelte")).default;
-    } else if (name === "compare" && !Compare) {
-      Compare = (await import("$lib/pages/Compare.svelte")).default;
-    } else if (name === "activity" && !Activity) {
-      Activity = (await import("$lib/pages/Activity.svelte")).default;
+    if (name === 'packexport' && !PackExport) {
+      PackExport = (await import('$lib/pages/PackExport.svelte')).default;
+    } else if (name === 'packapply' && !PackApply) {
+      PackApply = (await import('$lib/pages/PackApply.svelte')).default;
+    } else if (name === 'doctor' && !Doctor) {
+      Doctor = (await import('$lib/pages/Doctor.svelte')).default;
+    } else if (name === 'compare' && !Compare) {
+      Compare = (await import('$lib/pages/Compare.svelte')).default;
+    } else if (name === 'activity' && !Activity) {
+      Activity = (await import('$lib/pages/Activity.svelte')).default;
     }
   }
 
@@ -74,44 +78,44 @@
   {#if bootError}
     <BootError title={bootError.title} message={bootError.message} detail={bootError.detail} />
   {:else if !$locale}
-    <div class="page-loading">{$_('app.loading')}</div>
-  {:else if $currentPage === "guidedsetup"}
+    <div class="page-loading">Loading...</div>
+  {:else if $currentPage === 'guidedsetup'}
     <GuidedSetup />
-  {:else if $currentPage === "dashboard"}
+  {:else if $currentPage === 'dashboard'}
     <Dashboard />
-  {:else if $currentPage === "settings"}
+  {:else if $currentPage === 'settings'}
     <Settings />
-  {:else if $currentPage === "packexport"}
+  {:else if $currentPage === 'packexport'}
     {#if PackExport}
       <PackExport />
     {:else}
       <div class="page-loading">{$_('app.loading')}</div>
     {/if}
-  {:else if $currentPage === "packapply"}
+  {:else if $currentPage === 'packapply'}
     {#if PackApply}
       <PackApply />
     {:else}
       <div class="page-loading">{$_('app.loading')}</div>
     {/if}
-  {:else if $currentPage === "doctor"}
+  {:else if $currentPage === 'doctor'}
     {#if Doctor}
       <Doctor />
     {:else}
       <div class="page-loading">{$_('app.loading')}</div>
     {/if}
-  {:else if $currentPage === "compare"}
+  {:else if $currentPage === 'compare'}
     {#if Compare}
       <Compare />
     {:else}
       <div class="page-loading">{$_('app.loading')}</div>
     {/if}
-  {:else if $currentPage === "activity"}
+  {:else if $currentPage === 'activity'}
     {#if Activity}
       <Activity />
     {:else}
       <div class="page-loading">{$_('app.loading')}</div>
     {/if}
-  {:else if $currentPage.startsWith("repo:")}
+  {:else if $currentPage.startsWith('repo:')}
     <RepoDetail repoId={$currentPage.slice(5)} />
   {:else}
     <BootError
@@ -127,7 +131,7 @@
     min-height: 100vh;
     background: var(--bg-primary, #f8fafc);
     color: var(--text-primary, #0f172a);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   }
   .page-loading {
     display: flex;

@@ -79,12 +79,7 @@ impl<'a> EventStore<'a> {
     }
 
     /// List operation events in reverse chronological order.
-    pub fn list_events(
-        &self,
-        limit: i64,
-        offset: i64,
-        type_filter: Option<&str>,
-    ) -> Result<Vec<OperationEvent>> {
+    pub fn list_events(&self, limit: i64, offset: i64, type_filter: Option<&str>) -> Result<Vec<OperationEvent>> {
         let (sql, param_values): (String, Vec<Box<dyn rusqlite::types::ToSql>>) = if let Some(t) = type_filter {
             (
                 "SELECT id, operation_id, operation_type, status, repo_id, pack_id, migration_run_id, summary, detail_json, created_at
@@ -190,7 +185,8 @@ mod tests {
             CREATE INDEX IF NOT EXISTS idx_op_events_operation_id ON operation_events(operation_id);
             CREATE INDEX IF NOT EXISTS idx_op_events_created_at ON operation_events(created_at);
             CREATE INDEX IF NOT EXISTS idx_op_events_type ON operation_events(operation_type);",
-        ).unwrap();
+        )
+        .unwrap();
         conn
     }
 
@@ -199,16 +195,18 @@ mod tests {
         let conn = setup_db();
         let store = EventStore::new(&conn);
 
-        let event = store.insert_event(NewOperationEvent {
-            operation_id: "op-123".to_string(),
-            operation_type: "scan_repositories".to_string(),
-            status: "success".to_string(),
-            repo_id: None,
-            pack_id: None,
-            migration_run_id: None,
-            summary: Some("Scanned 3 directories".to_string()),
-            detail_json: None,
-        }).unwrap();
+        let event = store
+            .insert_event(NewOperationEvent {
+                operation_id: "op-123".to_string(),
+                operation_type: "scan_repositories".to_string(),
+                status: "success".to_string(),
+                repo_id: None,
+                pack_id: None,
+                migration_run_id: None,
+                summary: Some("Scanned 3 directories".to_string()),
+                detail_json: None,
+            })
+            .unwrap();
 
         assert_eq!(event.operation_id, "op-123");
         assert_eq!(event.operation_type, "scan_repositories");
@@ -225,27 +223,31 @@ mod tests {
         let conn = setup_db();
         let store = EventStore::new(&conn);
 
-        store.insert_event(NewOperationEvent {
-            operation_id: "op-1".to_string(),
-            operation_type: "scan_repositories".to_string(),
-            status: "success".to_string(),
-            repo_id: None,
-            pack_id: None,
-            migration_run_id: None,
-            summary: None,
-            detail_json: None,
-        }).unwrap();
+        store
+            .insert_event(NewOperationEvent {
+                operation_id: "op-1".to_string(),
+                operation_type: "scan_repositories".to_string(),
+                status: "success".to_string(),
+                repo_id: None,
+                pack_id: None,
+                migration_run_id: None,
+                summary: None,
+                detail_json: None,
+            })
+            .unwrap();
 
-        store.insert_event(NewOperationEvent {
-            operation_id: "op-2".to_string(),
-            operation_type: "export_pack".to_string(),
-            status: "failure".to_string(),
-            repo_id: None,
-            pack_id: Some("pack-1".to_string()),
-            migration_run_id: None,
-            summary: None,
-            detail_json: None,
-        }).unwrap();
+        store
+            .insert_event(NewOperationEvent {
+                operation_id: "op-2".to_string(),
+                operation_type: "export_pack".to_string(),
+                status: "failure".to_string(),
+                repo_id: None,
+                pack_id: Some("pack-1".to_string()),
+                migration_run_id: None,
+                summary: None,
+                detail_json: None,
+            })
+            .unwrap();
 
         let scan_events = store.list_events(10, 0, Some("scan_repositories")).unwrap();
         assert_eq!(scan_events.len(), 1);
@@ -264,27 +266,31 @@ mod tests {
         let conn = setup_db();
         let store = EventStore::new(&conn);
 
-        store.insert_event(NewOperationEvent {
-            operation_id: "op-scan".to_string(),
-            operation_type: "scan_repositories".to_string(),
-            status: "success".to_string(),
-            repo_id: None,
-            pack_id: None,
-            migration_run_id: None,
-            summary: None,
-            detail_json: None,
-        }).unwrap();
+        store
+            .insert_event(NewOperationEvent {
+                operation_id: "op-scan".to_string(),
+                operation_type: "scan_repositories".to_string(),
+                status: "success".to_string(),
+                repo_id: None,
+                pack_id: None,
+                migration_run_id: None,
+                summary: None,
+                detail_json: None,
+            })
+            .unwrap();
 
-        store.insert_event(NewOperationEvent {
-            operation_id: "op-scan".to_string(),
-            operation_type: "scan_repositories".to_string(),
-            status: "failure".to_string(),
-            repo_id: Some("repo-1".to_string()),
-            pack_id: None,
-            migration_run_id: None,
-            summary: None,
-            detail_json: None,
-        }).unwrap();
+        store
+            .insert_event(NewOperationEvent {
+                operation_id: "op-scan".to_string(),
+                operation_type: "scan_repositories".to_string(),
+                status: "failure".to_string(),
+                repo_id: Some("repo-1".to_string()),
+                pack_id: None,
+                migration_run_id: None,
+                summary: None,
+                detail_json: None,
+            })
+            .unwrap();
 
         let events = store.get_by_operation("op-scan").unwrap();
         assert_eq!(events.len(), 2);
@@ -299,16 +305,18 @@ mod tests {
         let store = EventStore::new(&conn);
 
         for i in 0..5 {
-            store.insert_event(NewOperationEvent {
-                operation_id: format!("op-{}", i),
-                operation_type: "scan_repositories".to_string(),
-                status: "success".to_string(),
-                repo_id: None,
-                pack_id: None,
-                migration_run_id: None,
-                summary: None,
-                detail_json: None,
-            }).unwrap();
+            store
+                .insert_event(NewOperationEvent {
+                    operation_id: format!("op-{}", i),
+                    operation_type: "scan_repositories".to_string(),
+                    status: "success".to_string(),
+                    repo_id: None,
+                    pack_id: None,
+                    migration_run_id: None,
+                    summary: None,
+                    detail_json: None,
+                })
+                .unwrap();
         }
 
         let first_page = store.list_events(2, 0, None).unwrap();

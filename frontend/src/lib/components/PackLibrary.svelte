@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { _ } from "svelte-i18n";
-  import type { PackSummary } from "$lib/types";
+  import { _ } from 'svelte-i18n';
+  import type { PackSummary } from '$lib/types';
 
   let {
     packs,
@@ -24,17 +24,31 @@
     <div class="pack-grid">
       {#each packs as pack (pack.id)}
         <article class="pack-card">
-          <div class="pack-header" onclick={() => onSelectPack(pack.id)} onkeydown={() => {}} role="button" tabindex="0">
+          <div
+            class="pack-header"
+            onclick={() => onSelectPack(pack.id)}
+            onkeydown={() => {}}
+            role="button"
+            tabindex="0"
+          >
             <h3>{pack.name}</h3>
             <span class="version-tag">v{pack.version}</span>
           </div>
 
-          <div class="pack-body" onclick={() => onSelectPack(pack.id)} onkeydown={() => {}} role="button" tabindex="0">
+          <div
+            class="pack-body"
+            onclick={() => onSelectPack(pack.id)}
+            onkeydown={() => {}}
+            role="button"
+            tabindex="0"
+          >
             {#if pack.description}<p class="description">{pack.description}</p>{/if}
 
             <div class="pack-meta">
               <span class="type-badge type-{pack.pack_type}">{pack.pack_type}</span>
-              <span class="resource-count">{$_('pack.resources_count', { values: { n: pack.resource_count } })}</span>
+              <span class="resource-count"
+                >{$_('pack.resources_count', { values: { n: pack.resource_count } })}</span
+              >
             </div>
 
             {#if pack.source_repo_name}
@@ -46,7 +60,10 @@
             <span class="created">{new Date(pack.created_at).toLocaleDateString()}</span>
             <button
               class="delete-btn"
-              onclick={(e) => { e.stopPropagation(); onDeletePack(pack.id); }}
+              onclick={(e) => {
+                e.stopPropagation();
+                onDeletePack(pack.id);
+              }}
             >
               {$_('pack.delete')}
             </button>
@@ -113,9 +130,18 @@
     font-size: 0.7rem;
     text-transform: capitalize;
   }
-  .type-project { background: #dbeafe; color: #1e40af; }
-  .type-blueprint { background: #ede9fe; color: #5b21b6; }
-  .type-baseline { background: #fce7f3; color: #831843; }
+  .type-project {
+    background: #dbeafe;
+    color: #1e40af;
+  }
+  .type-blueprint {
+    background: #ede9fe;
+    color: #5b21b6;
+  }
+  .type-baseline {
+    background: #fce7f3;
+    color: #831843;
+  }
   .resource-count {
     font-size: 0.8rem;
     color: #64748b;
@@ -146,7 +172,8 @@
   .delete-btn:hover {
     background: #fef2f2;
   }
-  .loading-text, .empty-text {
+  .loading-text,
+  .empty-text {
     text-align: center;
     color: #64748b;
     padding: 40px 0;

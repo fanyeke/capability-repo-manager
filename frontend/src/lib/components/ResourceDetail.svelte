@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { _ } from "svelte-i18n";
-  import type { CapabilityResource } from "$lib/types";
+  import { _ } from 'svelte-i18n';
+  import type { CapabilityResource } from '$lib/types';
 
   let {
     resource,
@@ -117,11 +117,26 @@
     border-radius: 4px;
     font-size: 0.8rem;
   }
-  .scope-project { background: #dbeafe; color: #1e40af; }
-  .scope-local { background: #fef3c7; color: #92400e; }
-  .scope-user { background: #ede9fe; color: #5b21b6; }
-  .scope-inherited { background: #fce7f3; color: #831843; }
-  .scope-unknown { background: #f1f5f9; color: #64748b; }
+  .scope-project {
+    background: #dbeafe;
+    color: #1e40af;
+  }
+  .scope-local {
+    background: #fef3c7;
+    color: #92400e;
+  }
+  .scope-user {
+    background: #ede9fe;
+    color: #5b21b6;
+  }
+  .scope-inherited {
+    background: #fce7f3;
+    color: #831843;
+  }
+  .scope-unknown {
+    background: #f1f5f9;
+    color: #64748b;
+  }
   .metadata {
     background: #f8fafc;
     padding: 8px;

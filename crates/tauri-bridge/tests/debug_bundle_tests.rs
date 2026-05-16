@@ -16,18 +16,9 @@ fn setup_db_with_data() -> Database {
         store
             .insert_event(NewOperationEvent {
                 operation_id: format!("op-{}", i),
-                operation_type: if i % 2 == 0 {
-                    "scan_repositories"
-                } else {
-                    "export_pack"
-                }
-                .to_string(),
+                operation_type: if i % 2 == 0 { "scan_repositories" } else { "export_pack" }.to_string(),
                 status: if i < 4 { "success" } else { "failure" }.to_string(),
-                repo_id: if i == 0 {
-                    Some("repo-1".to_string())
-                } else {
-                    None
-                },
+                repo_id: if i == 0 { Some("repo-1".to_string()) } else { None },
                 pack_id: None,
                 migration_run_id: None,
                 summary: Some(format!("Event #{}", i)),
@@ -88,27 +79,12 @@ fn debug_bundle_contains_required_entries() {
     let cursor = std::io::Cursor::new(zip_bytes);
     let archive = ZipArchive::new(cursor).unwrap();
 
-    let entry_names: Vec<String> = archive
-        .file_names()
-        .map(|s| s.to_string())
-        .collect();
+    let entry_names: Vec<String> = archive.file_names().map(|s| s.to_string()).collect();
 
-    assert!(
-        entry_names.contains(&"app_info.json".to_string()),
-        "should contain app_info.json"
-    );
-    assert!(
-        entry_names.contains(&"settings.json".to_string()),
-        "should contain settings.json"
-    );
-    assert!(
-        entry_names.contains(&"operation_events.json".to_string()),
-        "should contain operation_events.json"
-    );
-    assert!(
-        entry_names.contains(&"doctor_reports.json".to_string()),
-        "should contain doctor_reports.json"
-    );
+    assert!(entry_names.contains(&"app_info.json".to_string()), "should contain app_info.json");
+    assert!(entry_names.contains(&"settings.json".to_string()), "should contain settings.json");
+    assert!(entry_names.contains(&"operation_events.json".to_string()), "should contain operation_events.json");
+    assert!(entry_names.contains(&"doctor_reports.json".to_string()), "should contain doctor_reports.json");
 }
 
 #[test]
@@ -118,23 +94,14 @@ fn debug_bundle_app_info_is_valid_json() {
     let log_dir = tmp.path().join("logs");
     std::fs::create_dir_all(&log_dir).unwrap();
 
-    let zip_bytes = tauri_bridge::commands::settings_commands::build_debug_bundle_zip(
-        &db,
-        "{}",
-        &log_dir,
-        "/home/user",
-        false,
-    )
-    .unwrap();
+    let zip_bytes =
+        tauri_bridge::commands::settings_commands::build_debug_bundle_zip(&db, "{}", &log_dir, "/home/user", false)
+            .unwrap();
 
     let cursor = std::io::Cursor::new(zip_bytes);
     let mut archive = ZipArchive::new(cursor).unwrap();
     let mut contents = String::new();
-    archive
-        .by_name("app_info.json")
-        .unwrap()
-        .read_to_string(&mut contents)
-        .unwrap();
+    archive.by_name("app_info.json").unwrap().read_to_string(&mut contents).unwrap();
 
     let parsed: serde_json::Value = serde_json::from_str(&contents).unwrap();
     assert!(parsed.get("version").is_some(), "should have version");
@@ -165,20 +132,10 @@ fn debug_bundle_redacts_sensitive_data_in_settings() {
     let cursor = std::io::Cursor::new(zip_bytes);
     let mut archive = ZipArchive::new(cursor).unwrap();
     let mut contents = String::new();
-    archive
-        .by_name("settings.json")
-        .unwrap()
-        .read_to_string(&mut contents)
-        .unwrap();
+    archive.by_name("settings.json").unwrap().read_to_string(&mut contents).unwrap();
 
-    assert!(
-        !contents.contains("sk-proj-abc123"),
-        "sensitive token should not appear in settings.json"
-    );
-    assert!(
-        contents.contains("[REDACTED]"),
-        "redacted value should appear as [REDACTED]"
-    );
+    assert!(!contents.contains("sk-proj-abc123"), "sensitive token should not appear in settings.json");
+    assert!(contents.contains("[REDACTED]"), "redacted value should appear as [REDACTED]");
 }
 
 #[test]
@@ -203,10 +160,7 @@ fn debug_bundle_redact_paths_replaces_home_in_settings() {
     let mut archive = ZipArchive::new(cursor).unwrap();
     let mut contents = String::new();
     archive.by_name("settings.json").unwrap().read_to_string(&mut contents).unwrap();
-    assert!(
-        contents.contains("/home/alice"),
-        "without redact_paths, home path should remain"
-    );
+    assert!(contents.contains("/home/alice"), "without redact_paths, home path should remain");
 
     // With redact_paths=true, /home/alice should become ~
     let zip_bytes = tauri_bridge::commands::settings_commands::build_debug_bundle_zip(
@@ -221,14 +175,8 @@ fn debug_bundle_redact_paths_replaces_home_in_settings() {
     let mut archive = ZipArchive::new(cursor).unwrap();
     let mut contents = String::new();
     archive.by_name("settings.json").unwrap().read_to_string(&mut contents).unwrap();
-    assert!(
-        contents.contains('~'),
-        "with redact_paths, home path should be replaced with ~"
-    );
-    assert!(
-        !contents.contains("/home/alice"),
-        "with redact_paths, /home/alice should not appear"
-    );
+    assert!(contents.contains('~'), "with redact_paths, home path should be replaced with ~");
+    assert!(!contents.contains("/home/alice"), "with redact_paths, /home/alice should not appear");
 }
 
 #[test]
@@ -242,29 +190,17 @@ fn debug_bundle_respects_log_retention() {
     // Recent log file (1 day old) — should be included
     write_log_file(&log_dir.join("app-2026-05-14.log"), "recent log entry", 1);
     // Old log file (30 days old) — should be excluded
-    write_log_file(
-        &log_dir.join("app-2026-04-14.log"),
-        "old log entry",
-        30,
-    );
+    write_log_file(&log_dir.join("app-2026-04-14.log"), "old log entry", 30);
 
-    let zip_bytes = tauri_bridge::commands::settings_commands::build_debug_bundle_zip(
-        &db,
-        "{}",
-        &log_dir,
-        "/home/user",
-        false,
-    )
-    .unwrap();
+    let zip_bytes =
+        tauri_bridge::commands::settings_commands::build_debug_bundle_zip(&db, "{}", &log_dir, "/home/user", false)
+            .unwrap();
 
     let cursor = std::io::Cursor::new(zip_bytes);
     let mut archive = ZipArchive::new(cursor).unwrap();
     let entry_names: Vec<String> = archive.file_names().map(|s| s.to_string()).collect();
 
-    assert!(
-        entry_names.contains(&"logs/app-2026-05-14.log".to_string()),
-        "recent log should be included"
-    );
+    assert!(entry_names.contains(&"logs/app-2026-05-14.log".to_string()), "recent log should be included");
     assert!(
         !entry_names.contains(&"logs/app-2026-04-14.log".to_string()),
         "old log file should be excluded by retention filter"
@@ -278,23 +214,14 @@ fn debug_bundle_operation_events_is_valid_json() {
     let log_dir = tmp.path().join("logs");
     std::fs::create_dir_all(&log_dir).unwrap();
 
-    let zip_bytes = tauri_bridge::commands::settings_commands::build_debug_bundle_zip(
-        &db,
-        "{}",
-        &log_dir,
-        "/home/user",
-        false,
-    )
-    .unwrap();
+    let zip_bytes =
+        tauri_bridge::commands::settings_commands::build_debug_bundle_zip(&db, "{}", &log_dir, "/home/user", false)
+            .unwrap();
 
     let cursor = std::io::Cursor::new(zip_bytes);
     let mut archive = ZipArchive::new(cursor).unwrap();
     let mut contents = String::new();
-    archive
-        .by_name("operation_events.json")
-        .unwrap()
-        .read_to_string(&mut contents)
-        .unwrap();
+    archive.by_name("operation_events.json").unwrap().read_to_string(&mut contents).unwrap();
 
     let events: Vec<serde_json::Value> = serde_json::from_str(&contents).unwrap();
     assert_eq!(events.len(), 5, "should contain 5 operation events");
@@ -309,38 +236,19 @@ fn debug_bundle_redact_paths_applies_to_logs() {
     let log_dir = tmp_path.join("logs");
     std::fs::create_dir_all(&log_dir).unwrap();
 
-    write_log_file(
-        &log_dir.join("app.log"),
-        "path=/home/testuser/projects scanned",
-        1,
-    );
+    write_log_file(&log_dir.join("app.log"), "path=/home/testuser/projects scanned", 1);
 
-    let zip_bytes = tauri_bridge::commands::settings_commands::build_debug_bundle_zip(
-        &db,
-        "{}",
-        &log_dir,
-        "/home/testuser",
-        true,
-    )
-    .unwrap();
+    let zip_bytes =
+        tauri_bridge::commands::settings_commands::build_debug_bundle_zip(&db, "{}", &log_dir, "/home/testuser", true)
+            .unwrap();
 
     let cursor = std::io::Cursor::new(zip_bytes);
     let mut archive = ZipArchive::new(cursor).unwrap();
     let mut contents = String::new();
-    archive
-        .by_name("logs/app.log")
-        .unwrap()
-        .read_to_string(&mut contents)
-        .unwrap();
+    archive.by_name("logs/app.log").unwrap().read_to_string(&mut contents).unwrap();
 
-    assert!(
-        contents.contains('~'),
-        "home path in logs should be replaced with ~"
-    );
-    assert!(
-        !contents.contains("/home/testuser"),
-        "raw home path should not appear in logs"
-    );
+    assert!(contents.contains('~'), "home path in logs should be replaced with ~");
+    assert!(!contents.contains("/home/testuser"), "raw home path should not appear in logs");
 }
 
 #[test]
@@ -356,13 +264,8 @@ fn debug_bundle_read_only_path_returns_friendly_error() {
     let log_dir = tmp.path().join("logs");
     std::fs::create_dir_all(&log_dir).unwrap();
 
-    let result = tauri_bridge::commands::settings_commands::build_debug_bundle_zip(
-        &db,
-        "{}",
-        &log_dir,
-        "/home/user",
-        false,
-    );
+    let result =
+        tauri_bridge::commands::settings_commands::build_debug_bundle_zip(&db, "{}", &log_dir, "/home/user", false);
 
     assert!(result.is_ok(), "zip builder should succeed with in-memory output");
     assert!(!result.unwrap().is_empty(), "zip bytes should not be empty");

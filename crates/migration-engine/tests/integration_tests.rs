@@ -66,14 +66,8 @@ fn full_plan_snapshot_execute_rollback_cycle() {
     // Step 3: Execute — copy files from pack to target
     // Copy files to simulate execution
     fs::create_dir_all(target_dir.join("skills/my-skill")).unwrap();
-    fs::copy(
-        pack_dir.join("skills/my-skill/SKILL.md"),
-        target_dir.join("skills/my-skill/SKILL.md"),
-    ).unwrap();
-    fs::copy(
-        pack_dir.join(".claude/settings.json"),
-        target_dir.join(".claude/settings.json"),
-    ).unwrap();
+    fs::copy(pack_dir.join("skills/my-skill/SKILL.md"), target_dir.join("skills/my-skill/SKILL.md")).unwrap();
+    fs::copy(pack_dir.join(".claude/settings.json"), target_dir.join(".claude/settings.json")).unwrap();
 
     // Verify files were written
     assert!(target_dir.join("skills/my-skill/SKILL.md").exists());
@@ -102,15 +96,13 @@ fn rollback_restores_only_affected_files() {
     fs::create_dir_all(&snap_base).unwrap();
 
     // Only one item is affected
-    let plan_items = vec![
-        MigrationPlanItem {
-            resource_id: "r1".to_string(),
-            action: "overwrite".to_string(),
-            source_path: Some("README.md".to_string()),
-            target_path: Some("README.md".to_string()),
-            status: "pending".to_string(),
-        },
-    ];
+    let plan_items = vec![MigrationPlanItem {
+        resource_id: "r1".to_string(),
+        action: "overwrite".to_string(),
+        source_path: Some("README.md".to_string()),
+        target_path: Some("README.md".to_string()),
+        status: "pending".to_string(),
+    }];
 
     create_scoped_snapshot(&plan_items, &target_dir, &snap_base).unwrap();
 

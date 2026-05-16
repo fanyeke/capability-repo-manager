@@ -260,7 +260,8 @@
     "merge": "Merge"
   },
   "capability": {
-    "all": "All"
+    "all": "All",
+    "no_resources": "No resources"
   },
   "common": {
     "save": "Save",

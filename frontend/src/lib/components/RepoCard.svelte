@@ -1,17 +1,30 @@
 <script lang="ts">
-  import { _ } from "svelte-i18n";
-  import type { RepositorySummary } from "$lib/types";
+  import { _ } from 'svelte-i18n';
+  import type { RepositorySummary } from '$lib/types';
 
-  let { repo, onSelect }: {
+  let {
+    repo,
+    onSelect,
+  }: {
     repo: RepositorySummary;
     onSelect: (id: string) => void;
   } = $props();
 </script>
 
-<article class="repo-card" onclick={() => onSelect(repo.id)} onkeydown={() => {}} role="button" tabindex="0">
+<article
+  class="repo-card"
+  onclick={() => onSelect(repo.id)}
+  onkeydown={() => {}}
+  role="button"
+  tabindex="0"
+>
   <div class="card-header">
     <h3 class="repo-name">{repo.name}</h3>
-    <span class="dirty-badge" class:clean={repo.dirty_state === "clean"} class:modified={repo.dirty_state === "modified"}>
+    <span
+      class="dirty-badge"
+      class:clean={repo.dirty_state === 'clean'}
+      class:modified={repo.dirty_state === 'modified'}
+    >
       {repo.dirty_state}
     </span>
   </div>
@@ -23,25 +36,39 @@
   {/if}
 
   <div class="capability-counts">
-    {#if repo.capability_counts.skills}
-      <span class="count-badge skill">{$_('repo.skills_count', { values: { n: repo.capability_counts.skills } })}</span>
+    {#if repo.capability_counts.skill}
+      <span class="count-badge skill"
+        >{$_('repo.skills_count', { values: { n: repo.capability_counts.skill } })}</span
+      >
     {/if}
     {#if repo.capability_counts.mcp}
-      <span class="count-badge mcp">{$_('repo.mcp_count', { values: { n: repo.capability_counts.mcp } })}</span>
+      <span class="count-badge mcp"
+        >{$_('repo.mcp_count', { values: { n: repo.capability_counts.mcp } })}</span
+      >
     {/if}
-    {#if repo.capability_counts.hooks}
-      <span class="count-badge hook">{$_('repo.hooks_count', { values: { n: repo.capability_counts.hooks } })}</span>
+    {#if repo.capability_counts.hook}
+      <span class="count-badge hook"
+        >{$_('repo.hooks_count', { values: { n: repo.capability_counts.hook } })}</span
+      >
     {/if}
-    {#if repo.capability_counts.rules}
-      <span class="count-badge rule">{$_('repo.rules_count', { values: { n: repo.capability_counts.rules } })}</span>
+    {#if repo.capability_counts.rule}
+      <span class="count-badge rule"
+        >{$_('repo.rules_count', { values: { n: repo.capability_counts.rule } })}</span
+      >
     {/if}
-    {#if repo.capability_counts.agents}
-      <span class="count-badge agent">{$_('repo.agents_count', { values: { n: repo.capability_counts.agents } })}</span>
+    {#if repo.capability_counts.agent}
+      <span class="count-badge agent"
+        >{$_('repo.agents_count', { values: { n: repo.capability_counts.agent } })}</span
+      >
     {/if}
   </div>
 
   <div class="card-footer">
-    <span class="indexed-at">{$_('repo.indexed', { values: { date: new Date(repo.last_indexed_at).toLocaleDateString() } })}</span>
+    <span class="indexed-at"
+      >{$_('repo.indexed', {
+        values: { date: new Date(repo.last_indexed_at).toLocaleDateString() },
+      })}</span
+    >
   </div>
 </article>
 
@@ -52,7 +79,9 @@
     border-radius: 8px;
     padding: 16px;
     cursor: pointer;
-    transition: box-shadow 0.15s, border-color 0.15s;
+    transition:
+      box-shadow 0.15s,
+      border-color 0.15s;
   }
   .repo-card:hover {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);

@@ -1,20 +1,20 @@
 <script lang="ts">
-  import { currentPage, navigateTo } from "$lib/stores/uiStore";
-  import { _ } from "svelte-i18n";
+  import { currentPage, navigateTo } from '$lib/stores/uiStore';
+  import { _ } from 'svelte-i18n';
 
-  let scanRoots = $state("");
-  let scanDepth = $state("5");
-  let ignorePatterns = $state("node_modules, .venv, vendor, .cache, build");
-  let packStorageDir = $state("");
+  let scanRoots = $state('');
+  let scanDepth = $state('5');
+  let ignorePatterns = $state('node_modules, .venv, vendor, .cache, build');
+  let packStorageDir = $state('');
   let isLoading = $state(false);
-  let logLevel = $state("info");
+  let logLevel = $state('info');
   let redactPaths = $state(false);
   let isExporting = $state(false);
 
   async function loadSettings() {
     isLoading = true;
     try {
-      const { invoke } = await import("@tauri-apps/api/core");
+      const { invoke } = await import('@tauri-apps/api/core');
       const settings = await invoke<{
         scan_roots: string[];
         scan_depth: number;
@@ -22,14 +22,14 @@
         pack_storage_dir: string;
         file_watch_enabled: boolean;
         log_level: string;
-      }>("get_settings");
-      scanRoots = settings.scan_roots.join(", ");
+      }>('get_settings');
+      scanRoots = settings.scan_roots.join(', ');
       scanDepth = String(settings.scan_depth);
-      ignorePatterns = settings.ignore_patterns.join(", ");
+      ignorePatterns = settings.ignore_patterns.join(', ');
       packStorageDir = settings.pack_storage_dir;
-      logLevel = settings.log_level || "info";
+      logLevel = settings.log_level || 'info';
     } catch (e) {
-      console.error("Failed to load settings:", e);
+      console.error('Failed to load settings:', e);
     } finally {
       isLoading = false;
     }
@@ -38,19 +38,19 @@
   async function saveSettings() {
     isLoading = true;
     try {
-      const { invoke } = await import("@tauri-apps/api/core");
-      await invoke("update_settings", {
+      const { invoke } = await import('@tauri-apps/api/core');
+      await invoke('update_settings', {
         newSettings: {
           scan_roots: scanRoots.split(/[,\s]+/).filter((p) => p.trim()),
           scan_depth: parseInt(scanDepth, 10) || 5,
           ignore_patterns: ignorePatterns.split(/[,\s]+/).filter((p) => p.trim()),
-          pack_storage_dir: packStorageDir.trim() || "~/.capability-repo-manager/packs",
+          pack_storage_dir: packStorageDir.trim() || '~/.capability-repo-manager/packs',
           file_watch_enabled: false,
           log_level: logLevel,
         },
       });
     } catch (e) {
-      console.error("Failed to save settings:", e);
+      console.error('Failed to save settings:', e);
     } finally {
       isLoading = false;
     }
@@ -59,30 +59,30 @@
   async function setLogLevel(level: string) {
     logLevel = level;
     try {
-      const { invoke } = await import("@tauri-apps/api/core");
-      await invoke("set_log_level", { level });
+      const { invoke } = await import('@tauri-apps/api/core');
+      await invoke('set_log_level', { level });
     } catch (e) {
-      console.error("Failed to set log level:", e);
+      console.error('Failed to set log level:', e);
     }
   }
 
   async function exportDebugBundle() {
-    const { save } = await import("@tauri-apps/plugin-dialog");
+    const { save } = await import('@tauri-apps/plugin-dialog');
     const path = await save({
-      defaultPath: "debug-bundle.zip",
-      filters: [{ name: "ZIP Archive", extensions: ["zip"] }],
+      defaultPath: 'debug-bundle.zip',
+      filters: [{ name: 'ZIP Archive', extensions: ['zip'] }],
     });
     if (!path) return;
 
     isExporting = true;
     try {
-      const { invoke } = await import("@tauri-apps/api/core");
-      await invoke("export_debug_bundle", {
+      const { invoke } = await import('@tauri-apps/api/core');
+      await invoke('export_debug_bundle', {
         destinationPath: path,
         redactPaths,
       });
     } catch (e) {
-      console.error("Failed to export debug bundle:", e);
+      console.error('Failed to export debug bundle:', e);
     } finally {
       isExporting = false;
     }
@@ -90,10 +90,10 @@
 
   async function openLogDir() {
     try {
-      const { open } = await import("@tauri-apps/plugin-shell");
-      await open("~/.capability-repo-manager/logs/");
+      const { open } = await import('@tauri-apps/plugin-shell');
+      await open('~/.capability-repo-manager/logs/');
     } catch (e) {
-      console.error("Failed to open log directory:", e);
+      console.error('Failed to open log directory:', e);
     }
   }
 
@@ -103,13 +103,19 @@
 <div class="settings-page">
   <header class="settings-header">
     <h1>{$_('settings.title')}</h1>
-    <button class="back-btn" onclick={() => navigateTo("dashboard")}>{$_('nav.back')}</button>
+    <button class="back-btn" onclick={() => navigateTo('dashboard')}>{$_('nav.back')}</button>
   </header>
 
   {#if isLoading}
     <p class="loading">{$_('settings.loading')}</p>
   {:else}
-    <form class="settings-form" onsubmit={(e) => { e.preventDefault(); saveSettings(); }}>
+    <form
+      class="settings-form"
+      onsubmit={(e) => {
+        e.preventDefault();
+        saveSettings();
+      }}
+    >
       <div class="form-group">
         <label>{$_('settings.scan_roots')}</label>
         <textarea
@@ -134,7 +140,11 @@
 
       <div class="form-group">
         <label>{$_('settings.pack_storage')}</label>
-        <input type="text" bind:value={packStorageDir} placeholder={$_('settings.pack_storage_placeholder')} />
+        <input
+          type="text"
+          bind:value={packStorageDir}
+          placeholder={$_('settings.pack_storage_placeholder')}
+        />
         <span class="hint">{$_('settings.pack_storage_hint')}</span>
       </div>
 
@@ -142,7 +152,11 @@
 
       <div class="form-group">
         <label>{$_('settings.log_level')}</label>
-        <select class="log-level-select" value={logLevel} onchange={(e) => setLogLevel((e.target as HTMLSelectElement).value)}>
+        <select
+          class="log-level-select"
+          value={logLevel}
+          onchange={(e) => setLogLevel((e.target as HTMLSelectElement).value)}
+        >
           <option value="info">INFO</option>
           <option value="debug">DEBUG</option>
           <option value="trace">TRACE</option>
@@ -229,7 +243,7 @@
     gap: 8px;
     cursor: pointer;
   }
-  .checkbox-label input[type="checkbox"] {
+  .checkbox-label input[type='checkbox'] {
     width: auto;
   }
   .hint {

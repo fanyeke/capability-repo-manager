@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { _ } from "svelte-i18n";
-  import type { MigrationPlan, MigrationPlanItem, MigrationConflict } from "$lib/types";
+  import { _ } from 'svelte-i18n';
+  import type { MigrationPlan, MigrationPlanItem, MigrationConflict } from '$lib/types';
 
   let {
     plan,
@@ -13,12 +13,12 @@
   } = $props();
 
   function truncate(path: string | null): string {
-    if (!path) return "—";
-    return path.length > 40 ? "..." + path.slice(-37) : path;
+    if (!path) return '—';
+    return path.length > 40 ? '...' + path.slice(-37) : path;
   }
 
   function getStrategy(resourceId: string): string {
-    return strategies.find(s => s.resource_id === resourceId)?.action ?? "skip";
+    return strategies.find((s) => s.resource_id === resourceId)?.action ?? 'skip';
   }
 </script>
 
@@ -82,15 +82,14 @@
               {/if}
             </td>
             <td>
-              {#if item.action === "unresolved" || item.action === "overwrite"}
+              {#if item.action === 'unresolved' || item.action === 'overwrite'}
                 <select
                   value={getStrategy(item.resource_id)}
-                  onchange={(e) => onSetStrategy(item.resource_id, (e.target as HTMLSelectElement).value)}
+                  onchange={(e) =>
+                    onSetStrategy(item.resource_id, (e.target as HTMLSelectElement).value)}
                 >
                   <option value="skip">{$_('migration.skip')}</option>
                   <option value="overwrite">{$_('migration.overwrite')}</option>
-                  <option value="rename">{$_('migration.rename')}</option>
-                  <option value="merge">{$_('migration.merge')}</option>
                 </select>
               {:else}
                 <span class="strategy-auto">{item.action}</span>
@@ -144,9 +143,15 @@
     font-size: 0.85rem;
     padding: 4px 0;
   }
-  .conflict-name { font-weight: 600; }
-  .conflict-type { color: #64748b; }
-  .conflict-reason { color: #b45309; }
+  .conflict-name {
+    font-weight: 600;
+  }
+  .conflict-type {
+    color: #64748b;
+  }
+  .conflict-reason {
+    color: #b45309;
+  }
   .plan-table {
     width: 100%;
     border-collapse: collapse;
@@ -170,13 +175,34 @@
     border-radius: 4px;
     font-size: 0.7rem;
   }
-  .action-add { background: #dcfce7; color: #166534; }
-  .action-overwrite { background: #fef3c7; color: #92400e; }
-  .action-skip { background: #f1f5f9; color: #475569; }
-  .action-unresolved { background: #fee2e2; color: #991b1b; }
-  .action-rename { background: #e0e7ff; color: #3730a3; }
-  .action-merge { background: #ede9fe; color: #5b21b6; }
-  .strategy-auto { font-size: 0.8rem; color: #64748b; }
+  .action-add {
+    background: #dcfce7;
+    color: #166534;
+  }
+  .action-overwrite {
+    background: #fef3c7;
+    color: #92400e;
+  }
+  .action-skip {
+    background: #f1f5f9;
+    color: #475569;
+  }
+  .action-unresolved {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+  .action-rename {
+    background: #e0e7ff;
+    color: #3730a3;
+  }
+  .action-merge {
+    background: #ede9fe;
+    color: #5b21b6;
+  }
+  .strategy-auto {
+    font-size: 0.8rem;
+    color: #64748b;
+  }
   select {
     padding: 3px 8px;
     border-radius: 4px;

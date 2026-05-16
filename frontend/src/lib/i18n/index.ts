@@ -1,9 +1,9 @@
-import { register, init, getLocaleFromNavigator, waitLocale } from "svelte-i18n";
+import { register, init, getLocaleFromNavigator, waitLocale } from 'svelte-i18n';
 
-const defaultLocale = "zh";
+const defaultLocale = 'zh';
 
-register("en", () => import("./en.json"));
-register("zh", () => import("./zh.json"));
+register('en', () => import('./en.json'));
+register('zh', () => import('./zh.json'));
 
 let ready = false;
 

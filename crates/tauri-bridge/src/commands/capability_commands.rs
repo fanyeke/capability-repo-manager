@@ -31,25 +31,17 @@ pub struct DependencyStatus {
 }
 
 #[tauri::command]
-pub fn get_capability_inventory(
-    repo_id: String,
-    state: State<AppState>,
-) -> Result<CapabilityInventory, String> {
+pub fn get_capability_inventory(repo_id: String, state: State<AppState>) -> Result<CapabilityInventory, String> {
     let db = state.db.lock().map_err(|e| e.to_string())?;
     let resource_store = ResourceStore::new(&db);
 
-    let resources = resource_store
-        .get_by_repo(&repo_id)
-        .map_err(|e| format!("Database error: {}", e))?;
+    let resources = resource_store.get_by_repo(&repo_id).map_err(|e| format!("Database error: {}", e))?;
 
     Ok(group_resources(resources))
 }
 
 #[tauri::command]
-pub fn get_resource_detail(
-    resource_id: String,
-    state: State<AppState>,
-) -> Result<ResourceDetail, String> {
+pub fn get_resource_detail(resource_id: String, state: State<AppState>) -> Result<ResourceDetail, String> {
     let db = state.db.lock().map_err(|e| e.to_string())?;
     let resource_store = ResourceStore::new(&db);
 
@@ -60,10 +52,7 @@ pub fn get_resource_detail(
 
     let deps = resolve_dependencies(&resource);
 
-    Ok(ResourceDetail {
-        resource,
-        dependencies: deps,
-    })
+    Ok(ResourceDetail { resource, dependencies: deps })
 }
 
 fn resolve_dependencies(_resource: &CapabilityResource) -> Vec<DependencyStatus> {
@@ -94,14 +83,5 @@ fn group_resources(resources: Vec<CapabilityResource>) -> CapabilityInventory {
         }
     }
 
-    CapabilityInventory {
-        skills,
-        mcp,
-        hooks,
-        rules,
-        agents,
-        commands,
-        plugins,
-        settings,
-    }
+    CapabilityInventory { skills, mcp, hooks, rules, agents, commands, plugins, settings }
 }

@@ -10,9 +10,9 @@ use domain::{CapabilityResource, MigrationPlan, MigrationReport};
 /// Resolve `target_dir.join(path)` and verify the result stays within `target_dir`.
 /// Returns an error if the path tries to escape via `..` or symlinks.
 pub fn resolve_safe_path(target_dir: &Path, sub_path: &str) -> Result<std::path::PathBuf, domain::AppError> {
-    let target_canonical = target_dir.canonicalize().map_err(|e| {
-        domain::AppError::Migration(format!("Cannot resolve target directory: {}", e))
-    })?;
+    let target_canonical = target_dir
+        .canonicalize()
+        .map_err(|e| domain::AppError::Migration(format!("Cannot resolve target directory: {}", e)))?;
     let joined = target_dir.join(sub_path);
     let joined_canonical = joined.canonicalize().unwrap_or_else(|_| joined.clone());
     if !joined_canonical.starts_with(&target_canonical) {
@@ -29,11 +29,7 @@ const MIN_DISK_SPACE: u64 = 50 * 1024 * 1024;
 
 /// Check that the filesystem containing `path` has at least `min_bytes` available.
 fn check_disk_space(path: &Path, min_bytes: u64) -> Result<(), domain::AppError> {
-    match std::process::Command::new("df")
-        .arg("-k")
-        .arg(path)
-        .output()
-    {
+    match std::process::Command::new("df").arg("-k").arg(path).output() {
         Ok(output) if output.status.success() => {
             let stdout = String::from_utf8_lossy(&output.stdout);
             let last_line = stdout.lines().last().unwrap_or("");
@@ -126,7 +122,7 @@ pub fn validate_strategies(strategies: &[(String, String)]) -> Result<(), domain
     for (resource_id, action) in strategies {
         if action.parse::<domain::ConflictAction>().is_err() {
             return Err(domain::AppError::Migration(format!(
-                "Invalid conflict action '{}' for resource '{}'. Valid values: skip, overwrite, rename, merge",
+                "Invalid conflict action '{}' for resource '{}'. Valid values: skip, overwrite",
                 action, resource_id
             )));
         }

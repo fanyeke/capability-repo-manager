@@ -1,6 +1,6 @@
-import { writable } from "svelte/store";
+import { writable } from 'svelte/store';
 
-export const currentPage = writable<string>("dashboard");
+export const currentPage = writable<string>('dashboard');
 
 export function navigateTo(page: string) {
   currentPage.set(page);

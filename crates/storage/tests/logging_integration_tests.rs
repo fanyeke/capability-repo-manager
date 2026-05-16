@@ -24,8 +24,7 @@ fn init_git_repo(path: &PathBuf) {
     let tree_id = index.write_tree().unwrap();
     let tree = repo.find_tree(tree_id).unwrap();
     let sig = git2::Signature::now("test", "test@test.com").unwrap();
-    repo.commit(Some("HEAD"), &sig, &sig, "init", &tree, &[])
-        .unwrap();
+    repo.commit(Some("HEAD"), &sig, &sig, "init", &tree, &[]).unwrap();
 }
 
 /// Create Claude Code skill files in the repo.
@@ -204,11 +203,8 @@ fn scan_pipeline_propagates_operation_id() {
     init_git_repo(&repo_b);
 
     // Scan to discover repos
-    let config = ScannerConfig {
-        root_paths: vec![base.to_string_lossy().to_string()],
-        max_depth: 3,
-        ignore_dirs: vec![],
-    };
+    let config =
+        ScannerConfig { root_paths: vec![base.to_string_lossy().to_string()], max_depth: 3, ignore_dirs: vec![] };
     let dir_count = config.root_paths.len();
     let repos = scan_repositories(config).unwrap();
     assert_eq!(repos.len(), 2);
@@ -231,27 +227,17 @@ fn scan_pipeline_propagates_operation_id() {
             Ok(inventory) => {
                 let resource_store = ResourceStore::new(&db);
                 let all_resources = collect_resources(&stored.id, &inventory);
-                resource_store
-                    .replace_for_repo(&stored.id, &all_resources)
-                    .unwrap();
-                repo_store
-                    .update_index_status(&stored.id, "fresh", None)
-                    .unwrap();
+                resource_store.replace_for_repo(&stored.id, &all_resources).unwrap();
+                repo_store.update_index_status(&stored.id, "fresh", None).unwrap();
             }
             Err(e) => {
-                repo_store
-                    .update_index_status(&stored.id, "parse_failed", Some(&e.to_string()))
-                    .unwrap();
+                repo_store.update_index_status(&stored.id, "parse_failed", Some(&e.to_string())).unwrap();
             }
         }
     }
 
     // Record the operation event (same pattern as repo_commands.rs)
-    let summary = format!(
-        "Scanned {} directories, found {} repos",
-        dir_count,
-        repos.len(),
-    );
+    let summary = format!("Scanned {} directories, found {} repos", dir_count, repos.len(),);
     let recorded = event_store
         .insert_event(NewOperationEvent {
             operation_id: ctx.operation_id.clone(),

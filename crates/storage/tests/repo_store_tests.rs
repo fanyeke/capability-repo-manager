@@ -156,7 +156,8 @@ fn test_upsert_by_path_updates_existing() {
     store.insert(&repo).unwrap();
 
     // Now upsert with same canonical_path but different name
-    let mut updated = Repository::new("different-id".to_string(), "updated-name".to_string(), "/tmp/existing".to_string());
+    let mut updated =
+        Repository::new("different-id".to_string(), "updated-name".to_string(), "/tmp/existing".to_string());
     updated.canonical_path = "/tmp/existing".to_string();
     updated.current_branch = Some("develop".to_string());
 
@@ -188,14 +189,9 @@ fn test_upsert_by_path_preserves_first_indexed_at() {
 
     let result = store.upsert_by_path(&updated).unwrap();
     assert_eq!(result.id, "preserve-id", "should reuse id");
-    assert_eq!(
-        result.first_indexed_at,
-        original_first_indexed,
-        "should preserve original first_indexed_at"
-    );
+    assert_eq!(result.first_indexed_at, original_first_indexed, "should preserve original first_indexed_at");
     assert_ne!(
-        result.last_indexed_at,
-        result.first_indexed_at,
+        result.last_indexed_at, result.first_indexed_at,
         "last_indexed_at should differ from first_indexed_at after re-scan"
     );
 }
@@ -291,21 +287,19 @@ fn test_delete_cascade_removes_associated_resources() {
 
     // Insert resources for this repo
     let resource_store = storage::resource_store::ResourceStore::new(&db);
-    let resources = vec![
-        domain::CapabilityResource {
-            id: "cr1".to_string(),
-            repo_id: Some("cascade-1".to_string()),
-            pack_id: None,
-            r#type: "skill".to_string(),
-            name: "cascade-skill".to_string(),
-            source_path: None,
-            scope: "project".to_string(),
-            tracked_by_git: false,
-            content_hash: None,
-            metadata_json: None,
-            error_message: None,
-        },
-    ];
+    let resources = vec![domain::CapabilityResource {
+        id: "cr1".to_string(),
+        repo_id: Some("cascade-1".to_string()),
+        pack_id: None,
+        r#type: "skill".to_string(),
+        name: "cascade-skill".to_string(),
+        source_path: None,
+        scope: "project".to_string(),
+        tracked_by_git: false,
+        content_hash: None,
+        metadata_json: None,
+        error_message: None,
+    }];
     resource_store.insert_batch(&resources).unwrap();
 
     // Verify resources exist
@@ -333,34 +327,36 @@ fn test_delete_cascade_does_not_affect_other_repos() {
     store.insert(&make_repo("r-del", "delete", "/tmp/delete")).unwrap();
 
     let resource_store = storage::resource_store::ResourceStore::new(&db);
-    resource_store.insert_batch(&vec![
-        domain::CapabilityResource {
-            id: "cr-keep".to_string(),
-            repo_id: Some("r-keep".to_string()),
-            pack_id: None,
-            r#type: "skill".to_string(),
-            name: "keep-skill".to_string(),
-            source_path: None,
-            scope: "project".to_string(),
-            tracked_by_git: false,
-            content_hash: None,
-            metadata_json: None,
-            error_message: None,
-        },
-        domain::CapabilityResource {
-            id: "cr-del".to_string(),
-            repo_id: Some("r-del".to_string()),
-            pack_id: None,
-            r#type: "skill".to_string(),
-            name: "del-skill".to_string(),
-            source_path: None,
-            scope: "project".to_string(),
-            tracked_by_git: false,
-            content_hash: None,
-            metadata_json: None,
-            error_message: None,
-        },
-    ]).unwrap();
+    resource_store
+        .insert_batch(&vec![
+            domain::CapabilityResource {
+                id: "cr-keep".to_string(),
+                repo_id: Some("r-keep".to_string()),
+                pack_id: None,
+                r#type: "skill".to_string(),
+                name: "keep-skill".to_string(),
+                source_path: None,
+                scope: "project".to_string(),
+                tracked_by_git: false,
+                content_hash: None,
+                metadata_json: None,
+                error_message: None,
+            },
+            domain::CapabilityResource {
+                id: "cr-del".to_string(),
+                repo_id: Some("r-del".to_string()),
+                pack_id: None,
+                r#type: "skill".to_string(),
+                name: "del-skill".to_string(),
+                source_path: None,
+                scope: "project".to_string(),
+                tracked_by_git: false,
+                content_hash: None,
+                metadata_json: None,
+                error_message: None,
+            },
+        ])
+        .unwrap();
 
     store.delete_cascade("r-del").unwrap();
 

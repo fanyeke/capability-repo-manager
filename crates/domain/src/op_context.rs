@@ -95,27 +95,19 @@ mod tests {
 
     #[test]
     fn test_validate_fails_on_empty_operation_id() {
-        let ctx = OperationContext {
-            operation_id: "".to_string(),
-            ..OperationContext::new("scan")
-        };
+        let ctx = OperationContext { operation_id: "".to_string(), ..OperationContext::new("scan") };
         assert!(ctx.validate().is_err());
     }
 
     #[test]
     fn test_validate_fails_on_empty_operation_type() {
-        let ctx = OperationContext {
-            operation_type: "".to_string(),
-            ..OperationContext::new("")
-        };
+        let ctx = OperationContext { operation_type: "".to_string(), ..OperationContext::new("") };
         assert!(ctx.validate().is_err());
     }
 
     #[test]
     fn test_serialization_roundtrip() {
-        let ctx = OperationContext::new("scan_repositories")
-            .with_repo_id("repo-123")
-            .with_pack_id("pack-456");
+        let ctx = OperationContext::new("scan_repositories").with_repo_id("repo-123").with_pack_id("pack-456");
         let json = serde_json::to_string(&ctx).unwrap();
         let deserialized: OperationContext = serde_json::from_str(&json).unwrap();
         assert_eq!(deserialized.operation_type, "scan_repositories");

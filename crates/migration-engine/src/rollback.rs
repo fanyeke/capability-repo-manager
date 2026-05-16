@@ -5,14 +5,10 @@ use uuid::Uuid;
 
 pub fn create_snapshot(target_dir: &Path) -> Result<String, domain::AppError> {
     let snapshot_name = format!("snapshot-{}", Uuid::new_v4());
-    let snapshot_dir = target_dir
-        .parent()
-        .unwrap_or_else(|| Path::new("/tmp"))
-        .join(&snapshot_name);
+    let snapshot_dir = target_dir.parent().unwrap_or_else(|| Path::new("/tmp")).join(&snapshot_name);
 
-    copy_dir_recursive(target_dir, &snapshot_dir).map_err(|e| {
-        domain::AppError::Migration(format!("Failed to create snapshot: {}", e))
-    })?;
+    copy_dir_recursive(target_dir, &snapshot_dir)
+        .map_err(|e| domain::AppError::Migration(format!("Failed to create snapshot: {}", e)))?;
 
     Ok(snapshot_dir.to_string_lossy().to_string())
 }
@@ -40,9 +36,7 @@ pub fn restore_from_scoped_snapshot(snapshot_dir: &Path, target_dir: &Path) -> R
             // Restore from backup
             let backup = PathBuf::from(&item.backup_path);
             if !backup.exists() {
-                return Err(domain::AppError::Migration(
-                    format!("Backup file not found: {}", item.backup_path)
-                ));
+                return Err(domain::AppError::Migration(format!("Backup file not found: {}", item.backup_path)));
             }
 
             if let Some(parent) = target_path.parent() {
@@ -66,23 +60,18 @@ pub fn rollback_to_snapshot(snapshot_path: &str, target_dir: &Path) -> Result<()
     let snapshot = PathBuf::from(snapshot_path);
 
     if !snapshot.exists() {
-        return Err(domain::AppError::Migration(format!(
-            "Snapshot not found: {}",
-            snapshot_path
-        )));
+        return Err(domain::AppError::Migration(format!("Snapshot not found: {}", snapshot_path)));
     }
 
     // Remove current target contents (but not the directory itself)
     if target_dir.exists() {
-        remove_dir_contents(target_dir).map_err(|e| {
-            domain::AppError::Migration(format!("Failed to clean target directory: {}", e))
-        })?;
+        remove_dir_contents(target_dir)
+            .map_err(|e| domain::AppError::Migration(format!("Failed to clean target directory: {}", e)))?;
     }
 
     // Restore from snapshot
-    copy_dir_recursive(&snapshot, target_dir).map_err(|e| {
-        domain::AppError::Migration(format!("Failed to restore from snapshot: {}", e))
-    })?;
+    copy_dir_recursive(&snapshot, target_dir)
+        .map_err(|e| domain::AppError::Migration(format!("Failed to restore from snapshot: {}", e)))?;
 
     // Clean up snapshot after successful rollback
     let _ = fs::remove_dir_all(&snapshot);
@@ -94,28 +83,20 @@ pub fn verify_snapshot(snapshot_path: &str) -> Result<(), domain::AppError> {
     let snapshot = PathBuf::from(snapshot_path);
 
     if !snapshot.exists() {
-        return Err(domain::AppError::Migration(
-            "Snapshot directory does not exist".to_string(),
-        ));
+        return Err(domain::AppError::Migration("Snapshot directory does not exist".to_string()));
     }
 
     if !snapshot.is_dir() {
-        return Err(domain::AppError::Migration(
-            "Snapshot path is not a directory".to_string(),
-        ));
+        return Err(domain::AppError::Migration("Snapshot path is not a directory".to_string()));
     }
 
     // Check that snapshot has at least some content
     let entries: Vec<_> = fs::read_dir(&snapshot)
-        .map_err(|e| {
-            domain::AppError::Migration(format!("Cannot read snapshot directory: {}", e))
-        })?
+        .map_err(|e| domain::AppError::Migration(format!("Cannot read snapshot directory: {}", e)))?
         .collect();
 
     if entries.is_empty() {
-        return Err(domain::AppError::Migration(
-            "Snapshot directory is empty".to_string(),
-        ));
+        return Err(domain::AppError::Migration("Snapshot directory is empty".to_string()));
     }
 
     Ok(())

@@ -13,11 +13,7 @@ fn skill_structure_complete_skill() {
     fs::write(skills_dir.join("SKILL.md"), "# My Skill\nDescription.").unwrap();
 
     let issues = checks::check_skill_structure(dir.path());
-    assert!(
-        issues.is_empty(),
-        "Complete skill should produce no issues, got: {:?}",
-        issues
-    );
+    assert!(issues.is_empty(), "Complete skill should produce no issues, got: {:?}", issues);
 }
 
 #[test]
@@ -151,9 +147,7 @@ fn hook_target_no_hooks() {
 
 #[test]
 fn env_placeholder_all_resolved() {
-    let configs = vec![
-        ("settings.json".to_string(), r#"{"hooks": {}, "model": "sonnet"}"#.to_string()),
-    ];
+    let configs = vec![("settings.json".to_string(), r#"{"hooks": {}, "model": "sonnet"}"#.to_string())];
 
     let issues = checks::check_env_placeholders(&configs);
     assert!(issues.is_empty());

@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { scanRepositories, loadRepos, repos } from "$lib/stores/repoStore";
-  import { currentPage } from "$lib/stores/uiStore";
-  import { _ } from "svelte-i18n";
+  import { scanRepositories, loadRepos, repos } from '$lib/stores/repoStore';
+  import { currentPage } from '$lib/stores/uiStore';
+  import { _ } from 'svelte-i18n';
 
-  let scanPaths = $state("");
+  let scanPaths = $state('');
   let isScanning = $state(false);
   let showSkip = $state(false);
 
@@ -13,16 +13,23 @@
     isScanning = true;
     try {
       await scanRepositories(paths);
-      currentPage.set("dashboard");
+      // Only persist and navigate on success
+      const { invoke } = await import('@tauri-apps/api/core');
+      const currentSettings = await invoke<{ scan_roots: string[] }>('get_settings');
+      await invoke('update_settings', {
+        newSettings: { ...currentSettings, scan_roots: paths },
+      });
+      currentPage.set('dashboard');
     } catch (e) {
-      console.error("Scan failed:", e);
+      console.error('Scan failed:', e);
+      // Stay on this page — user can retry
     } finally {
       isScanning = false;
     }
   }
 
   function handleSkip() {
-    currentPage.set("dashboard");
+    currentPage.set('dashboard');
   }
 </script>
 
@@ -38,10 +45,7 @@
       {$_('guided_setup.scan_desc')}
     </p>
 
-    <textarea
-      bind:value={scanPaths}
-      placeholder={$_('guided_setup.scan_placeholder')}
-      rows={3}
+    <textarea bind:value={scanPaths} placeholder={$_('guided_setup.scan_placeholder')} rows={3}
     ></textarea>
 
     <div class="setup-actions">
@@ -49,7 +53,13 @@
         {isScanning ? $_('guided_setup.scanning') : $_('guided_setup.scan')}
       </button>
       {#if isScanning}
-        <button class="skip-btn" onclick={() => { isScanning = false; currentPage.set("dashboard"); }}>{$_('guided_setup.cancel')}</button>
+        <button
+          class="skip-btn"
+          onclick={() => {
+            isScanning = false;
+            currentPage.set('dashboard');
+          }}>{$_('guided_setup.cancel')}</button
+        >
       {:else if showSkip || !scanPaths.trim()}
         <button class="skip-btn" onclick={handleSkip}>{$_('guided_setup.skip')}</button>
       {/if}

@@ -103,10 +103,9 @@ impl<'a> ResourceStore<'a> {
         let conn = self.db.conn();
         conn.execute_batch("BEGIN")?;
 
-        if let Err(e) = conn.execute(
-            "DELETE FROM capability_resources WHERE repo_id = ?1 AND pack_id IS NULL",
-            params![repo_id],
-        ) {
+        if let Err(e) =
+            conn.execute("DELETE FROM capability_resources WHERE repo_id = ?1 AND pack_id IS NULL", params![repo_id])
+        {
             let _ = conn.execute_batch("ROLLBACK");
             return Err(e);
         }
@@ -178,10 +177,7 @@ impl<'a> ResourceStore<'a> {
         let conn = self.db.conn();
         conn.execute_batch("BEGIN")?;
 
-        if let Err(e) = conn.execute(
-            "DELETE FROM capability_resources WHERE pack_id = ?1",
-            params![pack_id],
-        ) {
+        if let Err(e) = conn.execute("DELETE FROM capability_resources WHERE pack_id = ?1", params![pack_id]) {
             let _ = conn.execute_batch("ROLLBACK");
             return Err(e);
         }
@@ -216,18 +212,12 @@ impl<'a> ResourceStore<'a> {
 
     /// Delete all resources associated with a pack.
     pub fn delete_by_pack(&self, pack_id: &str) -> Result<()> {
-        self.db.conn().execute(
-            "DELETE FROM capability_resources WHERE pack_id = ?1",
-            params![pack_id],
-        )?;
+        self.db.conn().execute("DELETE FROM capability_resources WHERE pack_id = ?1", params![pack_id])?;
         Ok(())
     }
 
     pub fn delete_by_repo(&self, repo_id: &str) -> Result<()> {
-        self.db.conn().execute(
-            "DELETE FROM capability_resources WHERE repo_id = ?1",
-            params![repo_id],
-        )?;
+        self.db.conn().execute("DELETE FROM capability_resources WHERE repo_id = ?1", params![repo_id])?;
         Ok(())
     }
 }

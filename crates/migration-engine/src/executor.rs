@@ -1,6 +1,6 @@
 use domain::{
-    CapabilityResource, MigrationPlan, MigrationPlanItem, MigrationReport, MigrationReportItem,
-    MigrationReportSummary, SnapshotItem,
+    CapabilityResource, MigrationPlan, MigrationPlanItem, MigrationReport, MigrationReportItem, MigrationReportSummary,
+    SnapshotItem,
 };
 use std::fs;
 use std::path::Path;
@@ -81,18 +81,13 @@ pub fn execute_plan(
     target_dir: &Path,
 ) -> Result<MigrationReport, domain::AppError> {
     let mut report_items = Vec::new();
-    let mut summary = MigrationReportSummary {
-        added: 0,
-        overwritten: 0,
-        skipped: 0,
-        failed: 0,
-    };
+    let mut summary = MigrationReportSummary { added: 0, overwritten: 0, skipped: 0, failed: 0 };
 
     for item in &plan.items {
         let pack_res = pack_resources.iter().find(|r| r.id == item.resource_id);
 
         let result = match item.action.as_str() {
-            "add" | "overwrite" | "rename" => {
+            "add" | "overwrite" => {
                 let src_path = item.source_path.as_deref().unwrap_or("");
                 let dst_path = item.target_path.as_deref().unwrap_or(src_path);
 
@@ -102,12 +97,12 @@ pub fn execute_plan(
                 copy_resource(&full_src, &full_dst)
             }
             "skip" => Ok(ExecResult::Skipped),
-            _ => Ok(ExecResult::Skipped),
+            other => Err(format!("Unknown action '{}' for resource '{}'", other, item.resource_id)),
         };
 
         match result {
             Ok(ExecResult::Copied) => match item.action.as_str() {
-                "add" | "rename" => {
+                "add" => {
                     summary.added += 1;
                     report_items.push(MigrationReportItem {
                         resource_name: pack_res.map(|r| r.name.clone()).unwrap_or_default(),
@@ -164,11 +159,7 @@ pub fn execute_plan(
         "failed"
     };
 
-    Ok(MigrationReport {
-        status: status.to_string(),
-        items: report_items,
-        summary,
-    })
+    Ok(MigrationReport { status: status.to_string(), items: report_items, summary })
 }
 
 enum ExecResult {
@@ -182,15 +173,12 @@ fn copy_resource(src: &Path, dst: &Path) -> Result<ExecResult, String> {
     }
 
     if src.is_dir() {
-        copy_dir_recursive(src, dst)
-            .map_err(|e| format!("Failed to copy directory {}: {}", src.display(), e))?;
+        copy_dir_recursive(src, dst).map_err(|e| format!("Failed to copy directory {}: {}", src.display(), e))?;
     } else {
         if let Some(parent) = dst.parent() {
-            fs::create_dir_all(parent)
-                .map_err(|e| format!("Failed to create parent dir: {}", e))?;
+            fs::create_dir_all(parent).map_err(|e| format!("Failed to create parent dir: {}", e))?;
         }
-        fs::copy(src, dst)
-            .map_err(|e| format!("Failed to copy file {}: {}", src.display(), e))?;
+        fs::copy(src, dst).map_err(|e| format!("Failed to copy file {}: {}", src.display(), e))?;
     }
 
     Ok(ExecResult::Copied)

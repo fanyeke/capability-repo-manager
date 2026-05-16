@@ -13,10 +13,7 @@ fn init_app_state() -> tauri_bridge::state::AppState {
         let _ = std::fs::create_dir_all(parent);
     }
 
-    tauri_bridge::state::AppState::new(
-        db_path.to_str().unwrap_or("data.db"),
-    )
-    .expect("Failed to initialize app state")
+    tauri_bridge::state::AppState::new(db_path.to_str().unwrap_or("data.db")).expect("Failed to initialize app state")
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]

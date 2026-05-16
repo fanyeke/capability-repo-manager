@@ -20,17 +20,11 @@ pub struct ValidationResult {
 
 impl ValidationResult {
     pub fn success() -> Self {
-        ValidationResult {
-            valid: true,
-            errors: vec![],
-        }
+        ValidationResult { valid: true, errors: vec![] }
     }
 
     pub fn failure(errors: Vec<ValidationError>) -> Self {
-        ValidationResult {
-            valid: false,
-            errors,
-        }
+        ValidationResult { valid: false, errors }
     }
 }
 
@@ -41,18 +35,12 @@ pub fn validate_schema(manifest: &Manifest) -> ValidationResult {
     if manifest.schema_version != "1.0" {
         errors.push(ValidationError {
             resource_ref: None,
-            message: format!(
-                "Invalid schemaVersion: '{}'. Only '1.0' is supported.",
-                manifest.schema_version
-            ),
+            message: format!("Invalid schemaVersion: '{}'. Only '1.0' is supported.", manifest.schema_version),
         });
     }
 
     if manifest.name.is_empty() {
-        errors.push(ValidationError {
-            resource_ref: None,
-            message: "Manifest name is empty".to_string(),
-        });
+        errors.push(ValidationError { resource_ref: None, message: "Manifest name is empty".to_string() });
     }
     if manifest.name.len() > 128 {
         errors.push(ValidationError {
@@ -68,10 +56,7 @@ pub fn validate_schema(manifest: &Manifest) -> ValidationResult {
     if !is_valid_semver(&manifest.version) {
         errors.push(ValidationError {
             resource_ref: None,
-            message: format!(
-                "Invalid version format: '{}'. Expected MAJOR.MINOR.PATCH[-PRERELEASE]",
-                manifest.version
-            ),
+            message: format!("Invalid version format: '{}'. Expected MAJOR.MINOR.PATCH[-PRERELEASE]", manifest.version),
         });
     }
 
@@ -79,10 +64,7 @@ pub fn validate_schema(manifest: &Manifest) -> ValidationResult {
         if desc.len() > 1024 {
             errors.push(ValidationError {
                 resource_ref: None,
-                message: format!(
-                    "Description exceeds 1024 characters ({} chars)",
-                    desc.len()
-                ),
+                message: format!("Description exceeds 1024 characters ({} chars)", desc.len()),
             });
         }
     }
@@ -91,10 +73,7 @@ pub fn validate_schema(manifest: &Manifest) -> ValidationResult {
         if !["project", "blueprint", "baseline"].contains(&pack_type.as_str()) {
             errors.push(ValidationError {
                 resource_ref: None,
-                message: format!(
-                    "Invalid packType: '{}'. Must be one of: project, blueprint, baseline",
-                    pack_type
-                ),
+                message: format!("Invalid packType: '{}'. Must be one of: project, blueprint, baseline", pack_type),
             });
         }
     }
@@ -110,39 +89,24 @@ pub fn validate_schema(manifest: &Manifest) -> ValidationResult {
         if resource.resource_type.is_empty() {
             errors.push(ValidationError {
                 resource_ref: Some(resource.name.clone()),
-                message: format!(
-                    "Resource '{}': type is empty",
-                    resource.name
-                ),
+                message: format!("Resource '{}': type is empty", resource.name),
             });
         }
         if resource.name.is_empty() {
-            errors.push(ValidationError {
-                resource_ref: None,
-                message: "Resource has empty name".to_string(),
-            });
+            errors.push(ValidationError { resource_ref: None, message: "Resource has empty name".to_string() });
         }
         if resource.source.is_empty() {
             errors.push(ValidationError {
                 resource_ref: Some(resource.name.clone()),
-                message: format!(
-                    "Resource '{}': source path is empty",
-                    resource.name
-                ),
+                message: format!("Resource '{}': source path is empty", resource.name),
             });
         }
 
-        let valid_types = [
-            "skill", "mcp", "hook", "rule", "agent", "command", "plugin", "settings",
-            "contextDoc",
-        ];
+        let valid_types = ["skill", "mcp", "hook", "rule", "agent", "command", "plugin", "settings", "contextDoc"];
         if !valid_types.contains(&resource.resource_type.as_str()) {
             errors.push(ValidationError {
                 resource_ref: Some(resource.name.clone()),
-                message: format!(
-                    "Resource '{}': invalid type '{}'",
-                    resource.name, resource.resource_type
-                ),
+                message: format!("Resource '{}': invalid type '{}'", resource.name, resource.resource_type),
             });
         }
     }
@@ -194,11 +158,7 @@ pub fn validate_file_existence(pack_dir: &Path, manifest: &Manifest) -> Validati
         if !file_path.exists() {
             errors.push(ValidationError {
                 resource_ref: Some(resource.name.clone()),
-                message: format!(
-                    "Resource '{}': file not found at '{}'",
-                    resource.name,
-                    file_path.display()
-                ),
+                message: format!("Resource '{}': file not found at '{}'", resource.name, file_path.display()),
             });
         }
     }
@@ -236,10 +196,7 @@ pub fn validate_hash_integrity(pack_dir: &Path, manifest: &Manifest) -> Validati
                 Err(e) => {
                     errors.push(ValidationError {
                         resource_ref: Some(resource.name.clone()),
-                        message: format!(
-                            "Resource '{}': failed to compute hash: {}",
-                            resource.name, e
-                        ),
+                        message: format!("Resource '{}': failed to compute hash: {}", resource.name, e),
                     });
                 }
             }
@@ -280,10 +237,7 @@ pub fn validate_env_placeholders(pack_dir: &Path, manifest: &Manifest) -> Valida
             Err(e) => {
                 errors.push(ValidationError {
                     resource_ref: Some(resource.name.clone()),
-                    message: format!(
-                        "Resource '{}': failed to read for env check: {}",
-                        resource.name, e
-                    ),
+                    message: format!("Resource '{}': failed to read for env check: {}", resource.name, e),
                 });
             }
         }
@@ -320,11 +274,8 @@ pub fn validate_pack(pack_dir: &Path, manifest: &Manifest) -> ValidationResult {
 }
 
 fn is_valid_semver(version: &str) -> bool {
-    let (base, pre) = if let Some(idx) = version.find('-') {
-        (&version[..idx], Some(&version[idx + 1..]))
-    } else {
-        (version, None)
-    };
+    let (base, pre) =
+        if let Some(idx) = version.find('-') { (&version[..idx], Some(&version[idx + 1..])) } else { (version, None) };
 
     let parts: Vec<&str> = base.split('.').collect();
     if parts.len() != 3 {
@@ -340,10 +291,7 @@ fn is_valid_semver(version: &str) -> bool {
         if pre_str.is_empty() {
             return false;
         }
-        if !pre_str
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '.')
-        {
+        if !pre_str.chars().all(|c| c.is_ascii_alphanumeric() || c == '.') {
             return false;
         }
     }
@@ -383,11 +331,7 @@ mod tests {
 
     #[test]
     fn test_validate_schema_valid_manifest() {
-        let m = make_manifest(
-            "test",
-            "1.0.0",
-            vec![make_resource("skill", "my-skill", "skills/my-skill/SKILL.md")],
-        );
+        let m = make_manifest("test", "1.0.0", vec![make_resource("skill", "my-skill", "skills/my-skill/SKILL.md")]);
         let result = validate_schema(&m);
         assert!(result.valid);
         assert!(result.errors.is_empty());
@@ -395,11 +339,7 @@ mod tests {
 
     #[test]
     fn test_validate_schema_missing_name_fails() {
-        let mut m = make_manifest(
-            "test",
-            "1.0.0",
-            vec![make_resource("skill", "my-skill", "path.md")],
-        );
+        let mut m = make_manifest("test", "1.0.0", vec![make_resource("skill", "my-skill", "path.md")]);
         // Hack to test: we bypass build() validation to test schema validation directly
         m.name = String::new();
         let result = validate_schema(&m);
@@ -409,18 +349,11 @@ mod tests {
 
     #[test]
     fn test_validate_schema_invalid_version_fails() {
-        let mut m = make_manifest(
-            "test",
-            "1.0.0",
-            vec![make_resource("skill", "my-skill", "path.md")],
-        );
+        let mut m = make_manifest("test", "1.0.0", vec![make_resource("skill", "my-skill", "path.md")]);
         m.version = "bad-version".to_string();
         let result = validate_schema(&m);
         assert!(!result.valid);
-        assert!(result
-            .errors
-            .iter()
-            .any(|e| e.message.contains("Invalid version")));
+        assert!(result.errors.iter().any(|e| e.message.contains("Invalid version")));
     }
 
     #[test]
@@ -438,42 +371,25 @@ mod tests {
         };
         let result = validate_schema(&m);
         assert!(!result.valid);
-        assert!(result
-            .errors
-            .iter()
-            .any(|e| e.message.contains("no resources")));
+        assert!(result.errors.iter().any(|e| e.message.contains("no resources")));
     }
 
     #[test]
     fn test_validate_schema_invalid_resource_type() {
-        let mut m = make_manifest(
-            "test",
-            "1.0.0",
-            vec![make_resource("invalid_type", "rsrc", "path.md")],
-        );
+        let mut m = make_manifest("test", "1.0.0", vec![make_resource("invalid_type", "rsrc", "path.md")]);
         // Fix the resource to have invalid type directly
         m.resources[0].resource_type = "invalid_type".to_string();
         let result = validate_schema(&m);
         assert!(!result.valid);
-        assert!(result
-            .errors
-            .iter()
-            .any(|e| e.message.contains("invalid type")));
+        assert!(result.errors.iter().any(|e| e.message.contains("invalid type")));
     }
 
     #[test]
     fn test_validate_schema_invalid_pack_type() {
-        let mut m = make_manifest(
-            "test",
-            "1.0.0",
-            vec![make_resource("skill", "rsrc", "path.md")],
-        );
+        let mut m = make_manifest("test", "1.0.0", vec![make_resource("skill", "rsrc", "path.md")]);
         m.pack_type = Some("invalid".to_string());
         let result = validate_schema(&m);
         assert!(!result.valid);
-        assert!(result
-            .errors
-            .iter()
-            .any(|e| e.message.contains("Invalid packType")));
+        assert!(result.errors.iter().any(|e| e.message.contains("Invalid packType")));
     }
 }

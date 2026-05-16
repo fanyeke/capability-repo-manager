@@ -21,11 +21,7 @@ pub const MIN_DISK_SPACE: u64 = 50 * 1024 * 1024;
 /// cannot be performed (e.g., platform not supported), it returns Ok(()) since
 /// the operation can proceed with a best-effort basis.
 pub fn check_disk_space(path: &Path, min_bytes: u64) -> Result<(), String> {
-    match std::process::Command::new("df")
-        .arg("-k")
-        .arg(path)
-        .output()
-    {
+    match std::process::Command::new("df").arg("-k").arg(path).output() {
         Ok(output) if output.status.success() => {
             let stdout = String::from_utf8_lossy(&output.stdout);
             let last_line = stdout.lines().last().unwrap_or("");
@@ -80,10 +76,7 @@ pub struct ExportResult {
 /// 4. Pack files into directory structure
 /// 5. Validate the resulting pack
 /// 6. Add to pack library
-pub fn export_pack(
-    request: ExportRequest,
-    library: &mut PackStore,
-) -> Result<ExportResult, String> {
+pub fn export_pack(request: ExportRequest, library: &mut PackStore) -> Result<ExportResult, String> {
     let mut warnings: Vec<String> = Vec::new();
 
     // Step 0: Check available disk space
@@ -101,10 +94,7 @@ pub fn export_pack(
     let mut seen_env_vars: std::collections::HashSet<String> = std::collections::HashSet::new();
 
     for resource in &request.selected_resources {
-        let source_rel = resource
-            .source_path
-            .clone()
-            .unwrap_or_else(|| format!("{}/resource", resource.name));
+        let source_rel = resource.source_path.clone().unwrap_or_else(|| format!("{}/resource", resource.name));
 
         // Compute content hash
         let source_abs = request.source_repo_path.join(&source_rel);
@@ -112,18 +102,12 @@ pub fn export_pack(
             match packer::compute_file_hash(&source_abs) {
                 Ok(h) => Some(h),
                 Err(e) => {
-                    warnings.push(format!(
-                        "Warning: could not hash {}: {}",
-                        resource.name, e
-                    ));
+                    warnings.push(format!("Warning: could not hash {}: {}", resource.name, e));
                     None
                 }
             }
         } else {
-            warnings.push(format!(
-                "Warning: resource file not found: {}",
-                source_abs.display()
-            ));
+            warnings.push(format!("Warning: resource file not found: {}", source_abs.display()));
             None
         };
 
@@ -132,11 +116,7 @@ pub fn export_pack(
             if let Ok(content) = std::fs::read_to_string(&source_abs) {
                 for var in detect_env_placeholders(&content) {
                     if seen_env_vars.insert(var.clone()) {
-                        env_placeholders.push(EnvPlaceholder {
-                            name: var,
-                            required: None,
-                            description: None,
-                        });
+                        env_placeholders.push(EnvPlaceholder { name: var, required: None, description: None });
                     }
                 }
             }
@@ -148,18 +128,12 @@ pub fn export_pack(
         manifest_resources.push(ManifestResource {
             resource_type: resource.r#type.clone(),
             name: resource.name.clone(),
-            source: relative_dest
-                .to_str()
-                .unwrap_or(&source_rel)
-                .to_string(),
+            source: relative_dest.to_str().unwrap_or(&source_rel).to_string(),
             hash,
             dependencies: None,
         });
 
-        pack_inputs.push(PackResourceInput {
-            source_path: source_abs,
-            relative_dest,
-        });
+        pack_inputs.push(PackResourceInput { source_path: source_abs, relative_dest });
     }
 
     // Step 3: Build manifest
@@ -196,11 +170,7 @@ pub fn export_pack(
         version: request.version,
         description: request.description,
         pack_type: request.pack_type,
-        manifest_path: pack_result
-            .pack_dir
-            .join("pack.manifest.json")
-            .display()
-            .to_string(),
+        manifest_path: pack_result.pack_dir.join("pack.manifest.json").display().to_string(),
         source_repo_id: Some(request.source_repo_id),
         source_commit: request.source_commit,
         created_at: now,
@@ -209,47 +179,25 @@ pub fn export_pack(
 
     library.insert(capability_pack.clone())?;
 
-    Ok(ExportResult {
-        pack: capability_pack,
-        manifest,
-        pack_dir: pack_result.pack_dir,
-        warnings,
-    })
+    Ok(ExportResult { pack: capability_pack, manifest, pack_dir: pack_result.pack_dir, warnings })
 }
 
 /// Determine the pack-relative destination path for a resource based on its type.
 fn determine_pack_path(resource_type: &str, name: &str, source_path: &str) -> PathBuf {
     match resource_type {
-        "skill" => PathBuf::from("resources").join("skills").join(name).join(
-            Path::new(source_path)
-                .file_name()
-                .and_then(|f| f.to_str())
-                .unwrap_or("SKILL.md"),
-        ),
-        "mcp" => PathBuf::from("mcp").join(
-            Path::new(source_path)
-                .file_name()
-                .and_then(|f| f.to_str())
-                .unwrap_or("mcp.json"),
-        ),
-        "hook" | "rule" | "agent" | "command" => PathBuf::from("resources").join(
-            Path::new(source_path)
-                .file_name()
-                .and_then(|f| f.to_str())
-                .unwrap_or("file.md"),
-        ),
-        "settings" => PathBuf::from("settings").join(
-            Path::new(source_path)
-                .file_name()
-                .and_then(|f| f.to_str())
-                .unwrap_or("settings.json"),
-        ),
-        _ => PathBuf::from("resources").join(
-            Path::new(source_path)
-                .file_name()
-                .and_then(|f| f.to_str())
-                .unwrap_or("resource"),
-        ),
+        "skill" => PathBuf::from("resources")
+            .join("skills")
+            .join(name)
+            .join(Path::new(source_path).file_name().and_then(|f| f.to_str()).unwrap_or("SKILL.md")),
+        "mcp" => {
+            PathBuf::from("mcp").join(Path::new(source_path).file_name().and_then(|f| f.to_str()).unwrap_or("mcp.json"))
+        }
+        "hook" | "rule" | "agent" | "command" => PathBuf::from("resources")
+            .join(Path::new(source_path).file_name().and_then(|f| f.to_str()).unwrap_or("file.md")),
+        "settings" => PathBuf::from("settings")
+            .join(Path::new(source_path).file_name().and_then(|f| f.to_str()).unwrap_or("settings.json")),
+        _ => PathBuf::from("resources")
+            .join(Path::new(source_path).file_name().and_then(|f| f.to_str()).unwrap_or("resource")),
     }
 }
 
@@ -315,10 +263,7 @@ mod tests {
         assert_eq!(result.pack.version, "1.0.0");
         assert!(result.pack_dir.exists());
         assert!(result.pack_dir.join("pack.manifest.json").exists());
-        assert!(result
-            .pack_dir
-            .join("resources/skills/my-skill/SKILL.md")
-            .exists());
+        assert!(result.pack_dir.join("resources/skills/my-skill/SKILL.md").exists());
         assert_eq!(library.len(), 1);
 
         // Verify manifest contains env placeholder detection

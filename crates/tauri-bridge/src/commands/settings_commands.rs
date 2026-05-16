@@ -2,8 +2,8 @@ use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 
 use tauri::State;
-use zip::ZipWriter;
 use zip::write::SimpleFileOptions;
+use zip::ZipWriter;
 
 use crate::state::{AppSettings, AppState};
 use domain::redact_sensitive;
@@ -11,17 +11,13 @@ use domain::redact_sensitive;
 /// Path to the settings JSON file.
 pub fn settings_path() -> PathBuf {
     let home = std::env::var("HOME").unwrap_or_else(|_| ".".into());
-    PathBuf::from(home)
-        .join(".capability-repo-manager")
-        .join("settings.json")
+    PathBuf::from(home).join(".capability-repo-manager").join("settings.json")
 }
 
 /// Path to the log directory.
 fn log_dir_path() -> PathBuf {
     let home = std::env::var("HOME").unwrap_or_else(|_| ".".into());
-    PathBuf::from(home)
-        .join(".capability-repo-manager")
-        .join("logs")
+    PathBuf::from(home).join(".capability-repo-manager").join("logs")
 }
 
 /// Load settings from `~/.capability-repo-manager/settings.json`.
@@ -38,13 +34,10 @@ pub fn load_from_file() -> Option<AppSettings> {
 pub fn save_to_file(settings: &AppSettings) -> Result<(), String> {
     let path = settings_path();
     if let Some(parent) = path.parent() {
-        std::fs::create_dir_all(parent)
-            .map_err(|e| format!("Failed to create settings directory: {}", e))?;
+        std::fs::create_dir_all(parent).map_err(|e| format!("Failed to create settings directory: {}", e))?;
     }
-    let content = serde_json::to_string_pretty(settings)
-        .map_err(|e| format!("Failed to serialize settings: {}", e))?;
-    std::fs::write(&path, content)
-        .map_err(|e| format!("Failed to write settings file: {}", e))?;
+    let content = serde_json::to_string_pretty(settings).map_err(|e| format!("Failed to serialize settings: {}", e))?;
+    std::fs::write(&path, content).map_err(|e| format!("Failed to write settings file: {}", e))?;
     Ok(())
 }
 
@@ -66,8 +59,7 @@ pub fn build_debug_bundle_zip(
 ) -> Result<Vec<u8>, String> {
     let mut buf = std::io::Cursor::new(Vec::new());
     let mut zip = ZipWriter::new(&mut buf);
-    let options = SimpleFileOptions::default()
-        .compression_method(zip::CompressionMethod::Deflated);
+    let options = SimpleFileOptions::default().compression_method(zip::CompressionMethod::Deflated);
 
     // app_info.json
     let app_info = serde_json::json!({
@@ -75,8 +67,7 @@ pub fn build_debug_bundle_zip(
         "platform": std::env::consts::OS,
         "timestamp": chrono::Utc::now().to_rfc3339(),
     });
-    zip.start_file("app_info.json", options)
-        .map_err(|e| format!("Failed to start app_info.json in zip: {}", e))?;
+    zip.start_file("app_info.json", options).map_err(|e| format!("Failed to start app_info.json in zip: {}", e))?;
     zip.write_all(serde_json::to_string_pretty(&app_info).unwrap().as_bytes())
         .map_err(|e| format!("Failed to write app_info.json: {}", e))?;
 
@@ -86,31 +77,26 @@ pub fn build_debug_bundle_zip(
     if redact_paths {
         redacted_content = redact_paths_in_content(&redacted_content, home);
     }
-    zip.start_file("settings.json", options)
-        .map_err(|e| format!("Failed to start settings.json in zip: {}", e))?;
-    zip.write_all(redacted_content.as_bytes())
-        .map_err(|e| format!("Failed to write settings.json: {}", e))?;
+    zip.start_file("settings.json", options).map_err(|e| format!("Failed to start settings.json in zip: {}", e))?;
+    zip.write_all(redacted_content.as_bytes()).map_err(|e| format!("Failed to write settings.json: {}", e))?;
 
     // operation_events.json
     let event_store = storage::event_store::EventStore::new(db.conn());
-    let events = event_store
-        .list_events(100, 0, None)
-        .map_err(|e| format!("Failed to query operation events: {}", e))?;
-    let events_json = serde_json::to_string_pretty(&events)
-        .map_err(|e| format!("Failed to serialize events: {}", e))?;
+    let events =
+        event_store.list_events(100, 0, None).map_err(|e| format!("Failed to query operation events: {}", e))?;
+    let events_json =
+        serde_json::to_string_pretty(&events).map_err(|e| format!("Failed to serialize events: {}", e))?;
     zip.start_file("operation_events.json", options)
         .map_err(|e| format!("Failed to start operation_events.json in zip: {}", e))?;
-    zip.write_all(events_json.as_bytes())
-        .map_err(|e| format!("Failed to write operation_events.json: {}", e))?;
+    zip.write_all(events_json.as_bytes()).map_err(|e| format!("Failed to write operation_events.json: {}", e))?;
 
     // doctor_reports.json
     let reports = query_all_doctor_reports(db.conn());
-    let reports_json = serde_json::to_string_pretty(&reports)
-        .map_err(|e| format!("Failed to serialize doctor reports: {}", e))?;
+    let reports_json =
+        serde_json::to_string_pretty(&reports).map_err(|e| format!("Failed to serialize doctor reports: {}", e))?;
     zip.start_file("doctor_reports.json", options)
         .map_err(|e| format!("Failed to start doctor_reports.json in zip: {}", e))?;
-    zip.write_all(reports_json.as_bytes())
-        .map_err(|e| format!("Failed to write doctor_reports.json: {}", e))?;
+    zip.write_all(reports_json.as_bytes()).map_err(|e| format!("Failed to write doctor_reports.json: {}", e))?;
 
     // logs/ (last 7 days)
     if log_dir.exists() {
@@ -118,11 +104,15 @@ pub fn build_debug_bundle_zip(
         if let Ok(entries) = std::fs::read_dir(log_dir) {
             for entry in entries.flatten() {
                 let path = entry.path();
-                if !path.is_file() { continue; }
+                if !path.is_file() {
+                    continue;
+                }
                 if let Ok(metadata) = path.metadata() {
                     if let Ok(modified) = metadata.modified() {
                         let modified_time: chrono::DateTime<chrono::Utc> = modified.into();
-                        if modified_time < cutoff { continue; }
+                        if modified_time < cutoff {
+                            continue;
+                        }
                     }
                 }
                 if let Some(name) = path.file_name().and_then(|n| n.to_str()) {
@@ -164,13 +154,7 @@ pub fn export_debug_bundle(
     let settings_content = std::fs::read_to_string(settings_path()).unwrap_or_default();
     let log_dir = log_dir_path();
 
-    let bytes = build_debug_bundle_zip(
-        &db,
-        &settings_content,
-        &log_dir,
-        &home,
-        redact_paths,
-    )?;
+    let bytes = build_debug_bundle_zip(&db, &settings_content, &log_dir, &home, redact_paths)?;
 
     std::fs::write(&destination_path, bytes).map_err(|e| {
         if e.kind() == std::io::ErrorKind::PermissionDenied {
@@ -186,7 +170,7 @@ pub fn export_debug_bundle(
 
 fn query_all_doctor_reports(conn: &rusqlite::Connection) -> Vec<serde_json::Value> {
     let mut stmt = match conn.prepare(
-        "SELECT id, repo_id, score, issues_json, created_at FROM doctor_reports ORDER BY created_at DESC LIMIT 50"
+        "SELECT id, repo_id, score, issues_json, created_at FROM doctor_reports ORDER BY created_at DESC LIMIT 50",
     ) {
         Ok(s) => s,
         Err(_) => return Vec::new(),

@@ -195,11 +195,7 @@ fn test_manifest_env_placeholders() {
             dependencies: None,
         }],
         env_placeholders: vec![
-            EnvPlaceholder {
-                name: "OPENAI_API_KEY".to_string(),
-                required: Some(true),
-                description: None,
-            },
+            EnvPlaceholder { name: "OPENAI_API_KEY".to_string(), required: Some(true), description: None },
             EnvPlaceholder {
                 name: "DATABASE_URL".to_string(),
                 required: Some(false),

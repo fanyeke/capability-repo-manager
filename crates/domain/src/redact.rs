@@ -29,25 +29,20 @@ pub struct RedactResult {
 /// and a count of how many values were redacted.
 pub fn redact_sensitive(input: &str) -> RedactResult {
     // Token patterns: `token=<value>`, `api_key=<value>`, `apiKey=<value>`, `secret=<value>`
-    let token_pattern = regex_lite::Regex::new(
-        r"(?i)(token|api_key|apiKey|secret)\s*=\s*\S+"
-    ).expect("valid token pattern");
+    let token_pattern =
+        regex_lite::Regex::new(r"(?i)(token|api_key|apiKey|secret)\s*=\s*\S+").expect("valid token pattern");
 
     // Bearer authorization pattern
-    let bearer_pattern = regex_lite::Regex::new(
-        r"(?i)(Authorization:\s*Bearer\s+)\S+"
-    ).expect("valid bearer pattern");
+    let bearer_pattern = regex_lite::Regex::new(r"(?i)(Authorization:\s*Bearer\s+)\S+").expect("valid bearer pattern");
 
     // Known env-var-style assignments: GITHUB_TOKEN=..., ANTHROPIC_API_KEY=..., etc.
-    let known_env_var = regex_lite::Regex::new(
-        r"(?i)((?:GITHUB|ANTHROPIC|OPENAI|AWS|AZURE|GOOGLE)_[A-Z_]+)\s*=\s*\S+"
-    ).expect("valid known env var pattern");
+    let known_env_var = regex_lite::Regex::new(r"(?i)((?:GITHUB|ANTHROPIC|OPENAI|AWS|AZURE|GOOGLE)_[A-Z_]+)\s*=\s*\S+")
+        .expect("valid known env var pattern");
 
     // Generic env-var-style pattern: any UPPERCASE_KEY=value not caught above
     // Uppercase-only (no (?i) flag) to avoid matching lowercase words like "path"
-    let generic_env_var = regex_lite::Regex::new(
-        r"\b([A-Z][A-Z_0-9]{2,})\s*=\s*\S+"
-    ).expect("valid generic env var pattern");
+    let generic_env_var =
+        regex_lite::Regex::new(r"\b([A-Z][A-Z_0-9]{2,})\s*=\s*\S+").expect("valid generic env var pattern");
 
     let mut result = input.to_string();
     result = token_pattern.replace_all(&result, "${1}=[REDACTED]").to_string();
@@ -57,11 +52,7 @@ pub fn redact_sensitive(input: &str) -> RedactResult {
 
     let redacted_count = result.matches("[REDACTED]").count();
 
-    RedactResult {
-        input: input.to_string(),
-        output: result,
-        redacted_count,
-    }
+    RedactResult { input: input.to_string(), output: result, redacted_count }
 }
 
 #[cfg(test)]
@@ -77,26 +68,17 @@ mod tests {
 
     #[test]
     fn test_redact_token_in_sentence() {
-        assert_eq!(
-            redact_sensitive("using token=ghp_abc123 in request").output,
-            "using token=[REDACTED] in request"
-        );
+        assert_eq!(redact_sensitive("using token=ghp_abc123 in request").output, "using token=[REDACTED] in request");
     }
 
     #[test]
     fn test_redact_api_key() {
-        assert_eq!(
-            redact_sensitive("api_key=sk-proj-test-key").output,
-            "api_key=[REDACTED]"
-        );
+        assert_eq!(redact_sensitive("api_key=sk-proj-test-key").output, "api_key=[REDACTED]");
     }
 
     #[test]
     fn test_redact_api_key_camelcase() {
-        assert_eq!(
-            redact_sensitive("apiKey=sk-proj-test-key").output,
-            "apiKey=[REDACTED]"
-        );
+        assert_eq!(redact_sensitive("apiKey=sk-proj-test-key").output, "apiKey=[REDACTED]");
     }
 
     #[test]
@@ -109,18 +91,12 @@ mod tests {
 
     #[test]
     fn test_redact_secret() {
-        assert_eq!(
-            redact_sensitive("secret=mysecretpassword").output,
-            "secret=[REDACTED]"
-        );
+        assert_eq!(redact_sensitive("secret=mysecretpassword").output, "secret=[REDACTED]");
     }
 
     #[test]
     fn test_redact_github_token_env_var() {
-        assert_eq!(
-            redact_sensitive("GITHUB_TOKEN=ghp_xxx").output,
-            "GITHUB_TOKEN=[REDACTED]"
-        );
+        assert_eq!(redact_sensitive("GITHUB_TOKEN=ghp_xxx").output, "GITHUB_TOKEN=[REDACTED]");
     }
 
     #[test]

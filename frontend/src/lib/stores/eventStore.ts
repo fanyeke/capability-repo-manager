@@ -1,4 +1,4 @@
-import { writable } from "svelte/store";
+import { writable } from 'svelte/store';
 
 export interface OperationEvent {
   id: string;
@@ -14,11 +14,11 @@ export interface OperationEvent {
 }
 
 async function invokeWithTimeout<T>(cmd: string, args: Record<string, unknown>): Promise<T> {
-  const { invoke } = await import("@tauri-apps/api/core");
+  const { invoke } = await import('@tauri-apps/api/core');
   return Promise.race([
     invoke<T>(cmd, args),
     new Promise<T>((_, reject) =>
-      setTimeout(() => reject(new Error(`Command '${cmd}' timed out after 30s`)), 30000)
+      setTimeout(() => reject(new Error(`Command '${cmd}' timed out after 30s`)), 30000),
     ),
   ]);
 }
@@ -31,7 +31,7 @@ export async function loadEvents(typeFilter?: string): Promise<void> {
   isLoading.set(true);
   error.set(null);
   try {
-    const result = await invokeWithTimeout<OperationEvent[]>("list_operation_events", {
+    const result = await invokeWithTimeout<OperationEvent[]>('list_operation_events', {
       limit: 100,
       offset: 0,
       operationType: typeFilter ?? null,

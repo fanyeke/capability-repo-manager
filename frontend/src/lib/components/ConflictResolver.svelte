@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { _ } from "svelte-i18n";
-  import type { MigrationConflict } from "$lib/types";
+  import { _ } from 'svelte-i18n';
+  import type { MigrationConflict } from '$lib/types';
 
   let {
     conflicts,
@@ -20,7 +20,9 @@
           <strong>{conflict.resource_name}</strong>
           <span class="type-tag">{conflict.resource_type}</span>
         </div>
-        <p class="conflict-reason">{$_('migration.reason', { values: { reason: conflict.reason } })}</p>
+        <p class="conflict-reason">
+          {$_('migration.reason', { values: { reason: conflict.reason } })}
+        </p>
         {#if conflict.recommended_actions.length > 0}
           <div class="recommended">
             <span class="rec-label">{$_('migration.recommended')}</span>

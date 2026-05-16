@@ -23,10 +23,7 @@ pub struct DiffItem {
 }
 
 #[tauri::command]
-pub fn run_doctor(
-    repo_id: String,
-    state: State<AppState>,
-) -> Result<DoctorReport, String> {
+pub fn run_doctor(repo_id: String, state: State<AppState>) -> Result<DoctorReport, String> {
     let ctx = domain::OperationContext::new("run_doctor");
     let _span = tracing::info_span!("run_doctor", operation_id = %ctx.operation_id).entered();
 
@@ -50,8 +47,7 @@ pub fn run_doctor(
     let hooks = extract_hooks(&repo_path);
     let config_texts = collect_config_texts(&repo_path);
 
-    let mcp_json = std::fs::read_to_string(repo_path.join(".claude").join("mcp.json"))
-        .ok();
+    let mcp_json = std::fs::read_to_string(repo_path.join(".claude").join("mcp.json")).ok();
 
     let report_id = uuid::Uuid::new_v4().to_string();
     let created_at = chrono::Utc::now().to_rfc3339();
@@ -67,13 +63,14 @@ pub fn run_doctor(
     );
 
     // Store the report
-    let issues_json =
-        serde_json::to_string(&report.issues).map_err(|e| format!("Serialization error: {}", e))?;
+    let issues_json = serde_json::to_string(&report.issues).map_err(|e| format!("Serialization error: {}", e))?;
 
-    db.conn().execute(
-        "INSERT INTO doctor_reports (id, repo_id, score, issues_json, created_at) VALUES (?1, ?2, ?3, ?4, ?5)",
-        rusqlite::params![report.id, report.repo_id, report.score, issues_json, report.created_at],
-    ).map_err(|e| format!("Database error: {}", e))?;
+    db.conn()
+        .execute(
+            "INSERT INTO doctor_reports (id, repo_id, score, issues_json, created_at) VALUES (?1, ?2, ?3, ?4, ?5)",
+            rusqlite::params![report.id, report.repo_id, report.score, issues_json, report.created_at],
+        )
+        .map_err(|e| format!("Database error: {}", e))?;
 
     let critical_count = report.issues.iter().filter(|i| i.severity == "critical").count();
     let warning_count = report.issues.iter().filter(|i| i.severity == "warning").count();
@@ -102,59 +99,49 @@ pub fn compare_repo_with_pack(
 
     let resource_store = ResourceStore::new(&db);
 
-    let repo_resources = resource_store
-        .get_by_repo(&repo_id)
-        .map_err(|e| format!("Database error: {}", e))?;
+    let repo_resources = resource_store.get_by_repo(&repo_id).map_err(|e| format!("Database error: {}", e))?;
 
-    let pack_resources = resource_store
-        .get_by_pack(&pack_id)
-        .map_err(|e| format!("Database error: {}", e))?;
+    let pack_resources = resource_store.get_by_pack(&pack_id).map_err(|e| format!("Database error: {}", e))?;
 
     Ok(compute_diff(&repo_resources, &pack_resources))
 }
 
 #[tauri::command]
-pub fn compare_repos(
-    repo_id_a: String,
-    repo_id_b: String,
-    state: State<AppState>,
-) -> Result<CompareResult, String> {
+pub fn compare_repos(repo_id_a: String, repo_id_b: String, state: State<AppState>) -> Result<CompareResult, String> {
     let db = state.db.lock().map_err(|e| e.to_string())?;
 
     let resource_store = ResourceStore::new(&db);
 
-    let resources_a = resource_store
-        .get_by_repo(&repo_id_a)
-        .map_err(|e| format!("Database error: {}", e))?;
+    let resources_a = resource_store.get_by_repo(&repo_id_a).map_err(|e| format!("Database error: {}", e))?;
 
-    let resources_b = resource_store
-        .get_by_repo(&repo_id_b)
-        .map_err(|e| format!("Database error: {}", e))?;
+    let resources_b = resource_store.get_by_repo(&repo_id_b).map_err(|e| format!("Database error: {}", e))?;
 
     Ok(compute_diff(&resources_a, &resources_b))
 }
 
 /// Query the latest doctor report for a repository, returning `None` if none exists.
-pub fn query_latest_report(
-    repo_id: &str,
-    db: &storage::Database,
-) -> Result<Option<DoctorReport>, String> {
-    let mut stmt = db.conn().prepare(
-        "SELECT id, repo_id, score, issues_json, created_at
-         FROM doctor_reports WHERE repo_id = ?1 ORDER BY created_at DESC LIMIT 1"
-    ).map_err(|e| format!("Database error: {}", e))?;
+pub fn query_latest_report(repo_id: &str, db: &storage::Database) -> Result<Option<DoctorReport>, String> {
+    let mut stmt = db
+        .conn()
+        .prepare(
+            "SELECT id, repo_id, score, issues_json, created_at
+         FROM doctor_reports WHERE repo_id = ?1 ORDER BY created_at DESC LIMIT 1",
+        )
+        .map_err(|e| format!("Database error: {}", e))?;
 
-    let mut rows = stmt.query_map(rusqlite::params![repo_id], |row| {
-        let issues_json: String = row.get(3)?;
-        let issues: Vec<DoctorIssue> = serde_json::from_str(&issues_json).unwrap_or_default();
-        Ok(DoctorReport {
-            id: row.get(0)?,
-            repo_id: row.get(1)?,
-            score: row.get(2)?,
-            issues,
-            created_at: row.get(4)?,
+    let mut rows = stmt
+        .query_map(rusqlite::params![repo_id], |row| {
+            let issues_json: String = row.get(3)?;
+            let issues: Vec<DoctorIssue> = serde_json::from_str(&issues_json).unwrap_or_default();
+            Ok(DoctorReport {
+                id: row.get(0)?,
+                repo_id: row.get(1)?,
+                score: row.get(2)?,
+                issues,
+                created_at: row.get(4)?,
+            })
         })
-    }).map_err(|e| format!("Database error: {}", e))?;
+        .map_err(|e| format!("Database error: {}", e))?;
 
     match rows.next() {
         Some(Ok(report)) => Ok(Some(report)),
@@ -164,10 +151,7 @@ pub fn query_latest_report(
 }
 
 #[tauri::command]
-pub fn get_latest_doctor_report(
-    repo_id: String,
-    state: State<AppState>,
-) -> Result<Option<DoctorReport>, String> {
+pub fn get_latest_doctor_report(repo_id: String, state: State<AppState>) -> Result<Option<DoctorReport>, String> {
     let db = state.db.lock().map_err(|e| e.to_string())?;
     query_latest_report(&repo_id, &db)
 }
@@ -195,19 +179,9 @@ fn extract_hooks(repo_path: &std::path::Path) -> Vec<doctor_engine::checks::Hook
                 for entry in arr {
                     hooks.push(doctor_engine::checks::HookConfig {
                         hook_type: hook_type.clone(),
-                        name: entry
-                            .get("name")
-                            .and_then(|n| n.as_str())
-                            .unwrap_or("")
-                            .to_string(),
-                        command: entry
-                            .get("command")
-                            .and_then(|c| c.as_str())
-                            .map(|s| s.to_string()),
-                        script_path: entry
-                            .get("script_path")
-                            .and_then(|s| s.as_str())
-                            .map(|s| s.to_string()),
+                        name: entry.get("name").and_then(|n| n.as_str()).unwrap_or("").to_string(),
+                        command: entry.get("command").and_then(|c| c.as_str()).map(|s| s.to_string()),
+                        script_path: entry.get("script_path").and_then(|s| s.as_str()).map(|s| s.to_string()),
                     });
                 }
             }
@@ -252,15 +226,11 @@ fn compute_diff(source: &[CapabilityResource], target: &[CapabilityResource]) ->
     let mut modified = Vec::new();
     let mut same = Vec::new();
 
-    let source_map: std::collections::HashMap<(&str, &str), &CapabilityResource> = source
-        .iter()
-        .map(|r| ((r.r#type.as_str(), r.name.as_str()), r))
-        .collect();
+    let source_map: std::collections::HashMap<(&str, &str), &CapabilityResource> =
+        source.iter().map(|r| ((r.r#type.as_str(), r.name.as_str()), r)).collect();
 
-    let target_map: std::collections::HashMap<(&str, &str), &CapabilityResource> = target
-        .iter()
-        .map(|r| ((r.r#type.as_str(), r.name.as_str()), r))
-        .collect();
+    let target_map: std::collections::HashMap<(&str, &str), &CapabilityResource> =
+        target.iter().map(|r| ((r.r#type.as_str(), r.name.as_str()), r)).collect();
 
     for ((t, n), r) in &source_map {
         match target_map.get(&(t, n)) {
@@ -288,10 +258,5 @@ fn compute_diff(source: &[CapabilityResource], target: &[CapabilityResource]) ->
         }
     }
 
-    CompareResult {
-        missing,
-        extra,
-        modified,
-        same,
-    }
+    CompareResult { missing, extra, modified, same }
 }

@@ -29,8 +29,7 @@ impl<'a> RepositoryStore<'a> {
         })
     }
 
-    const SELECT_COLS: &'static str =
-        "id, name, path, canonical_path, remote_url, current_branch, head_commit, \
+    const SELECT_COLS: &'static str = "id, name, path, canonical_path, remote_url, current_branch, head_commit, \
          dirty_state, first_indexed_at, last_indexed_at, capability_index_status, \
          last_capability_indexed_at, last_capability_error";
 
@@ -58,10 +57,7 @@ impl<'a> RepositoryStore<'a> {
     }
 
     pub fn get_by_id(&self, id: &str) -> Result<Option<Repository>> {
-        let sql = format!(
-            "SELECT {} FROM repositories WHERE id = ?1",
-            Self::SELECT_COLS
-        );
+        let sql = format!("SELECT {} FROM repositories WHERE id = ?1", Self::SELECT_COLS);
         let mut stmt = self.db.conn().prepare(&sql)?;
 
         let mut rows = stmt.query_map(params![id], Self::row_to_repo)?;
@@ -74,10 +70,7 @@ impl<'a> RepositoryStore<'a> {
     }
 
     pub fn get_by_path(&self, path: &str) -> Result<Option<Repository>> {
-        let sql = format!(
-            "SELECT {} FROM repositories WHERE path = ?1",
-            Self::SELECT_COLS
-        );
+        let sql = format!("SELECT {} FROM repositories WHERE path = ?1", Self::SELECT_COLS);
         let mut stmt = self.db.conn().prepare(&sql)?;
 
         let mut rows = stmt.query_map(params![path], Self::row_to_repo)?;
@@ -91,10 +84,7 @@ impl<'a> RepositoryStore<'a> {
 
     /// Look up a repository by its canonical (symlink-resolved) path.
     pub fn get_by_canonical_path(&self, canonical_path: &str) -> Result<Option<Repository>> {
-        let sql = format!(
-            "SELECT {} FROM repositories WHERE canonical_path = ?1",
-            Self::SELECT_COLS
-        );
+        let sql = format!("SELECT {} FROM repositories WHERE canonical_path = ?1", Self::SELECT_COLS);
         let mut stmt = self.db.conn().prepare(&sql)?;
 
         let mut rows = stmt.query_map(params![canonical_path], Self::row_to_repo)?;
@@ -137,10 +127,7 @@ impl<'a> RepositoryStore<'a> {
     }
 
     pub fn list_all(&self) -> Result<Vec<Repository>> {
-        let sql = format!(
-            "SELECT {} FROM repositories ORDER BY name",
-            Self::SELECT_COLS
-        );
+        let sql = format!("SELECT {} FROM repositories ORDER BY name", Self::SELECT_COLS);
         let mut stmt = self.db.conn().prepare(&sql)?;
 
         let rows = stmt.query_map([], Self::row_to_repo)?;
@@ -157,10 +144,7 @@ impl<'a> RepositoryStore<'a> {
     }
 
     pub fn delete(&self, id: &str) -> Result<()> {
-        self.db.conn().execute(
-            "DELETE FROM repositories WHERE id = ?1",
-            params![id],
-        )?;
+        self.db.conn().execute("DELETE FROM repositories WHERE id = ?1", params![id])?;
         Ok(())
     }
 
@@ -170,24 +154,15 @@ impl<'a> RepositoryStore<'a> {
         let conn = self.db.conn();
         conn.execute_batch("BEGIN")?;
 
-        if let Err(e) = conn.execute(
-            "DELETE FROM capability_resources WHERE repo_id = ?1",
-            params![id],
-        ) {
+        if let Err(e) = conn.execute("DELETE FROM capability_resources WHERE repo_id = ?1", params![id]) {
             let _ = conn.execute_batch("ROLLBACK");
             return Err(e);
         }
-        if let Err(e) = conn.execute(
-            "DELETE FROM doctor_reports WHERE repo_id = ?1",
-            params![id],
-        ) {
+        if let Err(e) = conn.execute("DELETE FROM doctor_reports WHERE repo_id = ?1", params![id]) {
             let _ = conn.execute_batch("ROLLBACK");
             return Err(e);
         }
-        if let Err(e) = conn.execute(
-            "DELETE FROM repositories WHERE id = ?1",
-            params![id],
-        ) {
+        if let Err(e) = conn.execute("DELETE FROM repositories WHERE id = ?1", params![id]) {
             let _ = conn.execute_batch("ROLLBACK");
             return Err(e);
         }

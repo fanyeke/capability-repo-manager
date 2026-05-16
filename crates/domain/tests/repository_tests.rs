@@ -4,11 +4,7 @@ use uuid::Uuid;
 #[test]
 fn test_create_repository_with_required_fields() {
     let id = Uuid::new_v4().to_string();
-    let repo = Repository::new(
-        id.clone(),
-        "my-project".to_string(),
-        "/home/user/code/my-project".to_string(),
-    );
+    let repo = Repository::new(id.clone(), "my-project".to_string(), "/home/user/code/my-project".to_string());
 
     assert_eq!(repo.id, id);
     assert_eq!(repo.name, "my-project");
@@ -72,11 +68,8 @@ fn test_dirty_state_valid_values() {
 
 #[test]
 fn test_repository_dirty_state_transition() {
-    let mut repo = Repository::new(
-        Uuid::new_v4().to_string(),
-        "transition-test".to_string(),
-        "/tmp/transition-test".to_string(),
-    );
+    let mut repo =
+        Repository::new(Uuid::new_v4().to_string(), "transition-test".to_string(), "/tmp/transition-test".to_string());
     assert_eq!(repo.dirty_state, "unknown");
 
     repo.dirty_state = "clean".to_string();

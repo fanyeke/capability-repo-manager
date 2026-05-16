@@ -1,7 +1,7 @@
 <script lang="ts">
-  import type { RepositorySummary, RepoFilter } from "$lib/types";
-  import RepoCard from "./RepoCard.svelte";
-  import { _ } from "svelte-i18n";
+  import type { RepositorySummary, RepoFilter } from '$lib/types';
+  import RepoCard from './RepoCard.svelte';
+  import { _ } from 'svelte-i18n';
 
   let {
     repos,
@@ -19,9 +19,9 @@
     onScan: () => void;
   } = $props();
 
-  let searchText = $state("");
-  let sortBy = $state<"name" | "path" | "last_indexed_at" | "dirty_state">("name");
-  let sortOrder = $state<"asc" | "desc">("asc");
+  let searchText = $state('');
+  let sortBy = $state<'name' | 'path' | 'last_indexed_at' | 'dirty_state'>('name');
+  let sortOrder = $state<'asc' | 'desc'>('asc');
   let dirtyOnly = $state(false);
 
   function updateFilter() {
@@ -42,12 +42,12 @@
     updateFilter();
   }
 
-  function handleSortChange(field: "name" | "path" | "last_indexed_at" | "dirty_state") {
+  function handleSortChange(field: 'name' | 'path' | 'last_indexed_at' | 'dirty_state') {
     if (sortBy === field) {
-      sortOrder = sortOrder === "asc" ? "desc" : "asc";
+      sortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
     } else {
       sortBy = field;
-      sortOrder = "asc";
+      sortOrder = 'asc';
     }
     updateFilter();
   }
@@ -65,11 +65,7 @@
     </div>
 
     <div class="filter-controls">
-      <button
-        class="filter-btn"
-        class:active={dirtyOnly}
-        onclick={toggleDirtyFilter}
-      >
+      <button class="filter-btn" class:active={dirtyOnly} onclick={toggleDirtyFilter}>
         {$_('repo.dirty_state')}
       </button>
 
@@ -80,19 +76,16 @@
 
     <div class="sort-controls">
       <span class="sort-label">{$_('common.sort')}:</span>
-      {#each [
-        { key: "name", label: $_('common.sort') },
-        { key: "last_indexed_at", label: $_('repo.last_indexed') },
-        { key: "dirty_state", label: $_('repo.dirty_state') },
-      ] as option}
+      {#each [{ key: 'name', label: $_('common.sort') }, { key: 'last_indexed_at', label: $_('repo.last_indexed') }, { key: 'dirty_state', label: $_('repo.dirty_state') }] as option}
         <button
           class="sort-btn"
           class:active={sortBy === option.key}
-          onclick={() => handleSortChange(option.key as "name" | "path" | "last_indexed_at" | "dirty_state")}
+          onclick={() =>
+            handleSortChange(option.key as 'name' | 'path' | 'last_indexed_at' | 'dirty_state')}
         >
           {option.label}
           {#if sortBy === option.key}
-            <span class="sort-arrow">{sortOrder === "asc" ? " ↑" : " ↓"}</span>
+            <span class="sort-arrow">{sortOrder === 'asc' ? ' ↑' : ' ↓'}</span>
           {/if}
         </button>
       {/each}
@@ -106,7 +99,7 @@
   {:else}
     <div class="repo-grid">
       {#each repos as repo (repo.id)}
-        <RepoCard repo={repo} onSelect={onSelectRepo} />
+        <RepoCard {repo} onSelect={onSelectRepo} />
       {/each}
     </div>
   {/if}
@@ -136,7 +129,8 @@
     gap: 8px;
     align-items: center;
   }
-  .filter-btn, .sort-btn {
+  .filter-btn,
+  .sort-btn {
     padding: 6px 14px;
     border: 1px solid var(--border-color, #e2e8f0);
     border-radius: 6px;
@@ -144,7 +138,8 @@
     font-size: 0.85rem;
     cursor: pointer;
   }
-  .filter-btn.active, .sort-btn.active {
+  .filter-btn.active,
+  .sort-btn.active {
     background: var(--primary, #3b82f6);
     color: #fff;
     border-color: var(--primary, #3b82f6);
@@ -179,7 +174,8 @@
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 16px;
   }
-  .loading-text, .empty-text {
+  .loading-text,
+  .empty-text {
     text-align: center;
     color: #64748b;
     padding: 40px 0;

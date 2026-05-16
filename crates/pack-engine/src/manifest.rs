@@ -89,10 +89,7 @@ impl Manifest {
             return Err("Manifest name exceeds 128 characters".to_string());
         }
         if !is_valid_semver(&input.version) {
-            return Err(format!(
-                "Invalid semantic version format: {}",
-                input.version
-            ));
+            return Err(format!("Invalid semantic version format: {}", input.version));
         }
         if input.resources.is_empty() {
             return Err("Manifest must contain at least one resource".to_string());
@@ -104,26 +101,17 @@ impl Manifest {
         }
 
         let source = if input.source_repo.is_some() || input.source_commit.is_some() {
-            Some(ManifestSource {
-                repo: input.source_repo,
-                commit: input.source_commit,
-            })
+            Some(ManifestSource { repo: input.source_repo, commit: input.source_commit })
         } else {
             None
         };
 
-        let env = if input.env_placeholders.is_empty() {
-            None
-        } else {
-            Some(input.env_placeholders)
-        };
+        let env = if input.env_placeholders.is_empty() { None } else { Some(input.env_placeholders) };
 
         let validation = if input.validation_rules.is_empty() {
             None
         } else {
-            Some(ManifestValidation {
-                rules: Some(input.validation_rules),
-            })
+            Some(ManifestValidation { rules: Some(input.validation_rules) })
         };
 
         Ok(Manifest {
@@ -152,10 +140,7 @@ impl Manifest {
 
 /// Basic semver validation: MAJOR.MINOR.PATCH with optional -PRERELEASE
 fn is_valid_semver(version: &str) -> bool {
-    let semver_re = regex_lite::Regex::new(
-        r"^\d+\.\d+\.\d+(-[a-zA-Z0-9.]+)?$"
-    )
-    .unwrap();
+    let semver_re = regex_lite::Regex::new(r"^\d+\.\d+\.\d+(-[a-zA-Z0-9.]+)?$").unwrap();
     semver_re.is_match(version)
 }
 
@@ -171,11 +156,8 @@ mod regex_lite {
 
         pub fn is_match(&self, text: &str) -> bool {
             // Manual semver parsing: MAJOR.MINOR.PATCH[-PRERELEASE]
-            let (base, pre) = if let Some(idx) = text.find('-') {
-                (&text[..idx], Some(&text[idx + 1..]))
-            } else {
-                (text, None)
-            };
+            let (base, pre) =
+                if let Some(idx) = text.find('-') { (&text[..idx], Some(&text[idx + 1..])) } else { (text, None) };
 
             let parts: Vec<&str> = base.split('.').collect();
             if parts.len() != 3 {
@@ -191,10 +173,7 @@ mod regex_lite {
                 if pre_str.is_empty() {
                     return false;
                 }
-                if !pre_str
-                    .chars()
-                    .all(|c| c.is_ascii_alphanumeric() || c == '.')
-                {
+                if !pre_str.chars().all(|c| c.is_ascii_alphanumeric() || c == '.') {
                     return false;
                 }
             }

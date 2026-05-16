@@ -1,12 +1,18 @@
 <script lang="ts">
-  import { _ } from "svelte-i18n";
-  import { currentPage, navigateTo } from "$lib/stores/uiStore";
-  import { repos, loadRepos } from "$lib/stores/repoStore";
-  import { packs, loadPacks } from "$lib/stores/packStore";
-  import { compareResult, compareRepos, compareRepoWithPack, selectedCategory, setCategory } from "$lib/stores/compareStore";
-  import CompareViewComp from "$lib/components/CompareView.svelte";
+  import { _ } from 'svelte-i18n';
+  import { currentPage, navigateTo } from '$lib/stores/uiStore';
+  import { repos, loadRepos } from '$lib/stores/repoStore';
+  import { packs, loadPacks } from '$lib/stores/packStore';
+  import {
+    compareResult,
+    compareRepos,
+    compareRepoWithPack,
+    selectedCategory,
+    setCategory,
+  } from '$lib/stores/compareStore';
+  import CompareViewComp from '$lib/components/CompareView.svelte';
 
-  let mode = $state<"repo-repo" | "repo-pack">("repo-repo");
+  let mode = $state<'repo-repo' | 'repo-pack'>('repo-repo');
   let sourceRepo = $state<string | null>(null);
   let targetRepo = $state<string | null>(null);
   let sourcePack = $state<string | null>(null);
@@ -16,9 +22,9 @@
   loadPacks();
 
   async function handleCompare() {
-    if (mode === "repo-repo" && sourceRepo && targetRepo) {
+    if (mode === 'repo-repo' && sourceRepo && targetRepo) {
       await compareRepos(sourceRepo, targetRepo);
-    } else if (mode === "repo-pack" && sourcePack && targetRepoForPack) {
+    } else if (mode === 'repo-pack' && sourcePack && targetRepoForPack) {
       await compareRepoWithPack(targetRepoForPack, sourcePack);
     }
   }
@@ -27,21 +33,29 @@
 <div class="compare-page">
   <header class="page-header">
     <h1>{$_('compare.title')}</h1>
-    <button class="back-btn" onclick={() => navigateTo("dashboard")}>{$_('nav.back')}</button>
+    <button class="back-btn" onclick={() => navigateTo('dashboard')}>{$_('nav.back')}</button>
   </header>
 
   <main class="compare-content">
     <div class="mode-tabs">
-      <button class="mode-btn" class:active={mode === "repo-repo"} onclick={() => mode = "repo-repo"}>
+      <button
+        class="mode-btn"
+        class:active={mode === 'repo-repo'}
+        onclick={() => (mode = 'repo-repo')}
+      >
         {$_('compare.mode_repo_repo')}
       </button>
-      <button class="mode-btn" class:active={mode === "repo-pack"} onclick={() => mode = "repo-pack"}>
+      <button
+        class="mode-btn"
+        class:active={mode === 'repo-pack'}
+        onclick={() => (mode = 'repo-pack')}
+      >
         {$_('compare.mode_repo_pack')}
       </button>
     </div>
 
     <div class="select-section">
-      {#if mode === "repo-repo"}
+      {#if mode === 'repo-repo'}
         <div class="select-row">
           <div class="select-panel">
             <label>{$_('compare.source_repo')}</label>
@@ -88,8 +102,8 @@
       <button
         class="compare-btn"
         onclick={handleCompare}
-        disabled={(mode === "repo-repo" && (!sourceRepo || !targetRepo)) ||
-                  (mode === "repo-pack" && (!sourcePack || !targetRepoForPack))}
+        disabled={(mode === 'repo-repo' && (!sourceRepo || !targetRepo)) ||
+          (mode === 'repo-pack' && (!sourcePack || !targetRepoForPack))}
       >
         {$_('compare.action')}
       </button>
@@ -128,7 +142,9 @@
     border-bottom: 1px solid #e2e8f0;
     background: #fff;
   }
-  .page-header h1 { margin: 0; }
+  .page-header h1 {
+    margin: 0;
+  }
   .back-btn {
     padding: 8px 16px;
     background: #fff;
@@ -194,7 +210,9 @@
     font-weight: 600;
     cursor: pointer;
   }
-  .compare-btn:disabled { opacity: 0.6; }
+  .compare-btn:disabled {
+    opacity: 0.6;
+  }
   .result-section {
     background: #fff;
     padding: 20px;

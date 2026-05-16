@@ -1,12 +1,12 @@
 <script lang="ts">
-  import { _ } from "svelte-i18n";
-  import type { DoctorReport as DoctorReportType, DoctorIssue } from "$lib/types";
-  import { groupIssuesBySeverity, getScoreColor } from "$lib/stores/doctorStore";
+  import { _ } from 'svelte-i18n';
+  import type { DoctorReport as DoctorReportType, DoctorIssue } from '$lib/types';
+  import { groupIssuesBySeverity, getScoreColor } from '$lib/stores/doctorStore';
 
   function getScoreLabel(score: number): string {
-    if (score >= 80) return "doctor.healthy";
-    if (score >= 50) return "doctor.needs_attention";
-    return "doctor.critical";
+    if (score >= 80) return 'doctor.healthy';
+    if (score >= 50) return 'doctor.needs_attention';
+    return 'doctor.critical';
   }
 
   let {
@@ -16,8 +16,8 @@
   } = $props();
 
   let grouped = $derived(report ? groupIssuesBySeverity(report.issues) : null);
-  let scoreColor = $derived(report ? getScoreColor(report.score) : "#94a3b8");
-  let scoreLabel = $derived(report ? getScoreLabel(report.score) : "");
+  let scoreColor = $derived(report ? getScoreColor(report.score) : '#94a3b8');
+  let scoreLabel = $derived(report ? getScoreLabel(report.score) : '');
 </script>
 
 {#if !report}
@@ -27,17 +27,27 @@
     <div class="score-section">
       <div class="score-circle" style="border-color: {scoreColor}; color: {scoreColor}">
         <span class="score-value">{report.score}</span>
-        <span class="score-label">{scoreLabel ? $_(scoreLabel) : ""}</span>
+        <span class="score-label">{scoreLabel ? $_(scoreLabel) : ''}</span>
       </div>
-      <p class="score-date">{$_('doctor.diagnosed_at', { values: { date: new Date(report.created_at).toLocaleString() } })}</p>
+      <p class="score-date">
+        {$_('doctor.diagnosed_at', {
+          values: { date: new Date(report.created_at).toLocaleString() },
+        })}
+      </p>
     </div>
 
     <div class="issues-section">
-      {#each ["critical", "warning", "info"] as severity}
+      {#each ['critical', 'warning', 'info'] as severity}
         {#if grouped?.[severity]?.length}
           <div class="severity-group">
             <h4 class="severity-{severity}">
-              {$_(severity === "critical" ? 'doctor.critical' : severity === "warning" ? 'doctor.warning' : 'doctor.info')} ({grouped[severity].length})
+              {$_(
+                severity === 'critical'
+                  ? 'doctor.critical'
+                  : severity === 'warning'
+                    ? 'doctor.warning'
+                    : 'doctor.info',
+              )} ({grouped[severity].length})
             </h4>
             <ul class="issue-list">
               {#each grouped[severity] as issue (issue.code)}
@@ -50,7 +60,9 @@
                     <p class="issue-recommendation">{issue.recommendation}</p>
                   {/if}
                   {#if issue.resource_ref}
-                    <span class="issue-resource">{$_('doctor.resource_ref', { values: { ref: issue.resource_ref } })}</span>
+                    <span class="issue-resource"
+                      >{$_('doctor.resource_ref', { values: { ref: issue.resource_ref } })}</span
+                    >
                   {/if}
                 </li>
               {/each}
@@ -109,9 +121,15 @@
     margin: 0 0 8px 0;
     font-size: 0.85rem;
   }
-  .severity-critical { color: #dc2626; }
-  .severity-warning { color: #d97706; }
-  .severity-info { color: #2563eb; }
+  .severity-critical {
+    color: #dc2626;
+  }
+  .severity-warning {
+    color: #d97706;
+  }
+  .severity-info {
+    color: #2563eb;
+  }
   .issue-list {
     list-style: none;
     padding: 0;
@@ -141,9 +159,15 @@
     font-size: 0.7rem;
     font-weight: 600;
   }
-  .severity-critical .issue-code { color: #991b1b; }
-  .severity-warning .issue-code { color: #92400e; }
-  .severity-info .issue-code { color: #1e40af; }
+  .severity-critical .issue-code {
+    color: #991b1b;
+  }
+  .severity-warning .issue-code {
+    color: #92400e;
+  }
+  .severity-info .issue-code {
+    color: #1e40af;
+  }
   .issue-message {
     margin: 4px 0;
     font-size: 0.85rem;

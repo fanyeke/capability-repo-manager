@@ -1,14 +1,26 @@
 <script lang="ts">
-  import { _ } from "svelte-i18n";
-  import { currentPage, navigateTo } from "$lib/stores/uiStore";
-  import { selectedRepoDetail, refreshRepository, removeRepository, isLoading } from "$lib/stores/repoStore";
-  import { resources, typeGroups, selectedType, loadCapabilityInventory, setTypeFilter } from "$lib/stores/capabilityStore";
-  import CapabilityList from "$lib/components/CapabilityList.svelte";
-  import ResourceDetail from "$lib/components/ResourceDetail.svelte";
+  import { _ } from 'svelte-i18n';
+  import { currentPage, navigateTo } from '$lib/stores/uiStore';
+  import {
+    selectedRepoDetail,
+    refreshRepository,
+    removeRepository,
+    isLoading,
+  } from '$lib/stores/repoStore';
+  import {
+    resources,
+    typeGroups,
+    selectedType,
+    filteredResources,
+    loadCapabilityInventory,
+    setTypeFilter,
+  } from '$lib/stores/capabilityStore';
+  import CapabilityList from '$lib/components/CapabilityList.svelte';
+  import ResourceDetail from '$lib/components/ResourceDetail.svelte';
 
   let { repoId }: { repoId: string } = $props();
 
-  let activeTab = $state<"overview" | "capabilities">("overview");
+  let activeTab = $state<'overview' | 'capabilities'>('overview');
   let selectedResourceId = $state<string | null>(null);
   let detail = $derived($selectedRepoDetail);
 
@@ -22,7 +34,7 @@
 <div class="repo-detail-page">
   <header class="repo-header">
     <div class="header-top">
-      <button class="back-btn" onclick={() => navigateTo("dashboard")}>{$_('repo.back')}</button>
+      <button class="back-btn" onclick={() => navigateTo('dashboard')}>{$_('repo.back')}</button>
     </div>
     {#if detail}
       <div class="header-info">
@@ -41,13 +53,17 @@
         <button class="action-btn" onclick={() => refreshRepository(repoId)} disabled={$isLoading}>
           {$_('repo.refresh')}
         </button>
-        <button class="action-btn danger" onclick={() => removeRepository(repoId)} disabled={$isLoading}>
+        <button
+          class="action-btn danger"
+          onclick={() => removeRepository(repoId)}
+          disabled={$isLoading}
+        >
           {$_('repo.remove')}
         </button>
-        <button class="action-btn" onclick={() => currentPage.set("packexport")}>
+        <button class="action-btn" onclick={() => currentPage.set('packexport')}>
           {$_('repo.export_pack')}
         </button>
-        <button class="action-btn" onclick={() => currentPage.set("doctor")}>
+        <button class="action-btn" onclick={() => currentPage.set('doctor')}>
           {$_('repo.run_doctor')}
         </button>
       </div>
@@ -57,10 +73,18 @@
   </header>
 
   <div class="tabs">
-    <button class="tab-btn" class:active={activeTab === "overview"} onclick={() => activeTab = "overview"}>
+    <button
+      class="tab-btn"
+      class:active={activeTab === 'overview'}
+      onclick={() => (activeTab = 'overview')}
+    >
       {$_('repo.overview')}
     </button>
-    <button class="tab-btn" class:active={activeTab === "capabilities"} onclick={() => activeTab = "capabilities"}>
+    <button
+      class="tab-btn"
+      class:active={activeTab === 'capabilities'}
+      onclick={() => (activeTab = 'capabilities')}
+    >
       {$_('repo.capabilities_tab')}
     </button>
   </div>
@@ -68,7 +92,7 @@
   <main class="repo-content">
     {#if $isLoading}
       <p class="loading">{$_('app.loading')}</p>
-    {:else if activeTab === "overview"}
+    {:else if activeTab === 'overview'}
       {#if detail}
         <div class="overview-grid">
           <div class="overview-card">
@@ -79,11 +103,11 @@
               <dt>{$_('repo.path')}</dt>
               <dd>{detail.repo.path}</dd>
               <dt>{$_('repo.remote')}</dt>
-              <dd>{detail.repo.remote_url ?? "N/A"}</dd>
+              <dd>{detail.repo.remote_url ?? 'N/A'}</dd>
               <dt>{$_('repo.branch')}</dt>
-              <dd>{detail.repo.current_branch ?? "N/A"}</dd>
+              <dd>{detail.repo.current_branch ?? 'N/A'}</dd>
               <dt>{$_('repo.head')}</dt>
-              <dd>{detail.repo.head_commit ?? "N/A"}</dd>
+              <dd>{detail.repo.head_commit ?? 'N/A'}</dd>
               <dt>{$_('repo.last_indexed')}</dt>
               <dd>{new Date(detail.repo.last_indexed_at).toLocaleString()}</dd>
             </dl>
@@ -106,14 +130,15 @@
         <CapabilityList
           resources={$typeGroups}
           selectedType={$selectedType}
-          selectedResourceId={selectedResourceId}
+          {selectedResourceId}
+          filteredResources={$filteredResources}
           onSelectType={setTypeFilter}
-          onSelectResource={(id) => selectedResourceId = id}
+          onSelectResource={(id) => (selectedResourceId = id)}
         />
         <div class="content-panel">
           {#if selectedResourceId && $resources}
-            {@const allResources = [...$resources.skills, ...$resources.mcp, ...$resources.hooks, ...$resources.rules, ...$resources.agents]}
-            {@const resource = allResources.find(r => r.id === selectedResourceId)}
+            {@const allResources = Object.values($resources).flat()}
+            {@const resource = allResources.find((r) => r.id === selectedResourceId)}
             <ResourceDetail resource={resource ?? null} />
           {:else}
             <p class="select-hint">{$_('repo.select_capability')}</p>
@@ -156,10 +181,22 @@
     border-radius: 4px;
     font-size: 0.75rem;
   }
-  .tag.branch { background: #ede9fe; color: #5b21b6; }
-  .tag.state-clean { background: #dcfce7; color: #166534; }
-  .tag.state-modified { background: #fef3c7; color: #92400e; }
-  .tag.state-unknown { background: #f1f5f9; color: #64748b; }
+  .tag.branch {
+    background: #ede9fe;
+    color: #5b21b6;
+  }
+  .tag.state-clean {
+    background: #dcfce7;
+    color: #166534;
+  }
+  .tag.state-modified {
+    background: #fef3c7;
+    color: #92400e;
+  }
+  .tag.state-unknown {
+    background: #f1f5f9;
+    color: #64748b;
+  }
   .header-actions {
     display: flex;
     gap: 8px;
@@ -250,7 +287,8 @@
   .content-panel {
     padding: 16px;
   }
-  .select-hint, .loading {
+  .select-hint,
+  .loading {
     text-align: center;
     color: #64748b;
     padding: 40px 0;

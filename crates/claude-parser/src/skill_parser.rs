@@ -1,11 +1,12 @@
 use std::fs;
 use std::path::Path;
 
+use domain::paths::{CLAUDE_DIR, SKILLS_DIR};
 use domain::CapabilityResource;
 use sha2::{Digest, Sha256};
 
 pub fn parse_skills(repo_path: &str) -> Vec<CapabilityResource> {
-    let skills_dir = Path::new(repo_path).join("skills");
+    let skills_dir = Path::new(repo_path).join(CLAUDE_DIR).join(SKILLS_DIR);
     if !skills_dir.exists() || !skills_dir.is_dir() {
         return Vec::new();
     }
@@ -45,11 +46,8 @@ pub fn parse_skills(repo_path: &str) -> Vec<CapabilityResource> {
 
         let metadata = serde_json::json!({"summary": summary});
 
-        let relative_source = format!(
-            "skills/{}/{}",
-            skill_name,
-            md_path.file_name().unwrap().to_string_lossy()
-        );
+        let relative_source =
+            format!("{}/{}/{}/{}", CLAUDE_DIR, SKILLS_DIR, skill_name, md_path.file_name().unwrap().to_string_lossy());
 
         resources.push(CapabilityResource {
             id: uuid::Uuid::new_v4().to_string(),

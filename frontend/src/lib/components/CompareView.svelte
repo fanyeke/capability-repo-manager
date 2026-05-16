@@ -1,11 +1,7 @@
 <script lang="ts">
-  import { _ } from "svelte-i18n";
-  import type {
-    CompareResult,
-    CapabilityResource,
-    DiffItem,
-  } from "$lib/types";
-  import ResourceDetail from "./ResourceDetail.svelte";
+  import { _ } from 'svelte-i18n';
+  import type { CompareResult, CapabilityResource, DiffItem } from '$lib/types';
+  import ResourceDetail from './ResourceDetail.svelte';
 
   let {
     result,
@@ -13,18 +9,38 @@
     onSelectCategory,
   }: {
     result: CompareResult | null;
-    selectedCategory: "missing" | "extra" | "modified" | "same";
-    onSelectCategory: (cat: "missing" | "extra" | "modified" | "same") => void;
+    selectedCategory: 'missing' | 'extra' | 'modified' | 'same';
+    onSelectCategory: (cat: 'missing' | 'extra' | 'modified' | 'same') => void;
   } = $props();
 
   let selectedResource = $state<CapabilityResource | null>(null);
 
   let currentItems = $derived(result ? result[selectedCategory] : []);
   let categories = $derived([
-    { key: "missing" as const, labelKey: "compare.missing" as const, count: result?.missing.length ?? 0, color: "#dc2626" },
-    { key: "extra" as const, labelKey: "compare.extra" as const, count: result?.extra.length ?? 0, color: "#d97706" },
-    { key: "modified" as const, labelKey: "compare.modified" as const, count: result?.modified.length ?? 0, color: "#2563eb" },
-    { key: "same" as const, labelKey: "compare.same" as const, count: result?.same.length ?? 0, color: "#16a34a" },
+    {
+      key: 'missing' as const,
+      labelKey: 'compare.missing' as const,
+      count: result?.missing.length ?? 0,
+      color: '#dc2626',
+    },
+    {
+      key: 'extra' as const,
+      labelKey: 'compare.extra' as const,
+      count: result?.extra.length ?? 0,
+      color: '#d97706',
+    },
+    {
+      key: 'modified' as const,
+      labelKey: 'compare.modified' as const,
+      count: result?.modified.length ?? 0,
+      color: '#2563eb',
+    },
+    {
+      key: 'same' as const,
+      labelKey: 'compare.same' as const,
+      count: result?.same.length ?? 0,
+      color: '#16a34a',
+    },
   ]);
 </script>
 
@@ -48,7 +64,7 @@
 
     <div class="compare-content">
       <div class="item-list">
-        {#if selectedCategory === "modified"}
+        {#if selectedCategory === 'modified'}
           {#each currentItems as item (item.name + item.type)}
             {@const diff = item as DiffItem}
             <button
@@ -78,9 +94,9 @@
       <div class="detail-panel">
         {#if selectedResource}
           <ResourceDetail resource={selectedResource} />
-          {#if selectedCategory === "modified"}
+          {#if selectedCategory === 'modified'}
             {@const diff = currentItems.find(
-              (i) => (i as DiffItem).source_resource.id === selectedResource?.id
+              (i) => (i as DiffItem).source_resource.id === selectedResource?.id,
             )}
             {#if diff}
               <div class="diff-divider">{$_('compare.vs_target')}</div>
@@ -149,9 +165,16 @@
     align-items: center;
     border-radius: 4px;
   }
-  .item-btn:hover { background: #f1f5f9; }
-  .item-btn.selected { background: #e0e7ff; }
-  .item-name { font-size: 0.85rem; font-weight: 500; }
+  .item-btn:hover {
+    background: #f1f5f9;
+  }
+  .item-btn.selected {
+    background: #e0e7ff;
+  }
+  .item-name {
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
   .item-type {
     font-size: 0.7rem;
     padding: 1px 6px;

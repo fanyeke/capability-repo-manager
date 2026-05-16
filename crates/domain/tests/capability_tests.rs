@@ -32,9 +32,7 @@ fn test_create_skill_resource() {
 
 #[test]
 fn test_valid_resource_types() {
-    let valid_types = vec![
-        "skill", "mcp", "hook", "rule", "agent", "command", "plugin", "settings", "contextDoc",
-    ];
+    let valid_types = vec!["skill", "mcp", "hook", "rule", "agent", "command", "plugin", "settings", "contextDoc"];
     let repo_id = Uuid::new_v4().to_string();
     for rt in valid_types {
         let resource = make_resource(Some(&repo_id), None, rt, "test-resource");

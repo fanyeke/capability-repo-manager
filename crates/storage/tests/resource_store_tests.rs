@@ -47,21 +47,19 @@ fn test_get_by_pack() {
     let db = setup_db();
     let store = ResourceStore::new(&db);
 
-    let resources = vec![
-        CapabilityResource {
-            id: "res-p1".to_string(),
-            repo_id: None,
-            pack_id: Some("pack-1".to_string()),
-            r#type: "skill".to_string(),
-            name: "packed-skill".to_string(),
-            source_path: Some("resources/skills/packed-skill".to_string()),
-            scope: "project".to_string(),
-            tracked_by_git: false,
-            content_hash: Some("abc".to_string()),
-            metadata_json: None,
-            error_message: None,
-        },
-    ];
+    let resources = vec![CapabilityResource {
+        id: "res-p1".to_string(),
+        repo_id: None,
+        pack_id: Some("pack-1".to_string()),
+        r#type: "skill".to_string(),
+        name: "packed-skill".to_string(),
+        source_path: Some("resources/skills/packed-skill".to_string()),
+        scope: "project".to_string(),
+        tracked_by_git: false,
+        content_hash: Some("abc".to_string()),
+        metadata_json: None,
+        error_message: None,
+    }];
 
     store.insert_batch(&resources).unwrap();
 
@@ -75,11 +73,13 @@ fn test_delete_by_repo() {
     let db = setup_db();
     let store = ResourceStore::new(&db);
 
-    store.insert_batch(&vec![
-        make_resource("r1", "repo-A", "skill", "s1"),
-        make_resource("r2", "repo-A", "hook", "h1"),
-        make_resource("r3", "repo-B", "rule", "r1"),
-    ]).unwrap();
+    store
+        .insert_batch(&vec![
+            make_resource("r1", "repo-A", "skill", "s1"),
+            make_resource("r2", "repo-A", "hook", "h1"),
+            make_resource("r3", "repo-B", "rule", "r1"),
+        ])
+        .unwrap();
 
     store.delete_by_repo("repo-A").unwrap();
 

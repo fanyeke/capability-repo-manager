@@ -12,9 +12,8 @@ pub use capability::CapabilityResource;
 pub use doctor::{DoctorIssue, DoctorReport};
 pub use error::AppError;
 pub use migration::{
-    ConflictAction, MigrationConflict, MigrationPlan, MigrationPlanItem, MigrationReport,
-    MigrationReportItem, MigrationReportSummary, MigrationRun, MigrationSnapshot,
-    ResourceDependency, SnapshotItem,
+    ConflictAction, MigrationConflict, MigrationPlan, MigrationPlanItem, MigrationReport, MigrationReportItem,
+    MigrationReportSummary, MigrationRun, MigrationSnapshot, ResourceDependency, SnapshotItem,
 };
 pub use op_context::OperationContext;
 pub use pack::CapabilityPack;

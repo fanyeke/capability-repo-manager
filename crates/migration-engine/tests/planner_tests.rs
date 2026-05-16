@@ -40,12 +40,7 @@ fn all_new_resources_are_classified_as_add() {
     ];
     let target_resources = vec![];
 
-    let plan = planner::build_plan(
-        &pack_resources,
-        &target_resources,
-        "pack-1",
-        "repo-1",
-    );
+    let plan = planner::build_plan(&pack_resources, &target_resources, "pack-1", "repo-1");
 
     assert_eq!(plan.items.len(), 2);
     assert!(plan.conflicts.is_empty());
@@ -58,18 +53,8 @@ fn all_new_resources_are_classified_as_add() {
 
 #[test]
 fn matching_type_and_name_is_classified_as_overwrite() {
-    let pack_resources = vec![make_pack_resource(
-        "r1",
-        "skill",
-        "my-skill",
-        "skills/my-skill/",
-    )];
-    let target_resources = vec![make_repo_resource(
-        "r2",
-        "skill",
-        "my-skill",
-        "skills/my-skill/",
-    )];
+    let pack_resources = vec![make_pack_resource("r1", "skill", "my-skill", "skills/my-skill/")];
+    let target_resources = vec![make_repo_resource("r2", "skill", "my-skill", "skills/my-skill/")];
 
     let plan = planner::build_plan(&pack_resources, &target_resources, "pack-1", "repo-1");
 
@@ -80,18 +65,8 @@ fn matching_type_and_name_is_classified_as_overwrite() {
 
 #[test]
 fn same_type_and_name_with_different_path_detects_conflict() {
-    let pack_resources = vec![make_pack_resource(
-        "r1",
-        "hook",
-        "my-hook",
-        ".claude/settings.json",
-    )];
-    let target_resources = vec![make_repo_resource(
-        "r2",
-        "hook",
-        "my-hook",
-        ".claude/settings.local.json",
-    )];
+    let pack_resources = vec![make_pack_resource("r1", "hook", "my-hook", ".claude/settings.json")];
+    let target_resources = vec![make_repo_resource("r2", "hook", "my-hook", ".claude/settings.local.json")];
 
     let plan = planner::build_plan(&pack_resources, &target_resources, "pack-1", "repo-1");
 
@@ -153,9 +128,8 @@ fn plan_records_source_and_target_ids() {
 fn missing_dependencies_are_reported() {
     // Skill that references a hook that doesn't exist in pack or target
     let mut skill = make_pack_resource("r1", "skill", "dependent-skill", "skills/dep/");
-    skill.metadata_json = Some(
-        r#"{"dependencies":[{"type":"hook","name":"missing-hook","required":true}]}"#.to_string(),
-    );
+    skill.metadata_json =
+        Some(r#"{"dependencies":[{"type":"hook","name":"missing-hook","required":true}]}"#.to_string());
 
     let pack_resources = vec![skill];
     let target_resources = vec![];
@@ -163,10 +137,18 @@ fn missing_dependencies_are_reported() {
     let plan = planner::build_plan(&pack_resources, &target_resources, "pack-1", "repo-1");
 
     assert!(!plan.missing_dependencies.is_empty());
-    assert!(plan
-        .missing_dependencies
-        .iter()
-        .any(|d| d.name == "missing-hook"));
+    assert!(plan.missing_dependencies.iter().any(|d| d.name == "missing-hook"));
+}
+
+#[test]
+fn new_resources_have_target_path_from_source_path() {
+    let pack = vec![make_pack_resource("r1", "skill", "new-skill", "skills/new-skill/SKILL.md")];
+    let target = vec![];
+
+    let plan = planner::build_plan(&pack, &target, "pack-1", "repo-1");
+    let item = &plan.items[0];
+    assert_eq!(item.action, "add");
+    assert_eq!(item.target_path.as_deref(), Some("skills/new-skill/SKILL.md"));
 }
 
 #[test]

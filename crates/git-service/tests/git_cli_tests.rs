@@ -15,11 +15,7 @@ fn make_repo(name: &str) -> (tempfile::TempDir, Repository) {
     config.set_str("user.name", "test").unwrap();
     config.set_str("user.email", "test@test.com").unwrap();
 
-    let repo = Repository::new(
-        String::new(),
-        name.to_string(),
-        repo_path.to_string_lossy().to_string(),
-    );
+    let repo = Repository::new(String::new(), name.to_string(), repo_path.to_string_lossy().to_string());
 
     (tmp, repo)
 }
@@ -45,16 +41,7 @@ fn commit_file(repo_path: &std::path::Path, filename: &str, content: &str) {
     };
     let parents: Vec<&git2::Commit> = commit.iter().collect();
 
-    git_repo
-        .commit(
-            Some("HEAD"),
-            &sig,
-            &sig,
-            &format!("commit: {}", filename),
-            &tree,
-            &parents,
-        )
-        .unwrap();
+    git_repo.commit(Some("HEAD"), &sig, &sig, &format!("commit: {}", filename), &tree, &parents).unwrap();
 }
 
 #[test]
@@ -135,11 +122,7 @@ fn handles_non_git_directory() {
     let dir = tmp.path().join("not-a-repo");
     fs::create_dir_all(&dir).unwrap();
 
-    let mut repo = Repository::new(
-        String::new(),
-        "not-a-repo".to_string(),
-        dir.to_string_lossy().to_string(),
-    );
+    let mut repo = Repository::new(String::new(), "not-a-repo".to_string(), dir.to_string_lossy().to_string());
 
     let result = extract_metadata(&mut repo);
     assert!(result.is_err());

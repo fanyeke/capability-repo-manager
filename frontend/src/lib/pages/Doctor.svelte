@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { _ } from "svelte-i18n";
-  import { currentPage, navigateTo } from "$lib/stores/uiStore";
-  import { repos, loadRepos, selectedRepoId } from "$lib/stores/repoStore";
-  import { runDoctor, report, isLoading, error, clearReport } from "$lib/stores/doctorStore";
-  import DoctorReportComp from "$lib/components/DoctorReport.svelte";
+  import { _ } from 'svelte-i18n';
+  import { currentPage, navigateTo } from '$lib/stores/uiStore';
+  import { repos, loadRepos, selectedRepoId } from '$lib/stores/repoStore';
+  import { runDoctor, report, isLoading, error, clearReport } from '$lib/stores/doctorStore';
+  import DoctorReportComp from '$lib/components/DoctorReport.svelte';
 
   let selectedRepo = $state<string | null>(null);
 
@@ -18,7 +18,7 @@
 <div class="doctor-page">
   <header class="page-header">
     <h1>{$_('doctor.title')}</h1>
-    <button class="back-btn" onclick={() => navigateTo("dashboard")}>{$_('nav.back')}</button>
+    <button class="back-btn" onclick={() => navigateTo('dashboard')}>{$_('nav.back')}</button>
   </header>
 
   <main class="doctor-content">
@@ -30,11 +30,7 @@
           <option value={repo.id}>{repo.name}</option>
         {/each}
       </select>
-      <button
-        class="run-btn"
-        onclick={handleRunDoctor}
-        disabled={!selectedRepo || $isLoading}
-      >
+      <button class="run-btn" onclick={handleRunDoctor} disabled={!selectedRepo || $isLoading}>
         {#if $isLoading}{$_('doctor.running')}{:else}{$_('doctor.run')}{/if}
       </button>
     </div>
@@ -51,7 +47,9 @@
         <h2>{$_('doctor.health_report', { values: { name: selectedRepo } })}</h2>
         <DoctorReportComp report={$report} />
         <div class="report-actions">
-          <button class="nav-btn" onclick={() => currentPage.set("repo:" + selectedRepo)}>{$_('doctor.view_repo')}</button>
+          <button class="nav-btn" onclick={() => currentPage.set('repo:' + selectedRepo)}
+            >{$_('doctor.view_repo')}</button
+          >
           <button class="nav-btn" onclick={clearReport}>{$_('doctor.run_again')}</button>
         </div>
       </div>
@@ -85,7 +83,9 @@
     border-bottom: 1px solid #e2e8f0;
     background: #fff;
   }
-  .page-header h1 { margin: 0; }
+  .page-header h1 {
+    margin: 0;
+  }
   .back-btn {
     padding: 8px 16px;
     background: #fff;
@@ -129,14 +129,19 @@
     font-weight: 600;
     cursor: pointer;
   }
-  .run-btn:disabled { opacity: 0.6; }
+  .run-btn:disabled {
+    opacity: 0.6;
+  }
   .error-box {
     background: #fee2e2;
     padding: 12px;
     border-radius: 6px;
     margin-bottom: 24px;
   }
-  .error-box p { margin: 0 0 8px 0; color: #991b1b; }
+  .error-box p {
+    margin: 0 0 8px 0;
+    color: #991b1b;
+  }
   .error-box button {
     padding: 4px 12px;
     background: #fff;

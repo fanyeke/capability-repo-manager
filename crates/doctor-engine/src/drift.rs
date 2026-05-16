@@ -73,12 +73,7 @@ pub fn compare(source: &[CapabilityResource], target: &[CapabilityResource]) -> 
         }
     }
 
-    DriftResult {
-        same,
-        missing,
-        extra,
-        modified,
-    }
+    DriftResult { same, missing, extra, modified }
 }
 
 /// Build a lookup index from (type, name) → CapabilityResource

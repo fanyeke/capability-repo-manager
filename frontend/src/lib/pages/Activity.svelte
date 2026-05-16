@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { onMount } from "svelte";
-  import { events, isLoading, error, loadEvents } from "$lib/stores/eventStore";
-  import { currentPage } from "$lib/stores/uiStore";
-  import { _ } from "svelte-i18n";
+  import { onMount } from 'svelte';
+  import { events, isLoading, error, loadEvents } from '$lib/stores/eventStore';
+  import { currentPage } from '$lib/stores/uiStore';
+  import { _ } from 'svelte-i18n';
 
-  let typeFilter = $state<string>("");
+  let typeFilter = $state<string>('');
 
   onMount(() => {
     loadEvents();
@@ -16,24 +16,37 @@
 
   function getStatusClass(status: string): string {
     switch (status) {
-      case "success": return "status-success";
-      case "failure": return "status-failure";
-      case "partial_failure": return "status-partial";
-      default: return "status-unknown";
+      case 'success':
+        return 'status-success';
+      case 'failure':
+        return 'status-failure';
+      case 'partial_failure':
+        return 'status-partial';
+      default:
+        return 'status-unknown';
     }
   }
 
   function getTypeIcon(opType: string): string {
     switch (opType) {
-      case "scan_repositories": return "🔍";
-      case "refresh_repository": return "🔄";
-      case "export_pack": return "📦";
-      case "delete_pack": return "🗑️";
-      case "build_migration_plan": return "📋";
-      case "apply_migration": return "▶️";
-      case "rollback_migration": return "⏪";
-      case "run_doctor": return "🏥";
-      default: return "📄";
+      case 'scan_repositories':
+        return '🔍';
+      case 'refresh_repository':
+        return '🔄';
+      case 'export_pack':
+        return '📦';
+      case 'delete_pack':
+        return '🗑️';
+      case 'build_migration_plan':
+        return '📋';
+      case 'apply_migration':
+        return '▶️';
+      case 'rollback_migration':
+        return '⏪';
+      case 'run_doctor':
+        return '🏥';
+      default:
+        return '📄';
     }
   }
 
@@ -49,18 +62,14 @@
 
 <div class="activity-page">
   <header class="page-header">
-    <button class="back-btn" onclick={() => currentPage.set("dashboard")}>
+    <button class="back-btn" onclick={() => currentPage.set('dashboard')}>
       &larr; {$_('nav.back')}
     </button>
     <h1>{$_('activity.title')}</h1>
   </header>
 
   <div class="filter-bar">
-    <select
-      bind:value={typeFilter}
-      onchange={handleFilterChange}
-      class="type-filter"
-    >
+    <select bind:value={typeFilter} onchange={handleFilterChange} class="type-filter">
       <option value="">{$_('activity.all_types')}</option>
       <option value="scan_repositories">{$_('activity.scan')}</option>
       <option value="refresh_repository">{$_('activity.refresh')}</option>
@@ -82,7 +91,9 @@
     {:else if $error}
       <div class="error-box">
         <p>Error: {$error}</p>
-        <button class="retry-btn" onclick={() => loadEvents(typeFilter || undefined)}>{$_('activity.retry')}</button>
+        <button class="retry-btn" onclick={() => loadEvents(typeFilter || undefined)}
+          >{$_('activity.retry')}</button
+        >
       </div>
     {:else if $events.length === 0}
       <div class="empty-state">
@@ -95,8 +106,16 @@
             <div class="event-icon">{getTypeIcon(event.operation_type)}</div>
             <div class="event-body">
               <div class="event-header">
-                <span class="event-type">{event.operation_type.replace(/_/g, " ")}</span>
-                <span class="event-status {getStatusClass(event.status)}">{#if event.status === "success"}{$_('activity.status_success')}{:else if event.status === "failure"}{$_('activity.status_failed')}{:else if event.status === "partial_failure"}{$_('activity.status_partial')}{:else}{event.status}{/if}</span>
+                <span class="event-type">{event.operation_type.replace(/_/g, ' ')}</span>
+                <span class="event-status {getStatusClass(event.status)}"
+                  >{#if event.status === 'success'}{$_(
+                      'activity.status_success',
+                    )}{:else if event.status === 'failure'}{$_(
+                      'activity.status_failed',
+                    )}{:else if event.status === 'partial_failure'}{$_(
+                      'activity.status_partial',
+                    )}{:else}{event.status}{/if}</span
+                >
               </div>
               {#if event.summary}
                 <p class="event-summary">{event.summary}</p>

@@ -10,10 +10,10 @@ export interface Repository {
   remote_url: string | null;
   current_branch: string | null;
   head_commit: string | null;
-  dirty_state: "clean" | "modified" | "unknown";
+  dirty_state: 'clean' | 'modified' | 'unknown';
   first_indexed_at: string;
   last_indexed_at: string;
-  capability_index_status: "never_indexed" | "fresh" | "stale" | "parse_failed";
+  capability_index_status: 'never_indexed' | 'fresh' | 'stale' | 'parse_failed';
   last_capability_indexed_at: string | null;
   last_capability_error: string | null;
 }
@@ -23,15 +23,15 @@ export interface RepositorySummary {
   name: string;
   path: string;
   branch: string | null;
-  dirty_state: "clean" | "modified" | "unknown";
+  dirty_state: 'clean' | 'modified' | 'unknown';
   capability_counts: {
-    skills: number;
+    skill: number;
     mcp: number;
-    hooks: number;
-    rules: number;
-    agents: number;
+    hook: number;
+    rule: number;
+    agent: number;
   };
-  capability_index_status: "never_indexed" | "fresh" | "stale" | "parse_failed";
+  capability_index_status: 'never_indexed' | 'fresh' | 'stale' | 'parse_failed';
   last_capability_error: string | null;
   doctor_score: number | null;
   last_indexed_at: string;
@@ -50,7 +50,7 @@ export interface CapabilityResource {
   type: ResourceType;
   name: string;
   source_path: string | null;
-  scope: "project" | "local" | "user" | "inherited" | "unknown";
+  scope: 'project' | 'local' | 'user' | 'inherited' | 'unknown';
   tracked_by_git: boolean;
   content_hash: string | null;
   metadata_json: string | null;
@@ -58,15 +58,15 @@ export interface CapabilityResource {
 }
 
 export type ResourceType =
-  | "skill"
-  | "mcp"
-  | "hook"
-  | "rule"
-  | "agent"
-  | "command"
-  | "plugin"
-  | "settings"
-  | "contextDoc";
+  | 'skill'
+  | 'mcp'
+  | 'hook'
+  | 'rule'
+  | 'agent'
+  | 'command'
+  | 'plugin'
+  | 'settings'
+  | 'contextDoc';
 
 export interface CapabilityInventory {
   skills: CapabilityResource[];
@@ -87,8 +87,8 @@ export interface RepoFilter {
   search?: string;
   dirty_only?: boolean;
   has_capabilities?: boolean;
-  sort_by?: "name" | "path" | "last_indexed_at" | "dirty_state";
-  sort_order?: "asc" | "desc";
+  sort_by?: 'name' | 'path' | 'last_indexed_at' | 'dirty_state';
+  sort_order?: 'asc' | 'desc';
 }
 
 export interface ScanResult {
@@ -114,7 +114,7 @@ export interface PackSummary {
   name: string;
   version: string;
   description: string | null;
-  pack_type: "project" | "blueprint" | "baseline";
+  pack_type: 'project' | 'blueprint' | 'baseline';
   resource_count: number;
   source_repo_name: string | null;
   created_at: string;
@@ -131,7 +131,7 @@ export interface CapabilityPack {
   name: string;
   version: string;
   description: string | null;
-  pack_type: "project" | "blueprint" | "baseline";
+  pack_type: 'project' | 'blueprint' | 'baseline';
   manifest_path: string;
   source_repo_id: string | null;
   source_commit: string | null;
@@ -177,10 +177,10 @@ export interface ManifestEnvVar {
 }
 
 export interface ResourceDependency {
-  type: "file" | "command" | "env" | "mcp" | "skill" | "hook" | "plugin";
+  type: 'file' | 'command' | 'env' | 'mcp' | 'skill' | 'hook' | 'plugin';
   name: string;
   required: boolean;
-  status: "satisfied" | "missing" | "unknown";
+  status: 'satisfied' | 'missing' | 'unknown';
 }
 
 export interface PackFilter {
@@ -214,16 +214,16 @@ export interface MigrationPlan {
 
 export interface MigrationPlanItem {
   resource_id: string;
-  action: "add" | "overwrite" | "skip" | "rename" | "merge" | "unresolved";
+  action: 'add' | 'overwrite' | 'skip' | 'unresolved';
   source_path: string | null;
   target_path: string | null;
-  status: "pending" | "applied" | "failed";
+  status: 'pending' | 'applied' | 'failed';
 }
 
 export interface MigrationConflict {
   resource_name: string;
   resource_type: ResourceType;
-  reason: "same_name" | "same_path" | "incompatible_schema" | "ambiguous_merge";
+  reason: 'same_name' | 'same_path' | 'incompatible_schema' | 'ambiguous_merge';
   recommended_actions: string[];
 }
 
@@ -231,12 +231,12 @@ export interface Dependency {
   type: string;
   name: string;
   required: boolean;
-  status: "satisfied" | "missing" | "unknown";
+  status: 'satisfied' | 'missing' | 'unknown';
 }
 
 export interface ConflictStrategy {
   resource_id: string;
-  action: "skip" | "overwrite" | "rename" | "merge";
+  action: 'skip' | 'overwrite';
 }
 
 export interface MigrationReport {
@@ -255,7 +255,7 @@ export interface MigrationReportItem {
 export interface MigrationRunSummary {
   id: string;
   source_name: string;
-  status: "planned" | "applied" | "failed" | "rolled_back";
+  status: 'planned' | 'applied' | 'failed' | 'rolled_back';
   items_count: number;
   created_at: string;
   executed_at: string | null;
@@ -274,7 +274,7 @@ export interface DoctorReport {
 }
 
 export interface DoctorIssue {
-  severity: "critical" | "warning" | "info";
+  severity: 'critical' | 'warning' | 'info';
   code: string;
   message: string;
   resource_ref: string | null;

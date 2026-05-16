@@ -131,7 +131,7 @@ impl Database {
             CREATE INDEX IF NOT EXISTS idx_op_events_operation_id ON operation_events(operation_id);
             CREATE INDEX IF NOT EXISTS idx_op_events_created_at ON operation_events(created_at);
             CREATE INDEX IF NOT EXISTS idx_op_events_type ON operation_events(operation_type);
-            "
+            ",
         )?;
         Ok(())
     }
@@ -149,9 +149,9 @@ impl Database {
         ] {
             let _ = self.conn.execute_batch(migration);
         }
-        let _ = self.conn.execute_batch(
-            "CREATE INDEX IF NOT EXISTS idx_repos_canonical_path ON repositories(canonical_path)"
-        );
+        let _ = self
+            .conn
+            .execute_batch("CREATE INDEX IF NOT EXISTS idx_repos_canonical_path ON repositories(canonical_path)");
         Ok(())
     }
 }

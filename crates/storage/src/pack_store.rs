@@ -26,15 +26,11 @@ impl<'a> PackStore<'a> {
         })
     }
 
-    const SELECT_COLS: &'static str =
-        "id, name, version, description, pack_type, manifest_path, \
+    const SELECT_COLS: &'static str = "id, name, version, description, pack_type, manifest_path, \
          source_repo_id, source_commit, created_at, storage_dir";
 
     pub fn insert_pack(&self, pack: &CapabilityPack) -> Result<()> {
-        let sql = format!(
-            "INSERT INTO packs ({}) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
-            Self::SELECT_COLS
-        );
+        let sql = format!("INSERT INTO packs ({}) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)", Self::SELECT_COLS);
         self.db.conn().execute(
             &sql,
             params![
@@ -54,10 +50,7 @@ impl<'a> PackStore<'a> {
     }
 
     pub fn get_pack_by_id(&self, pack_id: &str) -> Result<Option<CapabilityPack>> {
-        let sql = format!(
-            "SELECT {} FROM packs WHERE id = ?1",
-            Self::SELECT_COLS
-        );
+        let sql = format!("SELECT {} FROM packs WHERE id = ?1", Self::SELECT_COLS);
         let mut stmt = self.db.conn().prepare(&sql)?;
         let mut rows = stmt.query_map(params![pack_id], Self::row_to_pack)?;
         match rows.next() {
@@ -67,15 +60,8 @@ impl<'a> PackStore<'a> {
         }
     }
 
-    pub fn get_pack_by_name_version(
-        &self,
-        name: &str,
-        version: &str,
-    ) -> Result<Option<CapabilityPack>> {
-        let sql = format!(
-            "SELECT {} FROM packs WHERE name = ?1 AND version = ?2",
-            Self::SELECT_COLS
-        );
+    pub fn get_pack_by_name_version(&self, name: &str, version: &str) -> Result<Option<CapabilityPack>> {
+        let sql = format!("SELECT {} FROM packs WHERE name = ?1 AND version = ?2", Self::SELECT_COLS);
         let mut stmt = self.db.conn().prepare(&sql)?;
         let mut rows = stmt.query_map(params![name, version], Self::row_to_pack)?;
         match rows.next() {
@@ -90,11 +76,7 @@ impl<'a> PackStore<'a> {
     /// When `search` is provided, matches against both name and description (case-insensitive LIKE).
     /// When `pack_type` is provided, filters to that type only.
     /// Results are ordered by created_at descending (newest first).
-    pub fn list_packs(
-        &self,
-        search: Option<&str>,
-        pack_type: Option<&str>,
-    ) -> Result<Vec<CapabilityPack>> {
+    pub fn list_packs(&self, search: Option<&str>, pack_type: Option<&str>) -> Result<Vec<CapabilityPack>> {
         let mut conditions: Vec<String> = Vec::new();
         let mut param_values: Vec<Box<dyn rusqlite::types::ToSql>> = Vec::new();
 
@@ -114,22 +96,14 @@ impl<'a> PackStore<'a> {
             param_values.push(Box::new(pattern));
         }
 
-        let where_clause = if conditions.is_empty() {
-            String::new()
-        } else {
-            format!("WHERE {}", conditions.join(" AND "))
-        };
+        let where_clause =
+            if conditions.is_empty() { String::new() } else { format!("WHERE {}", conditions.join(" AND ")) };
 
-        let sql = format!(
-            "SELECT {} FROM packs {} ORDER BY created_at DESC",
-            Self::SELECT_COLS,
-            where_clause
-        );
+        let sql = format!("SELECT {} FROM packs {} ORDER BY created_at DESC", Self::SELECT_COLS, where_clause);
 
         let mut stmt = self.db.conn().prepare(&sql)?;
 
-        let param_refs: Vec<&dyn rusqlite::types::ToSql> =
-            param_values.iter().map(|p| p.as_ref()).collect();
+        let param_refs: Vec<&dyn rusqlite::types::ToSql> = param_values.iter().map(|p| p.as_ref()).collect();
 
         let rows = stmt.query_map(param_refs.as_slice(), Self::row_to_pack)?;
 
@@ -154,10 +128,7 @@ impl<'a> PackStore<'a> {
 
         let conn = self.db.conn();
         conn.execute_batch("BEGIN")?;
-        conn.execute(
-            "DELETE FROM capability_resources WHERE pack_id = ?1",
-            params![pack_id],
-        )?;
+        conn.execute("DELETE FROM capability_resources WHERE pack_id = ?1", params![pack_id])?;
         conn.execute("DELETE FROM packs WHERE id = ?1", params![pack_id])?;
         conn.execute_batch("COMMIT")?;
 
@@ -215,22 +186,14 @@ mod tests {
         let db = setup_db();
         let store = PackStore::new(&db);
 
-        store
-            .insert_pack(&make_pack("p1", "my-pack", "1.0.0", "project"))
-            .unwrap();
-        store
-            .insert_pack(&make_pack("p2", "other-pack", "2.0.0", "blueprint"))
-            .unwrap();
+        store.insert_pack(&make_pack("p1", "my-pack", "1.0.0", "project")).unwrap();
+        store.insert_pack(&make_pack("p2", "other-pack", "2.0.0", "blueprint")).unwrap();
 
-        let found = store
-            .get_pack_by_name_version("my-pack", "1.0.0")
-            .unwrap();
+        let found = store.get_pack_by_name_version("my-pack", "1.0.0").unwrap();
         assert!(found.is_some());
         assert_eq!(found.unwrap().id, "p1");
 
-        let not_found = store
-            .get_pack_by_name_version("my-pack", "2.0.0")
-            .unwrap();
+        let not_found = store.get_pack_by_name_version("my-pack", "2.0.0").unwrap();
         assert!(not_found.is_none());
     }
 
@@ -239,9 +202,7 @@ mod tests {
         let db = setup_db();
         let store = PackStore::new(&db);
 
-        store
-            .insert_pack(&make_pack("p1", "dup-pack", "1.0.0", "project"))
-            .unwrap();
+        store.insert_pack(&make_pack("p1", "dup-pack", "1.0.0", "project")).unwrap();
 
         let result = store.insert_pack(&make_pack("p2", "dup-pack", "1.0.0", "project"));
         assert!(result.is_err());
@@ -252,12 +213,8 @@ mod tests {
         let db = setup_db();
         let store = PackStore::new(&db);
 
-        store
-            .insert_pack(&make_pack("p1", "pack-a", "1.0.0", "project"))
-            .unwrap();
-        store
-            .insert_pack(&make_pack("p2", "pack-b", "2.0.0", "blueprint"))
-            .unwrap();
+        store.insert_pack(&make_pack("p1", "pack-a", "1.0.0", "project")).unwrap();
+        store.insert_pack(&make_pack("p2", "pack-b", "2.0.0", "blueprint")).unwrap();
 
         let all = store.list_packs(None, None).unwrap();
         assert_eq!(all.len(), 2);
@@ -268,12 +225,8 @@ mod tests {
         let db = setup_db();
         let store = PackStore::new(&db);
 
-        store
-            .insert_pack(&make_pack("p1", "pack-a", "1.0.0", "project"))
-            .unwrap();
-        store
-            .insert_pack(&make_pack("p2", "pack-b", "2.0.0", "blueprint"))
-            .unwrap();
+        store.insert_pack(&make_pack("p1", "pack-a", "1.0.0", "project")).unwrap();
+        store.insert_pack(&make_pack("p2", "pack-b", "2.0.0", "blueprint")).unwrap();
 
         let projects = store.list_packs(None, Some("project")).unwrap();
         assert_eq!(projects.len(), 1);
@@ -285,12 +238,8 @@ mod tests {
         let db = setup_db();
         let store = PackStore::new(&db);
 
-        store
-            .insert_pack(&make_pack("p1", "devops-tools", "1.0.0", "project"))
-            .unwrap();
-        store
-            .insert_pack(&make_pack("p2", "frontend-setup", "1.0.0", "blueprint"))
-            .unwrap();
+        store.insert_pack(&make_pack("p1", "devops-tools", "1.0.0", "project")).unwrap();
+        store.insert_pack(&make_pack("p2", "frontend-setup", "1.0.0", "blueprint")).unwrap();
 
         let results = store.list_packs(Some("devops"), None).unwrap();
         assert_eq!(results.len(), 1);
@@ -302,9 +251,7 @@ mod tests {
         let db = setup_db();
         let store = PackStore::new(&db);
 
-        store
-            .insert_pack(&make_pack("p1", "delete-me", "1.0.0", "project"))
-            .unwrap();
+        store.insert_pack(&make_pack("p1", "delete-me", "1.0.0", "project")).unwrap();
 
         // Insert a resource linked to the pack
         db.conn()
@@ -326,11 +273,7 @@ mod tests {
         // Resources should also be deleted
         let count: i32 = db
             .conn()
-            .query_row(
-                "SELECT COUNT(*) FROM capability_resources WHERE pack_id = ?1",
-                params!["p1"],
-                |row| row.get(0),
-            )
+            .query_row("SELECT COUNT(*) FROM capability_resources WHERE pack_id = ?1", params!["p1"], |row| row.get(0))
             .unwrap();
         assert_eq!(count, 0);
     }

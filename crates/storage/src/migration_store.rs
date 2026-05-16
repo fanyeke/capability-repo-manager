@@ -60,26 +60,21 @@ impl<'a> MigrationStore<'a> {
     }
 
     pub fn update_status(&self, run_id: &str, status: &str) -> Result<()> {
-        self.db.conn().execute(
-            "UPDATE migration_runs SET status = ?1 WHERE id = ?2",
-            params![status, run_id],
-        )?;
+        self.db.conn().execute("UPDATE migration_runs SET status = ?1 WHERE id = ?2", params![status, run_id])?;
         Ok(())
     }
 
     pub fn update_snapshot(&self, run_id: &str, snapshot_json: &str) -> Result<()> {
-        self.db.conn().execute(
-            "UPDATE migration_runs SET snapshot_path = ?1 WHERE id = ?2",
-            params![snapshot_json, run_id],
-        )?;
+        self.db
+            .conn()
+            .execute("UPDATE migration_runs SET snapshot_path = ?1 WHERE id = ?2", params![snapshot_json, run_id])?;
         Ok(())
     }
 
     pub fn update_report(&self, run_id: &str, report_json: &str) -> Result<()> {
-        self.db.conn().execute(
-            "UPDATE migration_runs SET report_json = ?1 WHERE id = ?2",
-            params![report_json, run_id],
-        )?;
+        self.db
+            .conn()
+            .execute("UPDATE migration_runs SET report_json = ?1 WHERE id = ?2", params![report_json, run_id])?;
         Ok(())
     }
 

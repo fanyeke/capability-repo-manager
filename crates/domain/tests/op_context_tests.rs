@@ -24,9 +24,7 @@ fn test_builder_pattern() {
 
 #[test]
 fn test_chained_operations() {
-    let ctx = OperationContext::new("apply_migration")
-        .with_repo_id("repo-abc")
-        .with_migration_run_id("run-xyz");
+    let ctx = OperationContext::new("apply_migration").with_repo_id("repo-abc").with_migration_run_id("run-xyz");
 
     assert_eq!(ctx.operation_type, "apply_migration");
     assert_eq!(ctx.repo_id, Some("repo-abc".to_string()));
@@ -49,8 +47,7 @@ fn test_unique_operation_ids() {
 
 #[test]
 fn test_serialization_roundtrip() {
-    let ctx = OperationContext::new("run_doctor")
-        .with_repo_id("repo-1");
+    let ctx = OperationContext::new("run_doctor").with_repo_id("repo-1");
     let json = serde_json::to_string(&ctx).unwrap();
     let deserialized: OperationContext = serde_json::from_str(&json).unwrap();
     assert_eq!(deserialized.operation_type, "run_doctor");

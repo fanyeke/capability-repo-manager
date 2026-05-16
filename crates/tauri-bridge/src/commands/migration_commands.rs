@@ -55,13 +55,11 @@ pub fn build_migration_plan(
     let resource_store = ResourceStore::new(&db);
 
     let library = pack_engine::library::PackStore::new(PathBuf::from(&settings.pack_storage_dir));
-    let pack = library
-        .get_by_id(&pack_id)
-        .ok_or_else(|| {
-            let msg = format!("Pack not found: {}", pack_id);
-            tracing::error!(operation_id = %ctx.operation_id, error = %msg, "migration_plan_failed");
-            msg
-        })?;
+    let pack = library.get_by_id(&pack_id).ok_or_else(|| {
+        let msg = format!("Pack not found: {}", pack_id);
+        tracing::error!(operation_id = %ctx.operation_id, error = %msg, "migration_plan_failed");
+        msg
+    })?;
 
     let _target_repo = repo_store
         .get_by_id(&target_repo_id)
@@ -77,35 +75,27 @@ pub fn build_migration_plan(
         })?;
 
     // Check circular reference
-    migration_engine::check_circular_reference(&pack_id, &target_repo_id, pack.source_repo_id.as_deref())
-        .map_err(|e| {
+    migration_engine::check_circular_reference(&pack_id, &target_repo_id, pack.source_repo_id.as_deref()).map_err(
+        |e| {
             let msg = format!("{}", e);
             tracing::error!(operation_id = %ctx.operation_id, error = %msg, "migration_plan_failed");
             msg
-        })?;
+        },
+    )?;
 
-    let pack_resources = resource_store
-        .get_by_pack(&pack_id)
-        .map_err(|e| {
-            let msg = format!("Database error: {}", e);
-            tracing::error!(operation_id = %ctx.operation_id, error = %msg, "migration_plan_failed");
-            msg
-        })?;
+    let pack_resources = resource_store.get_by_pack(&pack_id).map_err(|e| {
+        let msg = format!("Database error: {}", e);
+        tracing::error!(operation_id = %ctx.operation_id, error = %msg, "migration_plan_failed");
+        msg
+    })?;
 
-    let target_resources = resource_store
-        .get_by_repo(&target_repo_id)
-        .map_err(|e| {
-            let msg = format!("Database error: {}", e);
-            tracing::error!(operation_id = %ctx.operation_id, error = %msg, "migration_plan_failed");
-            msg
-        })?;
+    let target_resources = resource_store.get_by_repo(&target_repo_id).map_err(|e| {
+        let msg = format!("Database error: {}", e);
+        tracing::error!(operation_id = %ctx.operation_id, error = %msg, "migration_plan_failed");
+        msg
+    })?;
 
-    let plan = migration_engine::planner::build_plan(
-        &pack_resources,
-        &target_resources,
-        &pack_id,
-        &target_repo_id,
-    );
+    let plan = migration_engine::planner::build_plan(&pack_resources, &target_resources, &pack_id, &target_repo_id);
 
     // Store the migration run in DB via migration_store
     let plan_json = serde_json::to_string(&plan).map_err(|e| {
@@ -163,8 +153,7 @@ pub fn apply_migration_plan(
     strategies: Vec<ConflictStrategy>,
     state: State<AppState>,
 ) -> Result<domain::MigrationReport, String> {
-    let ctx = OperationContext::new("apply_migration")
-        .with_migration_run_id(plan_id.clone());
+    let ctx = OperationContext::new("apply_migration").with_migration_run_id(plan_id.clone());
 
     tracing::info!(
         operation_id = %ctx.operation_id,
@@ -201,10 +190,7 @@ pub fn apply_migration_plan(
 
     // T038: Prevent re-apply — only "planned" can be executed
     if !migration_engine::can_execute(&run.status) {
-        let msg = format!(
-            "Migration plan {} has status '{}', only 'planned' can be executed",
-            plan_id, run.status
-        );
+        let msg = format!("Migration plan {} has status '{}', only 'planned' can be executed", plan_id, run.status);
         tracing::warn!(
             operation_id = %ctx.operation_id,
             plan_id = %plan_id,
@@ -215,22 +201,19 @@ pub fn apply_migration_plan(
     }
 
     // T036 step 1: Validate all ConflictStrategy actions against ConflictAction enum
-    let strategy_pairs: Vec<(String, String)> = strategies
-        .iter()
-        .map(|s| (s.resource_id.clone(), s.action.clone()))
-        .collect();
+    let strategy_pairs: Vec<(String, String)> =
+        strategies.iter().map(|s| (s.resource_id.clone(), s.action.clone())).collect();
     if let Err(e) = migration_engine::validate_strategies(&strategy_pairs) {
         let msg = format!("{}", e);
         tracing::error!(operation_id = %ctx.operation_id, error = %msg, "migration_apply_failed");
         return Err(msg);
     }
 
-    let mut plan: domain::MigrationPlan =
-        serde_json::from_str(&run.plan_json).map_err(|e| {
-            let msg = format!("Plan deserialization error: {}", e);
-            tracing::error!(operation_id = %ctx.operation_id, error = %msg, "migration_apply_failed");
-            msg
-        })?;
+    let mut plan: domain::MigrationPlan = serde_json::from_str(&run.plan_json).map_err(|e| {
+        let msg = format!("Plan deserialization error: {}", e);
+        tracing::error!(operation_id = %ctx.operation_id, error = %msg, "migration_apply_failed");
+        msg
+    })?;
 
     // Apply user conflict strategies FIRST, then validate all items
     for strategy in &strategies {
@@ -262,20 +245,16 @@ pub fn apply_migration_plan(
 
     // Get pack and target resources
     let library = pack_engine::library::PackStore::new(PathBuf::from(&settings.pack_storage_dir));
-    let pack = library
-        .get_by_id(&run.source_id)
-        .ok_or_else(|| {
-            let msg = format!("Pack not found: {}", run.source_id);
-            tracing::error!(operation_id = %ctx.operation_id, error = %msg, "migration_apply_failed");
-            msg
-        })?;
+    let pack = library.get_by_id(&run.source_id).ok_or_else(|| {
+        let msg = format!("Pack not found: {}", run.source_id);
+        tracing::error!(operation_id = %ctx.operation_id, error = %msg, "migration_apply_failed");
+        msg
+    })?;
 
     let resource_store = ResourceStore::new(&db);
     let repo_store = RepositoryStore::new(&db);
 
-    let pack_resources = resource_store
-        .get_by_pack(&run.source_id)
-        .unwrap_or_default();
+    let pack_resources = resource_store.get_by_pack(&run.source_id).unwrap_or_default();
 
     let target_repo = repo_store
         .get_by_id(&run.target_repo_id)
@@ -305,12 +284,11 @@ pub fn apply_migration_plan(
     let snapshot_dir = snapshot_base.join(&plan_id);
     let snapshot_path = snapshot_dir.to_string_lossy().to_string();
 
-    migration_engine::create_scoped_snapshot(&plan.items, &target_dir, &snapshot_dir)
-        .map_err(|e| {
-            let msg = format!("Snapshot creation failed: {}", e);
-            tracing::error!(operation_id = %ctx.operation_id, error = %msg, "migration_apply_failed");
-            msg
-        })?;
+    migration_engine::create_scoped_snapshot(&plan.items, &target_dir, &snapshot_dir).map_err(|e| {
+        let msg = format!("Snapshot creation failed: {}", e);
+        tracing::error!(operation_id = %ctx.operation_id, error = %msg, "migration_apply_failed");
+        msg
+    })?;
 
     tracing::info!(
         operation_id = %ctx.operation_id,
@@ -332,12 +310,7 @@ pub fn apply_migration_plan(
         "migration_copy_started"
     );
 
-    let report = match migration_engine::executor::execute_plan(
-        &plan,
-        &pack_resources,
-        &pack_dir,
-        &target_dir,
-    ) {
+    let report = match migration_engine::executor::execute_plan(&plan, &pack_resources, &pack_dir, &target_dir) {
         Ok(r) => r,
         Err(e) => {
             let msg = format!("Migration execution failed: {}", e);
@@ -372,14 +345,16 @@ pub fn apply_migration_plan(
         msg
     })?;
 
-    db.conn().execute(
-        "UPDATE migration_runs SET report_json = ?1, executed_at = ?2 WHERE id = ?3",
-        rusqlite::params![report_json, now, plan_id],
-    ).map_err(|e| {
-        let msg = format!("Database error: {}", e);
-        tracing::error!(operation_id = %ctx.operation_id, error = %msg, "migration_apply_failed");
-        msg
-    })?;
+    db.conn()
+        .execute(
+            "UPDATE migration_runs SET report_json = ?1, executed_at = ?2 WHERE id = ?3",
+            rusqlite::params![report_json, now, plan_id],
+        )
+        .map_err(|e| {
+            let msg = format!("Database error: {}", e);
+            tracing::error!(operation_id = %ctx.operation_id, error = %msg, "migration_apply_failed");
+            msg
+        })?;
 
     tracing::info!(
         operation_id = %ctx.operation_id,
@@ -405,12 +380,8 @@ pub fn apply_migration_plan(
 }
 
 #[tauri::command]
-pub fn rollback_migration(
-    run_id: String,
-    state: State<AppState>,
-) -> Result<RollbackResult, String> {
-    let ctx = OperationContext::new("rollback_migration")
-        .with_migration_run_id(run_id.clone());
+pub fn rollback_migration(run_id: String, state: State<AppState>) -> Result<RollbackResult, String> {
+    let ctx = OperationContext::new("rollback_migration").with_migration_run_id(run_id.clone());
 
     tracing::info!(
         operation_id = %ctx.operation_id,
@@ -454,13 +425,11 @@ pub fn rollback_migration(
         return Err(msg);
     }
 
-    let snapshot_path = run
-        .snapshot_path
-        .ok_or_else(|| {
-            let msg = "No snapshot available for rollback".to_string();
-            tracing::error!(operation_id = %ctx.operation_id, error = %msg, "rollback_failed");
-            msg
-        })?;
+    let snapshot_path = run.snapshot_path.ok_or_else(|| {
+        let msg = "No snapshot available for rollback".to_string();
+        tracing::error!(operation_id = %ctx.operation_id, error = %msg, "rollback_failed");
+        msg
+    })?;
 
     let repo_store = RepositoryStore::new(&db);
     let target_repo = repo_store
@@ -487,12 +456,11 @@ pub fn rollback_migration(
         "rollback_restored"
     );
 
-    migration_engine::restore_scoped(&snapshot_dir, &target_dir)
-        .map_err(|e| {
-            let msg = format!("Rollback failed: {}", e);
-            tracing::error!(operation_id = %ctx.operation_id, error = %msg, "rollback_failed");
-            msg
-        })?;
+    migration_engine::restore_scoped(&snapshot_dir, &target_dir).map_err(|e| {
+        let msg = format!("Rollback failed: {}", e);
+        tracing::error!(operation_id = %ctx.operation_id, error = %msg, "rollback_failed");
+        msg
+    })?;
 
     // Update status to rolled_back
     store.update_status(&run_id, "rolled_back").map_err(|e| {
@@ -526,24 +494,15 @@ pub fn rollback_migration(
         detail_json: None,
     });
 
-    Ok(RollbackResult {
-        success: true,
-        restored: 0,
-        message: "Migration rolled back successfully".to_string(),
-    })
+    Ok(RollbackResult { success: true, restored: 0, message: "Migration rolled back successfully".to_string() })
 }
 
 #[tauri::command]
-pub fn get_migration_history(
-    repo_id: String,
-    state: State<AppState>,
-) -> Result<Vec<domain::MigrationRun>, String> {
+pub fn get_migration_history(repo_id: String, state: State<AppState>) -> Result<Vec<domain::MigrationRun>, String> {
     let db = state.db.lock().map_err(|e| e.to_string())?;
     let store = MigrationStore::new(&db);
 
-    store
-        .list_by_repo(&repo_id)
-        .map_err(|e| format!("Database error: {}", e))
+    store.list_by_repo(&repo_id).map_err(|e| format!("Database error: {}", e))
 }
 
 fn dirs_or_default_snapshots(_repo_path: &str) -> PathBuf {

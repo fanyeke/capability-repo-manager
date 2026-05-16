@@ -260,7 +260,8 @@
     "merge": "合并"
   },
   "capability": {
-    "all": "全部"
+    "all": "全部",
+    "no_resources": "无资源"
   },
   "common": {
     "save": "保存",

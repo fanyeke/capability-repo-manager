@@ -1,8 +1,8 @@
-import { mount } from "svelte";
-import App from "./App.svelte";
+import { mount } from 'svelte';
+import App from './App.svelte';
 
 function renderBootFailure(error: unknown) {
-  const root = document.getElementById("app");
+  const root = document.getElementById('app');
   if (!root) return;
   root.innerHTML = `
     <div style="padding: 40px; font-family: sans-serif; max-width: 600px; margin: 0 auto;">
@@ -13,21 +13,21 @@ function renderBootFailure(error: unknown) {
     </div>`;
 }
 
-window.addEventListener("error", (event) => {
-  console.error("[FATAL]", event.error || event.message);
+window.addEventListener('error', (event) => {
+  console.error('[FATAL]', event.error || event.message);
 });
 
-window.addEventListener("unhandledrejection", (event) => {
-  console.error("[FATAL Unhandled]", event.reason);
+window.addEventListener('unhandledrejection', (event) => {
+  console.error('[FATAL Unhandled]', event.reason);
 });
 
 let app;
 try {
   app = mount(App, {
-    target: document.getElementById("app")!,
+    target: document.getElementById('app')!,
   });
 } catch (error) {
-  console.error("[FATAL] App mount failed:", error);
+  console.error('[FATAL] App mount failed:', error);
   renderBootFailure(error);
 }
 

@@ -1,6 +1,10 @@
 <script lang="ts">
-  import { _ } from "svelte-i18n";
-  let { title = "出现了问题", message = "", detail = "" }: {
+  import { _ } from 'svelte-i18n';
+  let {
+    title = '出现了问题',
+    message = '',
+    detail = '',
+  }: {
     title?: string;
     message?: string;
     detail?: string;

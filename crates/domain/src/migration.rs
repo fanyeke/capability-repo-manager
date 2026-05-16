@@ -6,8 +6,6 @@ use serde::{Deserialize, Serialize};
 pub enum ConflictAction {
     Skip,
     Overwrite,
-    Rename,
-    Merge,
 }
 
 impl FromStr for ConflictAction {
@@ -17,8 +15,6 @@ impl FromStr for ConflictAction {
         match s {
             "skip" => Ok(Self::Skip),
             "overwrite" => Ok(Self::Overwrite),
-            "rename" => Ok(Self::Rename),
-            "merge" => Ok(Self::Merge),
             _ => Err(()),
         }
     }
@@ -29,8 +25,6 @@ impl ConflictAction {
         match self {
             Self::Skip => "skip",
             Self::Overwrite => "overwrite",
-            Self::Rename => "rename",
-            Self::Merge => "merge",
         }
     }
 }

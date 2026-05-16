@@ -1,11 +1,17 @@
 <script lang="ts">
-  import { currentPage, navigateTo, navigateToRepo } from "$lib/stores/uiStore";
-  import { repos, filteredRepos, scanRepositories, loadRepos, selectRepo, isLoading } from "$lib/stores/repoStore";
-  import RepoList from "$lib/components/RepoList.svelte";
-  import { _ } from "svelte-i18n";
-  import { onMount } from "svelte";
-
-  let filter = $state({});
+  import { currentPage, navigateTo, navigateToRepo } from '$lib/stores/uiStore';
+  import {
+    repos,
+    filteredRepos,
+    scanRepositories,
+    loadRepos,
+    selectRepo,
+    isLoading,
+    repoFilter,
+  } from '$lib/stores/repoStore';
+  import RepoList from '$lib/components/RepoList.svelte';
+  import { _ } from 'svelte-i18n';
+  import { onMount } from 'svelte';
 
   onMount(() => {
     isLoading.set(false);
@@ -17,16 +23,16 @@
     if (settings.scan_roots.length > 0) {
       await scanRepositories(settings.scan_roots);
     } else {
-      currentPage.set("guidedsetup");
+      currentPage.set('guidedsetup');
     }
   }
 
   async function getSettings() {
-    const { invoke } = await import("@tauri-apps/api/core");
+    const { invoke } = await import('@tauri-apps/api/core');
     return await invoke<{
       scan_roots: string[];
       scan_depth: number;
-    }>("get_settings");
+    }>('get_settings');
   }
 
   function handleSelectRepo(repoId: string) {
@@ -35,7 +41,7 @@
   }
 
   function handleFilterChange(newFilter: any) {
-    filter = newFilter;
+    repoFilter.set(newFilter);
   }
 </script>
 
@@ -43,12 +49,20 @@
   <header class="dashboard-header">
     <h1>{$_('app.title')}</h1>
     <nav class="nav-links">
-      <button class="nav-btn" onclick={() => currentPage.set("settings")}>{$_('nav.settings')}</button>
-      <button class="nav-btn" onclick={() => currentPage.set("packexport")}>{$_('nav.export')}</button>
-      <button class="nav-btn" onclick={() => currentPage.set("packapply")}>{$_('nav.apply')}</button>
-      <button class="nav-btn" onclick={() => currentPage.set("doctor")}>{$_('nav.doctor')}</button>
-      <button class="nav-btn" onclick={() => currentPage.set("compare")}>{$_('nav.compare')}</button>
-      <button class="nav-btn" onclick={() => currentPage.set("activity")}>{$_('nav.activity')}</button>
+      <button class="nav-btn" onclick={() => currentPage.set('settings')}
+        >{$_('nav.settings')}</button
+      >
+      <button class="nav-btn" onclick={() => currentPage.set('packexport')}
+        >{$_('nav.export')}</button
+      >
+      <button class="nav-btn" onclick={() => currentPage.set('packapply')}>{$_('nav.apply')}</button
+      >
+      <button class="nav-btn" onclick={() => currentPage.set('doctor')}>{$_('nav.doctor')}</button>
+      <button class="nav-btn" onclick={() => currentPage.set('compare')}>{$_('nav.compare')}</button
+      >
+      <button class="nav-btn" onclick={() => currentPage.set('activity')}
+        >{$_('nav.activity')}</button
+      >
     </nav>
   </header>
 
@@ -58,7 +72,7 @@
     {:else}
       <RepoList
         repos={$filteredRepos}
-        filter={filter}
+        filter={$repoFilter}
         isLoading={$isLoading}
         onSelectRepo={handleSelectRepo}
         onFilterChange={handleFilterChange}

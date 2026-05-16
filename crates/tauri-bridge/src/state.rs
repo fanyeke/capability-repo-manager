@@ -41,18 +41,14 @@ impl Default for AppSettings {
 }
 
 fn default_pack_dir() -> String {
-    std::env::var("HOME")
-        .map(|h| format!("{}/.capability-repo-manager/packs", h))
-        .unwrap_or_else(|_| ".".into())
+    std::env::var("HOME").map(|h| format!("{}/.capability-repo-manager/packs", h)).unwrap_or_else(|_| ".".into())
 }
 
 /// Load settings from `~/.capability-repo-manager/settings.json`.
 /// Returns `None` if the file doesn't exist or can't be read.
 fn load_settings_from_file() -> Option<AppSettings> {
     let home = std::env::var("HOME").unwrap_or_else(|_| ".".into());
-    let path = std::path::PathBuf::from(home)
-        .join(".capability-repo-manager")
-        .join("settings.json");
+    let path = std::path::PathBuf::from(home).join(".capability-repo-manager").join("settings.json");
     if !path.exists() {
         return None;
     }
@@ -76,15 +72,9 @@ impl AppState {
 
         // Log the app_start event
         let home = std::env::var("HOME").unwrap_or_else(|_| ".".into());
-        let settings_path = std::path::PathBuf::from(&home)
-            .join(".capability-repo-manager")
-            .join("settings.json");
+        let settings_path = std::path::PathBuf::from(&home).join(".capability-repo-manager").join("settings.json");
         crate::log_app_start(db_path, &settings_path.to_string_lossy());
 
-        Ok(Self {
-            db: Mutex::new(db),
-            settings: Mutex::new(settings),
-            _log_guard: Some(log_guard),
-        })
+        Ok(Self { db: Mutex::new(db), settings: Mutex::new(settings), _log_guard: Some(log_guard) })
     }
 }

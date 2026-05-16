@@ -102,10 +102,8 @@ fn extract_script_path(command: &str) -> Option<String> {
     let candidates: Vec<&str> = parts
         .iter()
         .filter(|p| {
-            !matches!(
-                **p,
-                "bash" | "sh" | "zsh" | "node" | "python" | "python3" | "ruby" | "perl" | "php"
-            ) && !p.starts_with('-')
+            !matches!(**p, "bash" | "sh" | "zsh" | "node" | "python" | "python3" | "ruby" | "perl" | "php")
+                && !p.starts_with('-')
                 && !p.starts_with("--")
                 && !p.starts_with('$')
                 && !p.starts_with("${")
@@ -191,9 +189,7 @@ pub fn check_mcp_config(mcp_json: Option<&str>) -> Vec<DoctorIssue> {
                 code: "MCP_CONFIG_PARSE_ERROR".to_string(),
                 message: format!("MCP configuration file (mcp.json) contains invalid JSON: {}", e),
                 resource_ref: None,
-                recommendation: Some(
-                    "Validate the JSON syntax of .claude/mcp.json using a JSON validator".to_string(),
-                ),
+                recommendation: Some("Validate the JSON syntax of .claude/mcp.json using a JSON validator".to_string()),
             });
             return issues;
         }
@@ -222,10 +218,7 @@ pub fn check_mcp_config(mcp_json: Option<&str>) -> Vec<DoctorIssue> {
                 issues.push(DoctorIssue {
                     severity: "critical".to_string(),
                     code: "MCP_CONFIG_MISSING_NAME".to_string(),
-                    message: format!(
-                        "MCP server at index {} is missing the required 'name' field",
-                        i
-                    ),
+                    message: format!("MCP server at index {} is missing the required 'name' field", i),
                     resource_ref: None,
                     recommendation: Some(format!(
                         "Add a 'name' field to the MCP server at index {} in .claude/mcp.json",
@@ -245,18 +238,12 @@ mod tests {
 
     #[test]
     fn extract_script_path_simple() {
-        assert_eq!(
-            extract_script_path("bash scripts/deploy.sh"),
-            Some("scripts/deploy.sh".to_string())
-        );
+        assert_eq!(extract_script_path("bash scripts/deploy.sh"), Some("scripts/deploy.sh".to_string()));
     }
 
     #[test]
     fn extract_script_path_node() {
-        assert_eq!(
-            extract_script_path("node server.js --flag"),
-            Some("server.js".to_string())
-        );
+        assert_eq!(extract_script_path("node server.js --flag"), Some("server.js".to_string()));
     }
 
     #[test]

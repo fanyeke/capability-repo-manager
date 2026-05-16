@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach } from "vitest";
-import { get } from "svelte/store";
+import { describe, it, expect, beforeEach } from 'vitest';
+import { get } from 'svelte/store';
 import {
   report,
   isLoading,
@@ -8,74 +8,73 @@ import {
   clearError,
   groupIssuesBySeverity,
   getScoreColor,
-} from "$lib/stores/doctorStore";
-import type { DoctorIssue } from "$lib/types";
+} from '$lib/stores/doctorStore';
+import type { DoctorIssue } from '$lib/types';
 
-describe("doctorStore", () => {
+describe('doctorStore', () => {
   beforeEach(() => {
     report.set(null);
     isLoading.set(false);
     error.set(null);
   });
 
-  describe("groupIssuesBySeverity", () => {
+  describe('groupIssuesBySeverity', () => {
     const makeIssues = (severities: string[]): DoctorIssue[] =>
       severities.map((s) => ({
-        severity: s as "critical" | "warning" | "info",
-        code: "TEST",
-        message: "test",
+        severity: s as 'critical' | 'warning' | 'info',
+        code: 'TEST',
+        message: 'test',
         resource_ref: null,
         recommendation: null,
       }));
 
-    it("groups critical issues", () => {
-      const issues = makeIssues(["critical", "warning", "critical"]);
+    it('groups critical issues', () => {
+      const issues = makeIssues(['critical', 'warning', 'critical']);
       const groups = groupIssuesBySeverity(issues);
       expect(groups.critical).toHaveLength(2);
     });
 
-    it("groups warning issues", () => {
-      const issues = makeIssues(["warning", "info", "warning", "critical"]);
+    it('groups warning issues', () => {
+      const issues = makeIssues(['warning', 'info', 'warning', 'critical']);
       const groups = groupIssuesBySeverity(issues);
       expect(groups.warning).toHaveLength(2);
     });
 
-    it("groups info issues", () => {
-      const issues = makeIssues(["info", "warning"]);
+    it('groups info issues', () => {
+      const issues = makeIssues(['info', 'warning']);
       const groups = groupIssuesBySeverity(issues);
       expect(groups.info).toHaveLength(1);
     });
   });
 
-  describe("getScoreColor", () => {
-    it("returns green for good scores", () => {
-      expect(getScoreColor(100)).toBe("#22c55e");
-      expect(getScoreColor(80)).toBe("#22c55e");
+  describe('getScoreColor', () => {
+    it('returns green for good scores', () => {
+      expect(getScoreColor(100)).toBe('#22c55e');
+      expect(getScoreColor(80)).toBe('#22c55e');
     });
 
-    it("returns yellow for medium scores", () => {
-      expect(getScoreColor(70)).toBe("#eab308");
-      expect(getScoreColor(50)).toBe("#eab308");
+    it('returns yellow for medium scores', () => {
+      expect(getScoreColor(70)).toBe('#eab308');
+      expect(getScoreColor(50)).toBe('#eab308');
     });
 
-    it("returns red for poor scores", () => {
-      expect(getScoreColor(49)).toBe("#ef4444");
-      expect(getScoreColor(0)).toBe("#ef4444");
+    it('returns red for poor scores', () => {
+      expect(getScoreColor(49)).toBe('#ef4444');
+      expect(getScoreColor(0)).toBe('#ef4444');
     });
   });
 
-  
-  describe("clearReport", () => {
-    it("resets report to null", () => {
+  describe('clearReport', () => {
+    it('resets report to null', () => {
       report.set({} as any);
       clearReport();
       expect(get(report)).toBeNull();
     });
   });
 
-  describe("clearError", () => {
-    it("resets error to null", () => {
-      error.set("something went wrong");
+  describe('clearError', () => {
+    it('resets error to null', () => {
+      error.set('something went wrong');
       clearError();
       expect(get(error)).toBeNull();
     });
