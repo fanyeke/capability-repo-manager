@@ -98,6 +98,7 @@
     "theme": "主题",
     "reduced_motion": "减少动效",
     "reduced_motion_hint": "禁用非必要动画效果",
+    "zoom_level": "界面缩放",
     "preview": "配置预览",
     "log_level": "日志级别",
     "log_level_hint": "日志输出的详细程度（文件输出需要重启应用）",

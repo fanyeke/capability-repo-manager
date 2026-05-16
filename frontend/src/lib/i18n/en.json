@@ -98,6 +98,7 @@
     "theme": "Theme",
     "reduced_motion": "Reduced Motion",
     "reduced_motion_hint": "Disable non-essential animations",
+    "zoom_level": "UI Zoom",
     "preview": "Configuration Preview",
     "log_level": "Log Level",
     "log_level_hint": "Verbosity of log output (restart required for file output)",

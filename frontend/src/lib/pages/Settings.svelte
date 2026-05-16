@@ -7,7 +7,9 @@
   import Card from '$lib/components/Card.svelte';
   import Field from '$lib/components/Field.svelte';
   import DirectoryPicker from '$lib/components/DirectoryPicker.svelte';
+  import { zoomLevel as zoomStore, zoomIn, zoomOut, resetZoom } from '$lib/stores/zoomStore';
   import { onMount } from 'svelte';
+  import { get } from 'svelte/store';
 
   interface SettingsData {
     scan_roots: string[];
@@ -32,6 +34,8 @@
   let activeGroup = $state<string>('scan');
   let isLoading = $state(false);
   let newRoot = $state('');
+  let selectedZoom = $state('100');
+  onMount(() => { selectedZoom = String(get(zoomStore)); });
 
   const groups = [
     { id: 'scan', label: $_('settings.group_scan') },
@@ -168,6 +172,17 @@
               <option value="dark">Dark</option>
               <option value="light">Light</option>
               <option value="system">System</option>
+            </select>
+          </Field>
+          <Field label={$_('settings.zoom_level')}>
+            <select bind:value={selectedZoom} class="form-select log-select" onchange={() => zoomStore.set(Number(selectedZoom))}>
+              <option value="60">60%</option>
+              <option value="80">80%</option>
+              <option value="90">90%</option>
+              <option value="100">100%</option>
+              <option value="110">110%</option>
+              <option value="120">120%</option>
+              <option value="150">150%</option>
             </select>
           </Field>
           <Field label={$_('settings.reduced_motion')}>

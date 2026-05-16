@@ -16,6 +16,8 @@ export interface Repository {
   capability_index_status: 'never_indexed' | 'fresh' | 'stale' | 'parse_failed';
   last_capability_indexed_at: string | null;
   last_capability_error: string | null;
+  pinned?: boolean;
+  tags?: string[];
 }
 
 export interface RepositorySummary {
@@ -35,6 +37,7 @@ export interface RepositorySummary {
   last_capability_error: string | null;
   doctor_score: number | null;
   last_indexed_at: string;
+  pinned?: boolean;
 }
 
 export interface RepoDetail {

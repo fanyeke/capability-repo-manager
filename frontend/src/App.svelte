@@ -123,6 +123,12 @@
       <GuidedSetup />
     {:else if $currentPage === 'dashboard' || $currentPage === 'repositories'}
       <Dashboard />
+    {:else if $currentPage === 'packexport'}
+      {#if PackExport}
+        <PackExport />
+      {:else}
+        <div class="page-loading">{$_('app.loading')}</div>
+      {/if}
     {:else if $currentPage === 'migration' || $currentPage === 'packapply'}
       {#if PackApply}
         <PackApply />

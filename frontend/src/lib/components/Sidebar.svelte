@@ -26,7 +26,7 @@
   const navRouteMap: Record<string, string> = {
     dashboard: 'dashboard',
     repositories: 'repositories',
-    packs: 'packapply',
+    packs: 'packexport',
     migration: 'migration',
     doctor: 'doctor',
     compare: 'compare',

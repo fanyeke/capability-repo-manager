@@ -35,20 +35,21 @@ export const filteredRepos = derived([repos, repoFilter], ([$repos, $filter]) =>
     result = result.filter((r) => r.dirty_state !== 'clean');
   }
 
-  if ($filter.sort_by) {
-    const key = $filter.sort_by as keyof RepositorySummary;
-    const desc = $filter.sort_order === 'desc';
-    result.sort((a, b) => {
+  // Pinned repos always first
+  result.sort((a, b) => {
+    if (a.pinned && !b.pinned) return -1;
+    if (!a.pinned && b.pinned) return 1;
+    // Secondary sort by requested field
+    if ($filter.sort_by) {
+      const key = $filter.sort_by as keyof RepositorySummary;
+      const desc = $filter.sort_order === 'desc';
       const va = a[key] ?? '';
       const vb = b[key] ?? '';
       if (va < vb) return desc ? 1 : -1;
       if (va > vb) return desc ? -1 : 1;
-      return 0;
-    });
-  } else {
-    // Default sort by name ascending
-    result.sort((a, b) => a.name.localeCompare(b.name));
-  }
+    }
+    return a.name.localeCompare(b.name);
+  });
 
   return result;
 });

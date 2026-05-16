@@ -5,6 +5,7 @@ use tauri::State;
 
 use crate::state::AppState;
 use domain::CapabilityResource;
+use storage::pack_store::PackStore;
 use storage::repo_store::RepositoryStore;
 use storage::resource_store::ResourceStore;
 
@@ -83,15 +84,21 @@ pub fn get_resource_content(resource_id: String, state: State<AppState>) -> Resu
         _ => return Ok(ResourceContent { content: None, language: "text".to_string(), size_bytes: 0, exists: false, is_binary: false, error: Some("No source path".to_string()) }),
     };
 
-    // Resolve base directory from repo_id
+    // Resolve base directory from repo_id or pack_id
     let base_dir = if let Some(ref repo_id) = resource.repo_id {
         let repo_store = RepositoryStore::new(&db);
         match repo_store.get_by_id(repo_id) {
             Ok(Some(repo)) => repo.path,
             _ => return Ok(ResourceContent { content: None, language: "text".to_string(), size_bytes: 0, exists: false, is_binary: false, error: Some("Repository not found".to_string()) }),
         }
+    } else if let Some(ref pack_id) = resource.pack_id {
+        let pack_store = PackStore::new(&db);
+        match pack_store.get_pack_by_id(pack_id) {
+            Ok(Some(pack)) => pack.storage_dir,
+            _ => return Ok(ResourceContent { content: None, language: "text".to_string(), size_bytes: 0, exists: false, is_binary: false, error: Some("Pack not found".to_string()) }),
+        }
     } else {
-        return Ok(ResourceContent { content: None, language: "text".to_string(), size_bytes: 0, exists: false, is_binary: false, error: Some("Content not available for pack resources".to_string()) });
+        return Ok(ResourceContent { content: None, language: "text".to_string(), size_bytes: 0, exists: false, is_binary: false, error: Some("No repo or pack reference".to_string()) });
     };
 
     // Resolve path and prevent traversal
