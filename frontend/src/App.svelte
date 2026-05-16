@@ -25,6 +25,15 @@
     setupI18n();
     await waitForI18n();
 
+    // System theme listener
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    function onSystemChange() {
+      if ($theme === 'system') {
+        document.documentElement.dataset.theme = mq.matches ? 'dark' : 'light';
+      }
+    }
+    mq.addEventListener('change', onSystemChange);
+
     // Zoom keyboard shortcuts: Ctrl/Cmd +/-
     function handleKeydown(e: KeyboardEvent) {
       if (!(e.ctrlKey || e.metaKey)) return;
