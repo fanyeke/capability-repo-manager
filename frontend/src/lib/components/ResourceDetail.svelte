@@ -65,102 +65,89 @@
 <style>
   .resource-empty {
     text-align: center;
-    color: #94a3b8;
-    padding: 40px 0;
+    color: var(--text-muted);
+    padding: var(--space-8) 0;
   }
   .resource-detail {
-    padding: 16px;
+    padding: var(--space-4);
   }
   .detail-header {
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin-bottom: 20px;
+    gap: var(--space-2);
+    margin-bottom: var(--space-4);
   }
   .detail-header h3 {
     margin: 0;
-    font-size: 1.15rem;
+    font-size: var(--font-size-md);
   }
   .type-badge {
-    padding: 3px 10px;
-    border-radius: 12px;
-    font-size: 0.75rem;
+    padding: 2px 8px;
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-xs);
     text-transform: uppercase;
-    background: #e0e7ff;
-    color: #3730a3;
+    background: var(--color-info-bg);
+    color: var(--color-info);
   }
   .detail-fields {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: var(--space-3);
   }
   .field label {
     display: block;
-    font-size: 0.75rem;
-    color: #64748b;
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
     margin-bottom: 2px;
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
   .field code {
-    background: #f1f5f9;
+    background: var(--bg-elevated);
     padding: 2px 6px;
-    border-radius: 3px;
-    font-size: 0.85rem;
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
   }
   .field code.hash {
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     word-break: break-all;
   }
   .scope-badge {
     padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 0.8rem;
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
   }
-  .scope-project {
-    background: #dbeafe;
-    color: #1e40af;
-  }
-  .scope-local {
-    background: #fef3c7;
-    color: #92400e;
-  }
-  .scope-user {
-    background: #ede9fe;
-    color: #5b21b6;
-  }
-  .scope-inherited {
-    background: #fce7f3;
-    color: #831843;
-  }
-  .scope-unknown {
-    background: #f1f5f9;
-    color: #64748b;
-  }
+  .scope-project { background: var(--color-info-bg); color: var(--color-info); }
+  .scope-local { background: var(--color-warning-bg); color: var(--color-warning); }
+  .scope-user { background: var(--color-primary-bg); color: var(--color-primary-text); }
+  .scope-inherited { background: var(--color-danger-bg); color: var(--color-danger); }
+  .scope-unknown { background: var(--bg-elevated); color: var(--text-muted); }
   .metadata {
-    background: #f8fafc;
-    padding: 8px;
-    border-radius: 4px;
-    font-size: 0.8rem;
+    background: var(--bg-elevated);
+    padding: var(--space-2);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-xs);
     max-height: 200px;
     overflow: auto;
     white-space: pre-wrap;
     word-break: break-all;
+    color: var(--text-secondary);
   }
   .error-box {
-    margin-top: 16px;
-    padding: 12px;
-    background: #fef2f2;
-    border: 1px solid #fecaca;
-    border-radius: 6px;
+    margin-top: var(--space-4);
+    padding: var(--space-3);
+    background: var(--color-danger-bg);
+    border: 1px solid var(--color-danger);
+    border-radius: var(--radius-md);
   }
   .error-box strong {
-    color: #dc2626;
-    font-size: 0.85rem;
+    color: var(--color-danger);
+    font-size: var(--font-size-sm);
   }
   .error-box p {
-    color: #991b1b;
-    font-size: 0.85rem;
-    margin: 4px 0 0 0;
+    color: var(--color-danger);
+    font-size: var(--font-size-sm);
+    margin: var(--space-1) 0 0 0;
   }
 </style>

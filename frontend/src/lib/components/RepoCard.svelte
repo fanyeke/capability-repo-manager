@@ -14,7 +14,7 @@
 <article
   class="repo-card"
   onclick={() => onSelect(repo.id)}
-  onkeydown={() => {}}
+  onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(repo.id); } }}
   role="button"
   tabindex="0"
 >
@@ -74,77 +74,77 @@
 
 <style>
   .repo-card {
-    background: var(--card-bg, #fff);
-    border: 1px solid var(--border-color, #e2e8f0);
-    border-radius: 8px;
-    padding: 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
     cursor: pointer;
     transition:
-      box-shadow 0.15s,
-      border-color 0.15s;
+      box-shadow var(--transition-fast),
+      border-color var(--transition-fast);
   }
   .repo-card:hover {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    border-color: var(--primary, #3b82f6);
+    box-shadow: var(--shadow-sm);
+    border-color: var(--color-primary);
   }
   .card-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 8px;
+    margin-bottom: var(--space-2);
   }
   .repo-name {
     margin: 0;
-    font-size: 1.05rem;
+    font-size: var(--font-size-md);
     font-weight: 600;
   }
   .dirty-badge {
-    font-size: 0.7rem;
+    font-size: var(--font-size-xs);
     padding: 2px 8px;
-    border-radius: 12px;
+    border-radius: var(--radius-full);
     text-transform: uppercase;
   }
   .dirty-badge.clean {
-    background: #dcfce7;
-    color: #166534;
+    background: var(--color-success-bg);
+    color: var(--color-success);
   }
   .dirty-badge.modified {
-    background: #fef3c7;
-    color: #92400e;
+    background: var(--color-warning-bg);
+    color: var(--color-warning);
   }
   .repo-path {
-    color: #64748b;
-    font-size: 0.8rem;
-    margin: 4px 0;
+    color: var(--text-muted);
+    font-size: var(--font-size-xs);
+    margin: var(--space-1) 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
   .branch-tag {
     display: inline-block;
-    background: #ede9fe;
-    color: #5b21b6;
-    font-size: 0.75rem;
+    background: var(--color-primary-bg);
+    color: var(--color-primary-text);
+    font-size: var(--font-size-xs);
     padding: 1px 8px;
-    border-radius: 4px;
-    margin-bottom: 8px;
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-2);
   }
   .capability-counts {
     display: flex;
-    gap: 6px;
+    gap: var(--space-1);
     flex-wrap: wrap;
-    margin: 8px 0;
+    margin: var(--space-2) 0;
   }
   .count-badge {
-    font-size: 0.7rem;
+    font-size: var(--font-size-xs);
     padding: 2px 6px;
-    border-radius: 4px;
-    background: #f1f5f9;
-    color: #475569;
+    border-radius: var(--radius-sm);
+    background: var(--bg-elevated);
+    color: var(--text-secondary);
   }
   .card-footer {
-    margin-top: 8px;
-    font-size: 0.7rem;
-    color: #94a3b8;
+    margin-top: var(--space-2);
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
   }
 </style>
