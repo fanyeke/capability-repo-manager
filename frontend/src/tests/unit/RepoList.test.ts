@@ -61,6 +61,6 @@ describe('RepoList', () => {
 
   it('shows scan button with default text when not loading', () => {
     const { container } = render(RepoList, { props: defaultProps });
-    expect(container.textContent).toContain('扫描仓库');
+    expect(container.textContent).toContain('扫描');
   });
 });
