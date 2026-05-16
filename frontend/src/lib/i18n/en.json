@@ -41,11 +41,22 @@
   "guided_setup": {
     "title": "Welcome to Capability Repo Manager",
     "intro": "Discover and manage Claude Code capabilities across your local Git repositories.",
+    "step_paths": "Scan Paths",
+    "step_config": "Configuration",
+    "step_scan": "Scanning",
     "add_scan_dirs": "Add Scan Directories",
-    "scan_desc": "Enter the paths to directories containing your Git repositories. Separate multiple paths with commas or spaces.",
+    "scan_desc": "Enter the paths to directories containing your Git repositories.",
     "scan_placeholder": "e.g. /home/user/projects, /home/user/work",
+    "paths_hint": "Press Enter to add each path",
+    "config_title": "Scan Configuration",
+    "ignore_patterns": "Ignore Patterns (comma separated)",
+    "ignore_hint": "Directories matching these patterns will be skipped",
+    "scan_depth": "Scan Depth",
     "scan": "Scan Repositories",
     "scanning": "Scanning...",
+    "scanning_title": "Scanning in progress...",
+    "scanning_hint": "Scanning {count} path(s). This may take a moment.",
+    "scan_error": "Scan failed",
     "cancel": "Cancel",
     "skip": "Skip for now",
     "what_discovered": "What will be discovered?",
@@ -276,6 +287,9 @@
     "confirm": "Confirm",
     "search": "Search",
     "filter": "Filter",
-    "sort": "Sort"
+    "sort": "Sort",
+    "add": "Add",
+    "next": "Next",
+    "back": "Back"
   }
 }

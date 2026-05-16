@@ -41,11 +41,22 @@
   "guided_setup": {
     "title": "欢迎使用能力仓库管理器",
     "intro": "发现并管理本地 Git 仓库中的 Claude Code 能力配置。",
+    "step_paths": "扫描路径",
+    "step_config": "配置",
+    "step_scan": "扫描中",
     "add_scan_dirs": "添加扫描目录",
-    "scan_desc": "输入包含 Git 仓库的目录路径。多个路径请用逗号或空格分隔。",
+    "scan_desc": "输入包含 Git 仓库的目录路径。",
     "scan_placeholder": "例如：/home/user/projects, /home/user/work",
+    "paths_hint": "按回车键添加每个路径",
+    "config_title": "扫描配置",
+    "ignore_patterns": "忽略模式（逗号分隔）",
+    "ignore_hint": "匹配这些模式的目录将被跳过",
+    "scan_depth": "扫描深度",
     "scan": "扫描仓库",
     "scanning": "正在扫描...",
+    "scanning_title": "扫描进行中...",
+    "scanning_hint": "正在扫描 {count} 个路径。这可能需要一些时间。",
+    "scan_error": "扫描失败",
     "cancel": "取消",
     "skip": "跳过",
     "what_discovered": "将会发现什么？",
@@ -276,6 +287,9 @@
     "confirm": "确认",
     "search": "搜索",
     "filter": "筛选",
-    "sort": "排序"
+    "sort": "排序",
+    "add": "添加",
+    "next": "下一步",
+    "back": "返回"
   }
 }
