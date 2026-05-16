@@ -139,23 +139,23 @@
     display: flex;
     justify-content: space-between;
     padding: 16px 24px;
-    border-bottom: 1px solid #e2e8f0;
-    background: #fff;
+    border-bottom: 1px solid var(--border-default);
+    background: var(--bg-card);
   }
   .page-header h1 {
     margin: 0;
   }
   .back-btn {
     padding: 8px 16px;
-    background: #fff;
-    border: 1px solid #e2e8f0;
+    background: var(--bg-card);
+    border: 1px solid var(--border-default);
     border-radius: 6px;
     cursor: pointer;
   }
   .compare-content {
     flex: 1;
     padding: 24px;
-    background: #f8fafc;
+    background: var(--bg-elevated);
   }
   .mode-tabs {
     display: flex;
@@ -164,21 +164,21 @@
   }
   .mode-btn {
     padding: 10px 20px;
-    background: #fff;
-    border: 1px solid #e2e8f0;
+    background: var(--bg-card);
+    border: 1px solid var(--border-default);
     border-radius: 6px;
     cursor: pointer;
   }
   .mode-btn.active {
     background: var(--primary, #3b82f6);
-    color: #fff;
+    color: var(--text-inverse);
     border-color: var(--primary, #3b82f6);
   }
   .select-section {
-    background: #fff;
+    background: var(--bg-card);
     padding: 20px;
     border-radius: 8px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--border-default);
     margin-bottom: 24px;
   }
   .select-row {
@@ -196,7 +196,7 @@
   .select-panel select {
     width: 100%;
     padding: 10px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--border-default);
     border-radius: 6px;
     font-size: 0.9rem;
     box-sizing: border-box;
@@ -204,7 +204,7 @@
   .compare-btn {
     padding: 12px 32px;
     background: var(--primary, #3b82f6);
-    color: #fff;
+    color: var(--text-inverse);
     border: none;
     border-radius: 8px;
     font-weight: 600;
@@ -214,16 +214,16 @@
     opacity: 0.6;
   }
   .result-section {
-    background: #fff;
+    background: var(--bg-card);
     padding: 20px;
     border-radius: 8px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--border-default);
   }
   .compare-info {
-    background: #fff;
+    background: var(--bg-card);
     padding: 20px;
     border-radius: 8px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--border-default);
     color: #64748b;
   }
   .compare-info p {

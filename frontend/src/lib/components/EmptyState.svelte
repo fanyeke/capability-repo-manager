@@ -57,7 +57,7 @@
   .empty-action {
     padding: 6px 16px;
     background: var(--color-primary);
-    color: #fff;
+    color: var(--text-inverse);
     border: none;
     border-radius: var(--radius-md);
     font-size: var(--font-size-sm);
